@@ -47,6 +47,18 @@ export function byId(id: string): Champion | undefined {
   return CHAMPIONS.find((c) => c.id === id)
 }
 
+// ---- Replik modu sesleri (CommunityDragon, Türkçe seslendirme) ----
+
+const CDRAGON = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/tr_tr/v1'
+
+/**
+ * Şampiyon seçme / yasaklama replikleri — 173/173 şampiyon için TR sesi doğrulandı (2026-07-20).
+ * `key` ddragon'daki sayısal ID; CDragon aynı numarayı kullanıyor.
+ */
+export function voiceUrl(key: number, kind: 'ban' | 'choose'): string {
+  return `${CDRAGON}/champion-${kind}-vo/${key}.ogg`
+}
+
 // ---- Emoji modu ----
 
 /** Elle yazılan emoji ipuçları — ddragon'da böyle bir veri yok */

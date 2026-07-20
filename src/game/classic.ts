@@ -29,13 +29,15 @@ function compareScalar(a: string, b: string): CellResult {
   return a === b ? 'correct' : 'wrong'
 }
 
-export function evaluateGuess(guess: Champion, target: Champion): ClassicRow {
+export function evaluateGuess(guess: Champion, target: Champion, showPartial = true): ClassicRow {
   const yearCell: CellResult = guess.year === target.year ? 'correct' : 'wrong'
+  // Aşırı Zor: kısmi eşleşme gizlenir — sarı hücreler "yanlış" gibi görünür
+  const hide = (c: CellResult): CellResult => (!showPartial && c === 'partial' ? 'wrong' : c)
   return {
     champion: guess,
     cells: {
       gender: compareScalar(guess.gender, target.gender),
-      lanes: compareList(guess.lanes, target.lanes),
+      lanes: hide(compareList(guess.lanes, target.lanes)),
       resource: compareScalar(guess.resource, target.resource),
       rangeType: compareScalar(guess.rangeType, target.rangeType),
       region: compareScalar(guess.region, target.region),

@@ -35,8 +35,18 @@ export interface ChampionData {
 /** Üst mod: nasıl oynanıyor */
 export type TopMode = 'endless' | 'daily' | 'timed'
 
+/** Zorluk: Sınırsız ve Zamana Karşı'da geçerli (Günlük her zaman normal) */
+export type Difficulty = 'easy' | 'normal' | 'hard' | 'insane'
+
+export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
+  { id: 'easy', name: 'Kolay' },
+  { id: 'normal', name: 'Normal' },
+  { id: 'hard', name: 'Zor' },
+  { id: 'insane', name: 'Aşırı Zor' },
+]
+
 /** Alt mod: ne tahmin ediliyor */
-export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji'
+export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote'
 
 export const TOP_MODES: { id: TopMode; name: string; desc: string; icon: string }[] = [
   { id: 'endless', name: 'Sınırsız', desc: 'Arka arkaya oyna, bekleme yok', icon: '∞' },
@@ -50,4 +60,5 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string 
   { id: 'splash', name: 'Görsel', desc: 'Kırpılmış görselden şampiyonu bul', icon: '🖼' },
   { id: 'skin', name: 'Kostüm', desc: 'Görselden kostümün adını bul', icon: '🎭' },
   { id: 'emoji', name: 'Emoji', desc: 'Emoji ipuçlarından şampiyonu bul', icon: '😀' },
+  { id: 'quote', name: 'Replik', desc: 'Sesinden şampiyonu bul', icon: '🔊' },
 ]

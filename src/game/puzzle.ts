@@ -9,6 +9,7 @@ export interface Puzzle {
   skin?: Skin // skin modunda hedef kostüm
   spellIndex?: number // ability: 0=Pasif, 1..4=Q W E R
   crop?: { x: number; y: number } // splash: odak noktası (%)
+  splashNum?: number // splash: hangi kostümün görseli (0 = temel)
 }
 
 /** Skin havuzu: "champId:num" anahtarları (kararlı sıra — günlük mod için önemli) */
@@ -16,6 +17,16 @@ function skinPool(): string[] {
   const keys: string[] = []
   for (const c of CHAMPIONS) for (const s of c.skins) keys.push(`${c.id}:${s.num}`)
   return keys
+}
+
+/**
+ * Görsel modu için kostüm seçer. Bazı kostümler şampiyonu tanınmaz hale getirir
+ * (Ay Kızı Diana ile Kan Ayı Diana bambaşka), o yüzden temel görsele ağırlık verilir:
+ * yarı yarıya temel, yarı yarıya rastgele kostüm.
+ */
+function pickSplashNum(c: Champion, rand: () => number): number {
+  if (rand() < 0.5 || !c.skins.length) return 0
+  return c.skins[Math.floor(rand() * c.skins.length)]?.num ?? 0
 }
 
 function resolveSkin(key: string): { champion: Champion; skin: Skin } {
@@ -51,7 +62,13 @@ export function nextPuzzle(top: TopMode, sub: SubMode): Puzzle {
   }
   if (sub === 'splash') {
     // Kırpma odağı: kenarlardan uzak dur (%20–80) — genelde karakter ortada
-    return { sub, champion, crop: { x: 20 + cryptoRandInt(61), y: 20 + cryptoRandInt(61) } }
+    // Görsel havuzuna kostümler de dahil: aynı şampiyon tekrar gelse bile başka görsel çıkar
+    return {
+      sub,
+      champion,
+      splashNum: pickSplashNum(champion, () => cryptoRandInt(1000) / 1000),
+      crop: { x: 20 + cryptoRandInt(61), y: 20 + cryptoRandInt(61) },
+    }
   }
   return { sub, champion }
 }
@@ -74,7 +91,12 @@ function dailyPuzzle(sub: SubMode): Puzzle {
     return { sub, champion, spellIndex: Math.floor(rng() * 5) }
   }
   if (sub === 'splash') {
-    return { sub, champion, crop: { x: 20 + Math.floor(rng() * 61), y: 20 + Math.floor(rng() * 61) } }
+    return {
+      sub,
+      champion,
+      splashNum: pickSplashNum(champion, rng), // tarihten türeyen rng: herkeste aynı görsel
+      crop: { x: 20 + Math.floor(rng() * 61), y: 20 + Math.floor(rng() * 61) },
+    }
   }
   return { sub, champion }
 }

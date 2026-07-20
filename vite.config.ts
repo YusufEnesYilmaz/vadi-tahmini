@@ -37,6 +37,17 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            // Replik modu sesleri (CommunityDragon) — dinlenen klip bir daha inmesin
+            urlPattern: /^https:\/\/raw\.communitydragon\.org\/.*\.ogg$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cdragon-vo',
+              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true, // ses için kısmi istek desteği
+            },
+          },
         ],
       },
     }),

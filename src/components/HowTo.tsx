@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { SUB_MODES, type SubMode } from '../game/types'
+import DifficultyTable from './DifficultyTable'
 
 interface Props {
   sub?: SubMode // oyun içinden açıldıysa o modun anlatımı öne çıkar
@@ -17,6 +18,7 @@ const MODE_HOWTO: Record<SubMode, string> = {
   ability: 'Ekrandaki yetenek ikonunun hangi şampiyona ait olduğunu bul. Bildikten sonra bir bonus soru gelir: bu yetenek hangi tuşta? (Pasif / Q / W / E / R)',
   splash: 'Splash art’ın küçük bir parçasıyla başlarsın. Her yanlış tahminde görsel biraz daha açılır.',
   skin: 'Görseldeki kostümün adını bul — şampiyonu değil. Üç yanlıştan sonra şampiyon adı ipucu olarak verilir.',
+  quote: 'Şampiyonun Türkçe seslendirmesini dinle ve kimin konuştuğunu bul. Sesin açık olmalı. İlk klip yasaklanma repliği; iki yanlıştan sonra seçilme repliği de açılır.',
   emoji: 'Şampiyonu anlatan emojilerden bul. Tek emojiyle başlarsın, her yanlış tahminde bir tanesi daha açılır — sondakiler en belirgin ipuçlarıdır.',
 }
 
@@ -87,6 +89,17 @@ export default function HowTo({ sub, onClose }: Props) {
             </div>
           </>
         )}
+
+        <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+          Zorluk
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+          Sınırsız ve Zamana Karşı'da <b style={{ color: 'var(--text)' }}>Kolay / Normal / Zor / Aşırı Zor</b> seçebilirsin.
+          İstatistikler ve rekorlar her seviye için ayrı tutulur. Günlük'te zorluk yoktur — herkes aynı şartlarda oynar.
+        </p>
+        <div className="mt-3">
+          <DifficultyTable />
+        </div>
 
         <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
           Modlar

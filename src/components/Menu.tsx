@@ -1,17 +1,29 @@
 import { useState } from 'react'
 import { PATCH } from '../game/data'
+import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getBestScore, getDailyState, getStats } from '../game/stats'
-import { SUB_MODES, TOP_MODES, type SubMode, type TopMode } from '../game/types'
+import { DIFFICULTIES, SUB_MODES, TOP_MODES, type Difficulty, type SubMode, type TopMode } from '../game/types'
+import DailyPanel from './DailyPanel'
+import DifficultyTable from './DifficultyTable'
 import HowTo from './HowTo'
+import Stats from './Stats'
 
 interface Props {
-  onPlay: (top: TopMode, sub: SubMode) => void
+  onPlay: (top: TopMode, sub: SubMode, diff: Difficulty) => void
   onSettings: () => void
 }
 
 export default function Menu({ onPlay, onSettings }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [howTo, setHowTo] = useState(false)
+  const [stats, setStats] = useState(false)
+  const [diffInfo, setDiffInfo] = useState(false)
+  const [diff, setDiff] = useState<Difficulty>(getDifficulty)
+
+  function pickDifficulty(d: Difficulty) {
+    setDiff(d)
+    saveDifficulty(d) // tercih hatırlansın
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-4 pb-10 pt-12">
@@ -37,12 +49,16 @@ export default function Menu({ onPlay, onSettings }: Props) {
               </span>
             </button>
           ))}
-          <div className="mt-2 flex gap-3">
-            <button onClick={() => setHowTo(true)} className="card-btn flex-1 rounded-xl border p-3 text-sm"
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <button onClick={() => setHowTo(true)} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-              ❓ Nasıl oynanır
+              ❓ Nasıl
             </button>
-            <button onClick={onSettings} className="card-btn flex-1 rounded-xl border p-3 text-sm"
+            <button onClick={() => setStats(true)} className="card-btn rounded-xl border p-3 text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+              📊 İstatistik
+            </button>
+            <button onClick={onSettings} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               ⚙ Ayarlar
             </button>
@@ -57,19 +73,56 @@ export default function Menu({ onPlay, onSettings }: Props) {
           <h2 className="text-center text-lg font-bold" style={{ color: 'var(--gold)' }}>
             {TOP_MODES.find((m) => m.id === top)!.name} — ne tahmin edeceksin?
           </h2>
+
+          {top === 'daily' && <DailyPanel />}
+
+          {/* Zorluk şeridi — Günlük'te yok: herkes aynı şartlarda oynamalı */}
+          {top !== 'daily' && (
+            <div>
+              <div className="flex w-full overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+                {DIFFICULTIES.map((d) => (
+                  <button key={d.id} onClick={() => pickDifficulty(d.id)}
+                    className="flex-1 px-1 py-2 text-xs font-bold transition-colors sm:text-sm"
+                    style={{
+                      background: diff === d.id ? 'var(--gold)' : 'transparent',
+                      color: diff === d.id ? '#0a0e1a' : 'var(--text-dim)',
+                    }}>
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
+                {top === 'timed'
+                  ? `İpuçları ve süre değişir (${RULES[diff].timedSeconds} sn) · skorlar seviye başına ayrı`
+                  : 'İpuçlarının ne zaman açıldığını belirler · istatistikler seviye başına ayrı'}
+              </p>
+              <button onClick={() => setDiffInfo((v) => !v)}
+                className="mx-auto mt-1 block text-xs underline underline-offset-2"
+                style={{ color: 'var(--gold)' }}>
+                {diffInfo ? 'Karşılaştırmayı gizle' : 'Seviyeler ne değiştiriyor?'}
+              </button>
+              {diffInfo && (
+                <div className="anim-pop mt-2 rounded-xl border p-3"
+                  style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
+                  <DifficultyTable />
+                </div>
+              )}
+            </div>
+          )}
+
           {SUB_MODES.map((m) => {
             const dailyDone = top === 'daily' && getDailyState(m.id).done
-            const stats = getStats(top, m.id)
+            const stats = getStats(top, m.id, diff)
             const info =
               top === 'timed'
-                ? `En iyi: ${getBestScore(m.id)}`
+                ? `En iyi: ${getBestScore(m.id, diff)}`
                 : top === 'daily' && dailyDone
                   ? '✓ Bugün tamamlandı'
                   : stats.played > 0
                     ? `Seri: ${stats.currentStreak}`
                     : ''
             return (
-              <button key={m.id} onClick={() => onPlay(top, m.id)}
+              <button key={m.id} onClick={() => onPlay(top, m.id, diff)}
                 className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
                 style={{
                   background: 'var(--bg-card)',
@@ -92,6 +145,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
       </footer>
 
       {howTo && <HowTo onClose={() => setHowTo(false)} />}
+      {stats && <Stats initialDifficulty={diff} onClose={() => setStats(false)} />}
     </div>
   )
 }

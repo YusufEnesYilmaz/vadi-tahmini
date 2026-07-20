@@ -2,11 +2,11 @@ import { useState } from 'react'
 import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
-import type { SubMode, TopMode } from './game/types'
+import type { Difficulty, SubMode, TopMode } from './game/types'
 
 type Screen =
   | { name: 'menu' }
-  | { name: 'game'; top: TopMode; sub: SubMode }
+  | { name: 'game'; top: TopMode; sub: SubMode; diff: Difficulty }
   | { name: 'settings' }
 
 export default function App() {
@@ -15,9 +15,10 @@ export default function App() {
   if (screen.name === 'game') {
     return (
       <GameScreen
-        key={`${screen.top}:${screen.sub}`}
+        key={`${screen.top}:${screen.sub}:${screen.diff}`}
         top={screen.top}
         sub={screen.sub}
+        diff={screen.diff}
         onExit={() => setScreen({ name: 'menu' })}
       />
     )
@@ -27,7 +28,7 @@ export default function App() {
   }
   return (
     <Menu
-      onPlay={(top, sub) => setScreen({ name: 'game', top, sub })}
+      onPlay={(top, sub, diff) => setScreen({ name: 'game', top, sub, diff })}
       onSettings={() => setScreen({ name: 'settings' })}
     />
   )

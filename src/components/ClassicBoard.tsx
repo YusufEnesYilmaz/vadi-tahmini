@@ -22,7 +22,7 @@ function Cell({ result, children }: { result: keyof typeof CELL_BG; children: Re
 }
 
 /** Classic modu tahmin tablosu — en yeni tahmin üstte */
-export default function ClassicBoard({ rows }: { rows: ClassicRow[] }) {
+export default function ClassicBoard({ rows, yearArrow = true }: { rows: ClassicRow[]; yearArrow?: boolean }) {
   if (!rows.length) return null
   return (
     <div className="w-full min-w-0">
@@ -48,8 +48,9 @@ export default function ClassicBoard({ rows }: { rows: ClassicRow[] }) {
                 <Cell result={r.cells.region}>{r.champion.region}</Cell>
                 <Cell result={r.cells.year}>
                   {r.champion.year}
-                  {r.yearHint === 'earlier' && ' ↓'}
-                  {r.yearHint === 'later' && ' ↑'}
+                  {/* Zor ve üstünde ok yok: "daha eski mi yeni mi" bilgisi kalkıyor */}
+                  {yearArrow && r.yearHint === 'earlier' && ' ↓'}
+                  {yearArrow && r.yearHint === 'later' && ' ↑'}
                 </Cell>
               </div>
             ))}

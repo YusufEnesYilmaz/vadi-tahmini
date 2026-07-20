@@ -4,7 +4,8 @@ import { byId, CHAMPIONS, squareUrl } from '../game/data'
 import { nextPuzzle, type Puzzle } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { getBestScore, getDailyState, recordGame, recordScore, saveDailyState, getStats } from '../game/stats'
-import { SUB_MODES, TOP_MODES, type SubMode, type TopMode } from '../game/types'
+import { rulesFor } from '../game/difficulty'
+import { DIFFICULTIES, SUB_MODES, TOP_MODES, type Difficulty, type SubMode, type TopMode } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import ClassicBoard from './ClassicBoard'
 import HowTo from './HowTo'
@@ -13,10 +14,9 @@ import PuzzleView from './PuzzleView'
 interface Props {
   top: TopMode
   sub: SubMode
+  diff: Difficulty
   onExit: () => void
 }
-
-const TIMED_SECONDS = 60
 
 /** Yetenek bonusu: 0=Pasif, 1..4 = Q W E R (puzzle.spellIndex ile aynı sıra) */
 const SLOT_LABELS = ['Pasif', 'Q', 'W', 'E', 'R']
@@ -42,9 +42,11 @@ function answerLabel(puzzle: Puzzle): string {
   return puzzle.sub === 'skin' ? `${puzzle.skin?.name}` : puzzle.champion.name
 }
 
-export default function GameScreen({ top, sub, onExit }: Props) {
+export default function GameScreen({ top, sub, diff, onExit }: Props) {
   const daily = top === 'daily'
   const timed = top === 'timed'
+  const rules = rulesFor(top, diff)
+  const TIMED_SECONDS = rules.timedSeconds
 
   const [puzzle, setPuzzle] = useState<Puzzle | null>(() => (timed ? null : nextPuzzle(top, sub)))
   const [guesses, setGuesses] = useState<string[]>(() => (daily ? getDailyState(sub).guesses : []))
@@ -70,9 +72,9 @@ export default function GameScreen({ top, sub, onExit }: Props) {
     return guesses
       .map((id) => byId(id))
       .filter((c): c is NonNullable<typeof c> => !!c)
-      .map((c) => evaluateGuess(c, puzzle.champion))
+      .map((c) => evaluateGuess(c, puzzle.champion, rules.showPartial))
       .reverse() // en yeni üstte
-  }, [guesses, puzzle, sub])
+  }, [guesses, puzzle, sub, rules.showPartial])
 
   const finished = won || timedOver
 
@@ -98,8 +100,8 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
   // Zamana Karşı bitti → rekor kaydet (kayıt sonrası "En iyi" güncel görünsün diye state'e al)
   useEffect(() => {
-    if (timedOver) setWasRecord(recordScore(sub, score))
-  }, [timedOver, sub, score])
+    if (timedOver) setWasRecord(recordScore(sub, diff, score))
+  }, [timedOver, sub, diff, score])
 
   function handleGuess(key: string) {
     if (!puzzle || finished) return
@@ -121,7 +123,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
     if (correct) {
       setWon(true)
-      recordGame(top, sub, true, newGuesses.length)
+      recordGame(top, sub, diff, true, newGuesses.length)
     }
     if (daily) {
       saveDailyState(sub, { date: getDailyState(sub).date, guesses: newGuesses, done: correct, won: correct })
@@ -171,7 +173,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
   const topName = TOP_MODES.find((m) => m.id === top)!.name
   const subName = SUB_MODES.find((m) => m.id === sub)!.name
-  const stats = getStats(top, sub)
+  const stats = getStats(top, sub, diff)
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-3 pb-10">
@@ -189,7 +191,14 @@ export default function GameScreen({ top, sub, onExit }: Props) {
             ?
           </button>
         </div>
-        <span className="truncate text-sm font-semibold sm:text-base" style={{ color: 'var(--gold)' }}>{topName} · {subName}</span>
+        <span className="min-w-0 truncate text-center text-sm font-semibold sm:text-base" style={{ color: 'var(--gold)' }}>
+          {topName} · {subName}
+          {!daily && (
+            <span className="block text-[11px] font-normal" style={{ color: 'var(--text-dim)' }}>
+              {DIFFICULTIES.find((d) => d.id === diff)!.name}
+            </span>
+          )}
+        </span>
         {timed && puzzle && !timedOver ? (
           <span className={`rounded-lg px-3 py-1.5 font-mono text-lg font-bold ${timeLeft <= 10 ? 'anim-pulse' : ''}`}
             style={{ background: timeLeft <= 10 ? 'var(--danger)' : 'var(--bg-card)', color: '#fff' }}>
@@ -211,7 +220,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
             {TIMED_SECONDS} saniyede kaç tane bilebilirsin?<br />
             Bilemediğini "Pas" ile geçebilirsin.
           </p>
-          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub)}</b></p>
+          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub, diff)}</b></p>
           <button onClick={startTimed} className="card-btn rounded-xl px-8 py-3 text-lg font-bold"
             style={{ background: 'var(--gold)', color: '#0a0e1a' }}>
             Başla
@@ -227,7 +236,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
           {wasRecord && (
             <p className="font-semibold" style={{ color: 'var(--gold)' }}>🏆 Yeni rekor!</p>
           )}
-          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi: {getBestScore(sub)}</p>
+          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi: {getBestScore(sub, diff)}</p>
           <div className="flex gap-3">
             <button onClick={startTimed} className="card-btn rounded-xl px-6 py-3 font-bold"
               style={{ background: 'var(--gold)', color: '#0a0e1a' }}>
@@ -253,7 +262,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
           )}
 
           {sub !== 'classic' && (
-            <PuzzleView puzzle={puzzle} wrongCount={guesses.length} revealed={won} hideSlot={awaitingSlot} />
+            <PuzzleView puzzle={puzzle} wrongCount={guesses.length} revealed={won} rules={rules} hideSlot={awaitingSlot} />
           )}
 
           {/* Yetenek bonusu: şampiyon bilindi, sıra tuşta */}
@@ -335,7 +344,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
           )}
 
           {/* Classic tablo */}
-          {sub === 'classic' && <ClassicBoard rows={rows} />}
+          {sub === 'classic' && <ClassicBoard rows={rows} yearArrow={rules.yearArrow} />}
 
           {/* Diğer modlarda yanlış tahmin listesi */}
           {sub !== 'classic' && guesses.length > 0 && (

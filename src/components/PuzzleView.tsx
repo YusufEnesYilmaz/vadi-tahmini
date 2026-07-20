@@ -1,15 +1,24 @@
 import type { Puzzle } from '../game/puzzle'
 import { EMOJI, passiveUrl, spellUrl, splashUrl } from '../game/data'
+import type { DiffRules } from '../game/difficulty'
+import QuoteView from './QuoteView'
 
 interface Props {
   puzzle: Puzzle
   wrongCount: number
   revealed: boolean // oyun bitti mi (tam görsel + cevap gösterilir)
+  rules: DiffRules // ipucu takvimi zorluktan gelir
   hideSlot?: boolean // yetenek bonusu beklerken tuş bilgisini gizle
 }
 
+/** kaçıncı yanlışta açılacağı `at`; null ise hiç açılmaz */
+function unlocked(at: number | null, wrongCount: number, revealed: boolean): boolean {
+  if (revealed) return true
+  return at !== null && wrongCount >= at
+}
+
 /** Yetenek / Görsel / Kostüm modlarının soru alanı (Classic'in tablosu ayrı) */
-export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: Props) {
+export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSlot }: Props) {
   if (puzzle.sub === 'ability') {
     const idx = puzzle.spellIndex ?? 0
     const isPassive = idx === 0
@@ -26,19 +35,32 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: P
           style={{ borderColor: 'var(--gold)', imageRendering: 'pixelated' }}
         />
         <div className="flex min-h-6 flex-col items-center gap-1 text-sm" style={{ color: 'var(--text-dim)' }}>
-          {(revealed || wrongCount >= 3) && <span>Yetenek adı: <b style={{ color: 'var(--gold)' }}>{name}</b></span>}
+          {unlocked(rules.abilityNameAt, wrongCount, revealed) && (
+            <span>Yetenek adı: <b style={{ color: 'var(--gold)' }}>{name}</b></span>
+          )}
           {/* Tuş artık ipucu değil bonus soru — bonus cevaplanmadan gösterilmez */}
           {revealed && !hideSlot && <span>Tuş: <b style={{ color: 'var(--gold)' }}>{slot}</b></span>}
-          {!revealed && wrongCount < 3 && <span>İpucu: 3 yanlışta yetenek adı</span>}
+          {!revealed && !unlocked(rules.abilityNameAt, wrongCount, false) && (
+            <span>
+              {rules.abilityNameAt === null
+                ? 'Bu zorlukta ipucu yok'
+                : `İpucu: ${rules.abilityNameAt} yanlışta yetenek adı`}
+            </span>
+          )}
         </div>
       </div>
     )
   }
 
+  if (puzzle.sub === 'quote') {
+    return <QuoteView champion={puzzle.champion} wrongCount={wrongCount} revealed={revealed} rules={rules} />
+  }
+
   if (puzzle.sub === 'emoji') {
     const all = EMOJI[puzzle.champion.id] ?? []
-    // Baştan tek emoji açık, her yanlışta bir tane daha (sıra belirsizden belirgine)
-    const shown = revealed ? all.length : Math.min(all.length, 1 + wrongCount)
+    // Kaç tanesi açık: zorluğa göre başlangıç + kaç yanlışta bir yenisi
+    const extra = rules.emojiStep > 0 ? Math.floor(wrongCount / rules.emojiStep) : 0
+    const shown = revealed ? all.length : Math.min(all.length, rules.emojiStart + extra)
     return (
       <div className="flex flex-col items-center gap-3">
         <div className="flex flex-wrap justify-center gap-2">
@@ -57,24 +79,30 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: P
           ))}
         </div>
         <div className="min-h-5 text-sm" style={{ color: 'var(--text-dim)' }}>
-          {shown < all.length
-            ? <span>İpucu: her yanlışta bir emoji daha açılır</span>
-            : <span>Bütün ipuçları açık</span>}
+          {shown >= all.length ? (
+            <span>Bütün ipuçları açık</span>
+          ) : rules.emojiStep === 0 ? (
+            <span>Bu zorlukta yeni emoji açılmaz</span>
+          ) : rules.emojiStep === 1 ? (
+            <span>İpucu: her yanlışta bir emoji daha açılır</span>
+          ) : (
+            <span>İpucu: her {rules.emojiStep} yanlışta bir emoji daha açılır</span>
+          )}
         </div>
       </div>
     )
   }
 
   if (puzzle.sub === 'splash') {
-    // Her yanlışta uzaklaş: 500% → 150%; bitince tam görsel
-    const zoom = Math.max(150, 500 - wrongCount * 70)
+    // Her yanlışta uzaklaş; başlangıç ve adım zorluktan gelir, bitince tam görsel
+    const zoom = Math.max(150, rules.zoomStart - wrongCount * rules.zoomStep)
     const crop = puzzle.crop ?? { x: 50, y: 50 }
     return (
       <div
         className="aspect-video w-full max-w-[260px] overflow-hidden rounded-xl border"
         style={{
           borderColor: 'var(--border)',
-          backgroundImage: `url(${splashUrl(puzzle.champion.id, 0)})`,
+          backgroundImage: `url(${splashUrl(puzzle.champion.id, puzzle.splashNum ?? 0)})`,
           backgroundSize: revealed ? 'cover' : `${zoom}%`,
           backgroundPosition: revealed ? 'center' : `${crop.x}% ${crop.y}%`,
           transition: 'background-size 0.5s ease',
@@ -86,7 +114,8 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: P
   }
 
   // Kostüm modu: kırpık gösterilir (tamamı görünürse çok kolay) — her yanlışta açılır
-  const zoom = Math.max(150, 700 - wrongCount * 90)
+  // Kostüm başlangıçta biraz daha yakın: görselde şampiyon yerine kostüm aranıyor
+  const zoom = Math.max(150, rules.zoomStart + 200 - wrongCount * (rules.zoomStep + 20))
   const crop = puzzle.crop ?? { x: 50, y: 50 }
   return (
     <div className="flex w-full max-w-[260px] flex-col items-center gap-2">
@@ -103,10 +132,12 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: P
         aria-label="Kostüm görseli parçası"
       />
       <div className="min-h-5 text-sm" style={{ color: 'var(--text-dim)' }}>
-        {(revealed || wrongCount >= 3) ? (
+        {unlocked(rules.skinChampionAt, wrongCount, revealed) ? (
           <span>Şampiyon: <b style={{ color: 'var(--gold)' }}>{puzzle.champion.name}</b></span>
+        ) : rules.skinChampionAt === null ? (
+          <span>Bu zorlukta ipucu yok</span>
         ) : (
-          <span>İpucu: 3 yanlışta şampiyon adı</span>
+          <span>İpucu: {rules.skinChampionAt} yanlışta şampiyon adı</span>
         )}
       </div>
     </div>
