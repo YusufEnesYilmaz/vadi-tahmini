@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
 import { byId, CHAMPIONS, squareUrl } from '../game/data'
 import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
@@ -8,7 +8,8 @@ import { challengeUrl, getNick, recordChallengeWin, setNick, type Challenge } fr
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
-import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
+import { playCorrect, playLose, playWin, playWrong, playAchievement } from '../game/sfx'
+import { evaluateAchievements, recordChampWin, type EarnedAchievement } from '../game/achievements'
 import { DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta, type Difficulty, type PlaySub, type SubMode, type TopMode } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import ClassicBoard from './ClassicBoard'
@@ -87,6 +88,28 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   const [chSeed, setChSeed] = useState(0) // bu turun seed'i (paylaşım için)
   const [chResultWin, setChResultWin] = useState<boolean | null>(null) // meydan okuma sonucu
 
+  // Rozet toast kuyruğu
+  const [achToasts, setAchToasts] = useState<EarnedAchievement[]>([])
+  const achTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  /** Rozetleri kontrol et, yeni kazanılanları toast kuyruğuna ekle */
+  const checkAchievements = useCallback(() => {
+    const newOnes = evaluateAchievements()
+    if (newOnes.length > 0) {
+      playAchievement()
+      setAchToasts((prev) => [...prev, ...newOnes])
+    }
+  }, [])
+
+  // Toast kuyruğu: her 2.5 sn'de birini sil (kuyruklu gösterim)
+  useEffect(() => {
+    if (achToasts.length === 0) return
+    achTimerRef.current = setTimeout(() => {
+      setAchToasts((prev) => prev.slice(1))
+    }, 2500)
+    return () => { if (achTimerRef.current) clearTimeout(achTimerRef.current) }
+  }, [achToasts])
+
   /** Zamana Karşı seed'li akıştan, diğer modlar desteden çeker */
   function drawNext(): Puzzle {
     if (timed && streamRef.current) return streamRef.current.next()
@@ -159,6 +182,8 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
       setChResultWin(win)
       if (win) recordChallengeWin()
     }
+    // Rozetleri kontrol et (kayıtlardan sonra)
+    setTimeout(checkAchievements, 50)
   }, [timedOver, sub, diff, score, bestCombo, combo, awaitingSlot, challenge])
 
   /**
@@ -208,6 +233,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
     if (timed) {
       if (correct) {
         playCorrect()
+        recordChampWin(puzzle.champion.id)
         setAnnounce(`Doğru: ${answerLabel(puzzle)}. Skor ${score + 1}.`)
         // Yetenek modunda tur bonus sorusuyla biter — skor ve seri orada işlenir
         if (bonusMode) { setWon(true); return }
@@ -223,8 +249,13 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
 
     const ranOut = !correct && newGuesses.length >= rules.maxGuesses
     if (correct || ranOut) {
-      if (correct) setWon(true)
+      if (correct) {
+        setWon(true)
+        recordChampWin(puzzle.champion.id)
+      }
       recordGame(top, sub, diff, correct, newGuesses.length)
+      // Kayıttan sonra rozetleri kontrol et
+      setTimeout(checkAchievements, 50)
     }
 
     // Ekran okuyucu için: sonuç ve kalan hak sesli okunur
@@ -670,7 +701,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
                 autoFocus
               />
               {timed && (
-                <button onClick={() => { setCombo(0); setGuesses([]); setPuzzle(nextPuzzle(top, sub)) }}
+                <button onClick={() => { setCombo(0); setGuesses([]); setPuzzle(drawNext()) }}
                   className="card-btn shrink-0 rounded-xl border px-4 py-3 text-sm font-semibold"
                   style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}
                   title="Seriyi sıfırlar">
@@ -704,6 +735,23 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
       )}
 
       {howTo && <HowTo sub={activeSub} onClose={() => setHowTo(false)} />}
+
+      {/* Rozet toast kuyruğu — sağ üstte sabit */}
+      {achToasts.length > 0 && (
+        <div className="fixed right-3 top-3 z-[60] flex flex-col gap-2" style={{ maxWidth: 280 }}>
+          {achToasts.map((ea, i) => (
+            <div key={`${ea.ach.id}-${i}`}
+              className="anim-pop flex items-center gap-2 rounded-xl border px-3 py-2 shadow-lg"
+              style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)', color: 'var(--text)' }}>
+              <span className="text-2xl">{ea.ach.icon}</span>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-bold" style={{ color: 'var(--gold-bright)' }}>{ea.ach.name}</div>
+                <div className="truncate text-xs" style={{ color: 'var(--text-dim)' }}>{ea.ach.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

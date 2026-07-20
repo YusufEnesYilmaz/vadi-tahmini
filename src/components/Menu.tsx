@@ -7,6 +7,7 @@ import DailyPanel from './DailyPanel'
 import DifficultyTable from './DifficultyTable'
 import HowTo from './HowTo'
 import Stats from './Stats'
+import Achievements from './Achievements'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty) => void
@@ -17,6 +18,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [howTo, setHowTo] = useState(false)
   const [stats, setStats] = useState(false)
+  const [achievements, setAchievements] = useState(false)
   const [diffInfo, setDiffInfo] = useState(false)
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
 
@@ -52,7 +54,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
               </button>
             ))}
           </div>
-          <div className="mt-2 grid grid-cols-3 gap-2">
+          <div className="mt-2 grid grid-cols-4 gap-2">
             <button onClick={() => setHowTo(true)} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               ❓ Nasıl
@@ -60,6 +62,10 @@ export default function Menu({ onPlay, onSettings }: Props) {
             <button onClick={() => setStats(true)} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               📊 İstatistik
+            </button>
+            <button onClick={() => setAchievements(true)} className="card-btn rounded-xl border p-3 text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+              🏆 Başarım
             </button>
             <button onClick={onSettings} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
@@ -174,6 +180,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
 
       {howTo && <HowTo onClose={() => setHowTo(false)} />}
       {stats && <Stats initialDifficulty={diff} onClose={() => setStats(false)} />}
+      {achievements && <Achievements onClose={() => setAchievements(false)} />}
     </div>
   )
 }

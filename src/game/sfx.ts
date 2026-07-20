@@ -72,3 +72,11 @@ export function playLose() {
   tone(300, 0, 0.18, 'triangle', 0.14)
   tone(200, 0.15, 0.32, 'triangle', 0.14)
 }
+
+/** Rozet kazanıldığında kısa bir fanfar — playWin'den ayrışsın diye farklı notalar */
+export function playAchievement() {
+  if (!sfxEnabled()) return
+  tone(880, 0, 0.1, 'sine', 0.12)
+  tone(1108.73, 0.1, 0.1, 'sine', 0.12)
+  tone(1318.51, 0.2, 0.28, 'sine', 0.14)
+}

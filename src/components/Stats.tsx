@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getStats, isStreakAlive } from '../game/stats'
+
 import {
   DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
   type Difficulty, type PlaySub, type TopMode,
