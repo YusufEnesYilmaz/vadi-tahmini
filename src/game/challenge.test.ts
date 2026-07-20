@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { encodeChallenge, parseChallenge, type Challenge } from './challenge'
 import { createTimedStream } from './puzzle'
+import { champOf } from '../test/helpers'
 
 describe('meydan okuma payload', () => {
-  const sample: Challenge = { seed: 3141592653, sub: 'mix', diff: 'hard', score: 12, combo: 5, nick: 'Ahmet Çğş' }
+  const sample: Challenge = { seed: 3141592653, sub: 'mix', diff: 'hard', score: 12, combo: 5, nick: 'Ahmet Çğş', filter: 'region:Noxus' }
 
   it('encode → parse gidiş-dönüş korunur (Türkçe ad dahil)', () => {
     const c = parseChallenge(encodeChallenge(sample))
@@ -16,6 +17,14 @@ describe('meydan okuma payload', () => {
     expect(parseChallenge('')).toBeNull()
     expect(parseChallenge(btoa('{"v":99}'))).toBeNull() // yanlış sürüm
     expect(parseChallenge(btoa('{"v":1,"m":"olmayan"}'))).toBeNull() // geçersiz mod
+  })
+
+  it('filtre alanı olmayan ESKİ linkler hâlâ çalışır (tüm havuz varsayılır)', () => {
+    // Filtre özelliğinden önce üretilmiş payload — `f` alanı yok
+    const eski = btoa(JSON.stringify({ v: 1, s: 42, m: 'ability', d: 'normal', sc: 7, cb: 2, n: 'Eski' }))
+    const c = parseChallenge(eski)
+    expect(c).not.toBeNull()
+    expect(c!.filter).toBe('all')
   })
 
   it('negatif/ondalık skorlar temizlenir', () => {
@@ -34,19 +43,16 @@ describe('seed determinizmi (meydan okumanın temeli)', () => {
       const pa = a.next()
       const pb = b.next()
       expect(pa.sub).toBe(pb.sub)
-      expect(pa.champion.id).toBe(pb.champion.id)
-      expect(pa.spellIndex).toBe(pb.spellIndex)
-      expect(pa.skin?.num).toBe(pb.skin?.num)
-      expect(pa.crop).toEqual(pb.crop)
-      expect(pa.splashNum).toBe(pb.splashNum)
+      // Tüm alanlarıyla karşılaştır: eşya/şampiyon dalı fark etmeksizin birebir aynı olmalı
+      expect(pa).toEqual(pb)
     }
   })
 
   it('farklı seed → farklı dizi (neredeyse kesin)', () => {
     const a = createTimedStream(1, 'ability')
     const b = createTimedStream(2, 'ability')
-    const seqA = Array.from({ length: 10 }, () => a.next().champion.id)
-    const seqB = Array.from({ length: 10 }, () => b.next().champion.id)
+    const seqA = Array.from({ length: 10 }, () => champOf(a.next()).id)
+    const seqB = Array.from({ length: 10 }, () => champOf(b.next()).id)
     expect(seqA).not.toEqual(seqB)
   })
 

@@ -12,6 +12,8 @@ export interface Challenge {
   score: number
   combo: number
   nick: string
+  /** Havuz filtresi anahtarı ("all" / "region:Noxus") — iki oyuncu aynı havuzdan oynasın */
+  filter: string
 }
 
 const VERSION = 1
@@ -35,7 +37,7 @@ function fromBase64Url(s: string): Uint8Array {
 
 export function encodeChallenge(c: Challenge): string {
   // Kısa anahtarlar: link kısa kalsın
-  const payload = { v: VERSION, s: c.seed >>> 0, m: c.sub, d: c.diff, sc: c.score, cb: c.combo, n: c.nick }
+  const payload = { v: VERSION, s: c.seed >>> 0, m: c.sub, d: c.diff, sc: c.score, cb: c.combo, n: c.nick, f: c.filter }
   return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
 }
 
@@ -55,6 +57,8 @@ export function parseChallenge(code: string): Challenge | null {
       score: Math.max(0, Math.floor(p.sc)),
       combo: Math.max(0, Math.floor(p.cb)),
       nick: String(p.n ?? '').slice(0, 20),
+      // Eski linklerde alan yok → "all" (filtre özelliğinden önceki linkler çalışmaya devam eder)
+      filter: typeof p.f === 'string' ? p.f : 'all',
     }
   } catch {
     return null

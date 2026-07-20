@@ -20,6 +20,12 @@ export interface DiffRules {
   skinChampionAt: number | null
   /** Replik: kaçıncı yanlışta ikinci klip açılır (null = hiç) */
   quoteSecondAt: number | null
+  /** Eşya: kaçıncı yanlışta altın değeri verilir (null = hiç) */
+  itemGoldAt: number | null
+  /** Eşya: kaçıncı yanlışta stat etiketleri verilir (null = hiç) */
+  itemTagsAt: number | null
+  /** Eşya: kaçıncı yanlışta bileşen ikonları gösterilir (null = hiç) */
+  itemPartsAt: number | null
   /** Klasik: yıl hücresindeki ↑ ↓ okları gösterilsin mi */
   yearArrow: boolean
   /** Klasik: kısmi eşleşme sarı gösterilsin mi (false = gri, yani "yanlış" gibi) */
@@ -39,6 +45,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     emojiStart: 2, emojiStep: 1,
     zoomStart: 300, zoomStep: 50,
     abilityNameAt: 2, skinChampionAt: 1, quoteSecondAt: 0,
+    itemGoldAt: 1, itemTagsAt: 1, itemPartsAt: 2,
     yearArrow: true, showPartial: true,
     timedSeconds: 90, maxGuesses: 10,
   },
@@ -46,6 +53,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     emojiStart: 1, emojiStep: 1,
     zoomStart: 500, zoomStep: 70,
     abilityNameAt: 3, skinChampionAt: 3, quoteSecondAt: 2,
+    itemGoldAt: 2, itemTagsAt: 3, itemPartsAt: 4,
     yearArrow: true, showPartial: true,
     timedSeconds: 60, maxGuesses: 8,
   },
@@ -53,6 +61,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     emojiStart: 1, emojiStep: 2,
     zoomStart: 700, zoomStep: 70,
     abilityNameAt: 5, skinChampionAt: 5, quoteSecondAt: 4,
+    itemGoldAt: 3, itemTagsAt: 5, itemPartsAt: null,
     yearArrow: false, showPartial: true,
     timedSeconds: 45, maxGuesses: 6,
   },
@@ -60,6 +69,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     emojiStart: 1, emojiStep: 3,
     zoomStart: 900, zoomStep: 40,
     abilityNameAt: null, skinChampionAt: null, quoteSecondAt: null,
+    itemGoldAt: 4, itemTagsAt: null, itemPartsAt: null,
     yearArrow: false, showPartial: false,
     timedSeconds: 30, maxGuesses: 5,
   },

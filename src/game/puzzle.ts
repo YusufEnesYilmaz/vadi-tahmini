@@ -1,7 +1,8 @@
-import { CHAMPIONS, EMOJI_IDS, byId } from './data'
+import { CHAMPIONS, EMOJI_IDS, ITEMS, byId, itemById } from './data'
 import { getDeck } from './deck'
+import { ALL_FILTER, filterKey, pooledIds, type PoolFilter } from './filter'
 import { cryptoRandInt, dailyIndex, fnv1a, seededRng, todayKey } from './rng'
-import type { Champion, PlaySub, Skin, SubMode, TopMode } from './types'
+import type { Champion, ChampionSubMode, Item, PlaySub, Skin, SubMode, TopMode } from './types'
 
 /**
  * Karışık modun havuzu: hangi gerçek tipler gelebilir.
@@ -9,12 +10,19 @@ import type { Champion, PlaySub, Skin, SubMode, TopMode } from './types'
  * ritmini öldürüyor (kullanıcı kararı). Sınırsız'da altısı da var.
  */
 const MIX_POOL: Record<'endless' | 'timed', SubMode[]> = {
-  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote'],
-  timed: ['ability', 'splash', 'skin', 'emoji', 'quote'],
+  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item'],
+  timed: ['ability', 'splash', 'skin', 'emoji', 'quote', 'item'],
 }
 
-export interface Puzzle {
-  sub: SubMode
+/**
+ * Bulmaca — `sub` üzerinden ayrık birleşim.
+ * Eşya modunda şampiyon YOKTUR; birleşim sayesinde TypeScript her kullanım
+ * yerinde doğru dalı ele almaya zorluyor (yanlışlıkla `champion` okunamaz).
+ */
+export type Puzzle = ChampionPuzzle | ItemPuzzle
+
+export interface ChampionPuzzle {
+  sub: ChampionSubMode
   champion: Champion
   skin?: Skin // skin modunda hedef kostüm
   spellIndex?: number // ability: 0=Pasif, 1..4=Q W E R
@@ -22,11 +30,24 @@ export interface Puzzle {
   splashNum?: number // splash: hangi kostümün görseli (0 = temel)
 }
 
+export interface ItemPuzzle {
+  sub: 'item'
+  item: Item
+}
+
 /** Skin havuzu: "champId:num" anahtarları (kararlı sıra — günlük mod için önemli) */
 function skinPool(): string[] {
   const keys: string[] = []
   for (const c of CHAMPIONS) for (const s of c.skins) keys.push(`${c.id}:${s.num}`)
   return keys
+}
+
+/** Filtre uygulanmış kostüm havuzu; filtre havuzu boşaltırsa tüm havuza döner */
+function filteredSkinPool(filter: PoolFilter): string[] {
+  if (filter.kind === 'all') return skinPool()
+  const allowed = new Set(pooledIds(filter, 'skin'))
+  const narrowed = skinPool().filter((k) => allowed.has(k.slice(0, k.lastIndexOf(':'))))
+  return narrowed.length > 0 ? narrowed : skinPool()
 }
 
 /**
@@ -53,26 +74,34 @@ function resolveSkin(key: string): { champion: Champion; skin: Skin } {
  * Deste anahtarı alt moda göre: endless ve timed AYNI desteden çeker
  * (plan: "deck:classic" vb.) → iki üst modda da tekrar hissi olmaz.
  */
-export function nextPuzzle(top: TopMode, sub: PlaySub): Puzzle {
+export function nextPuzzle(top: TopMode, sub: PlaySub, filter: PoolFilter = ALL_FILTER): Puzzle {
   // Karışık: izinli havuzdan gerçek bir tip seç, sonra normal yola delege et.
   // Delegasyon sayesinde her tipin kendi destesi çalışır → tip içi tekrarsızlık korunur.
   if (sub === 'mix') {
     const pool = MIX_POOL[top === 'timed' ? 'timed' : 'endless'] // daily+mix menüde yok
-    return nextPuzzle(top, pool[cryptoRandInt(pool.length)])
+    return nextPuzzle(top, pool[cryptoRandInt(pool.length)], filter)
   }
 
-  if (top === 'daily') return dailyPuzzle(sub)
+  if (top === 'daily') return dailyPuzzle(sub) // Günlük'te filtre yok: herkes aynı bulmacayı çözer
+
+  // Eşya modu şampiyon havuzundan bağımsız — filtre (bölge/rol) burada anlamsız
+  if (sub === 'item') {
+    return { sub, item: itemById(getDeck('item', ITEMS.map((i) => i.id)).draw())! }
+  }
+
+  // Deste anahtarına filtre eklenir: "sadece Noxus" destesi tüm havuz destesiyle karışmasın
+  const dk = filterKey(filter)
 
   if (sub === 'skin') {
-    const key = getDeck('skin', skinPool()).draw()
+    const key = getDeck(`skin:${dk}`, filteredSkinPool(filter)).draw()
     const { champion, skin } = resolveSkin(key)
     // Kostüm de kırpık gösterilir — tamamı görünürse oyun çok kolay
     return { sub, champion, skin, crop: { x: 20 + cryptoRandInt(61), y: 20 + cryptoRandInt(61) } }
   }
 
   // Emoji modu yalnızca emoji verisi olan şampiyonlardan çeker
-  const pool = sub === 'emoji' ? EMOJI_IDS : CHAMPIONS.map((c) => c.id)
-  const id = getDeck(sub, pool).draw()
+  const pool = pooledIds(filter, sub)
+  const id = getDeck(`${sub}:${dk}`, pool).draw()
   const champion = byId(id)!
   if (sub === 'ability') {
     return { sub, champion, spellIndex: cryptoRandInt(5) }
@@ -105,10 +134,9 @@ export interface PuzzleStream {
   next(): Puzzle
 }
 
-export function createTimedStream(seed: number, sub: PlaySub): PuzzleStream {
+export function createTimedStream(seed: number, sub: PlaySub, filter: PoolFilter = ALL_FILTER): PuzzleStream {
   const rng = seededRng(seed)
   const ri = (max: number) => Math.floor(rng() * max)
-  const allIds = CHAMPIONS.map((c) => c.id)
   // Tip başına seed'li deste (lazy): tur içi tekrarı önler, deterministik kalır
   const decks = new Map<string, { order: string[]; pos: number }>()
 
@@ -137,12 +165,14 @@ export function createTimedStream(seed: number, sub: PlaySub): PuzzleStream {
       // Karışıkta gerçek tip de seed'den; değilse doğrudan sub (classic dahil olabilir)
       const realSub: SubMode = sub === 'mix' ? MIX_POOL.timed[ri(MIX_POOL.timed.length)] : (sub as SubMode)
 
+      if (realSub === 'item') {
+        return { sub: 'item', item: itemById(drawFrom('item', ITEMS.map((i) => i.id)))! }
+      }
       if (realSub === 'skin') {
-        const { champion, skin } = resolveSkin(drawFrom('skin', skinPool()))
+        const { champion, skin } = resolveSkin(drawFrom('skin', filteredSkinPool(filter)))
         return { sub: 'skin', champion, skin, crop: { x: 20 + ri(61), y: 20 + ri(61) } }
       }
-      const pool = realSub === 'emoji' ? EMOJI_IDS : allIds
-      const champion = byId(drawFrom(realSub, pool))!
+      const champion = byId(drawFrom(realSub, pooledIds(filter, realSub)))!
       if (realSub === 'ability') return { sub: 'ability', champion, spellIndex: ri(5) }
       if (realSub === 'splash') {
         return { sub: 'splash', champion, splashNum: pickSplashNum(champion, rng), crop: { x: 20 + ri(61), y: 20 + ri(61) } }
@@ -167,10 +197,17 @@ export const DAILY_OVERRIDES: Record<string, {
     classic: 'Seraphine', // test için sabitlendi (kullanıcı isteği)
     splash: { id: 'Garen', splashNum: 1 }, // Kızıl Garen (kullanıcı isteği)
   },
+  '2026-07-21': {
+    classic: 'Seraphine', // kullanıcı isteği: bugün ve yarın aynı kalsın
+  },
 }
 
 function dailyPuzzle(sub: SubMode): Puzzle {
   const rng = seededRng(fnv1a(`${todayKey()}:${sub}:extra`))
+
+  if (sub === 'item') {
+    return { sub, item: ITEMS[dailyIndex(sub, ITEMS.length)] }
+  }
 
   if (sub === 'skin') {
     const pool = skinPool()

@@ -295,18 +295,20 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // ═══ Çeşitlilik ═══
   {
-    id: 'six_shooter', icon: '🎰', name: 'Altı Silindir', cat: 'cesitlilik',
-    desc: '6 alt modun tümünde en az 1 galibiyet',
+    // id DEĞİŞMEZ (kazanılmış rozetler `vt:ach`'ta id ile duruyor); ad/açıklama
+    // mod sayısından türetiliyor ki yeni mod eklenince metin yalan olmasın.
+    id: 'six_shooter', icon: '🎰', name: 'Tam Takım', cat: 'cesitlilik',
+    desc: `${SUB_MODES.length} alt modun tümünde en az 1 galibiyet`,
     check: (s) => s.allSubsWon,
   },
   {
     id: 'full_day', icon: '📅', name: 'Tam Gün', cat: 'cesitlilik',
-    desc: 'Bir günde 6 günlük bulmacanın hepsini kazan',
+    desc: `Bir günde ${SUB_MODES.length} günlük bulmacanın hepsini kazan`,
     check: (s) => {
       for (const day of Object.values(s.dailyHistory)) {
         // Değer 0 = kaybedildi — "hepsini kazan" şartına sayılmaz
         const won = Object.values(day).filter((g) => (g ?? 0) > 0)
-        if (won.length >= 6) return true
+        if (won.length >= SUB_MODES.length) return true
       }
       return false
     },

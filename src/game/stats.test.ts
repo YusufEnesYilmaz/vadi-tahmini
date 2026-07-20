@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getBestScore, getDailyHistory, getDailyStreak, getFullDayStreak, getStats, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
 import { todayKey } from './rng'
+import { SUB_MODES } from './types'
 
 describe('istatistikler', () => {
   it('kazanılan oyun seriyi ve dağılımı günceller', () => {
@@ -101,20 +102,23 @@ describe('istatistikler', () => {
     expect(getDailyStreak().streak).toBe(0)
   })
 
-  it('Tam Gün serisi 6 modun 6sı tamamlanınca ilerler — kazanmak şart değil', () => {
+  it('Tam Gün serisi TÜM modlar tamamlanınca ilerler — kazanmak şart değil', () => {
     const today = todayKey()
-    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji'] as const) {
+    // Mod listesinden türet: yeni alt mod eklenince test kendiliğinden uyar
+    const subs = SUB_MODES.map((m) => m.id)
+    for (const sub of subs.slice(0, -1)) {
       saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
     }
-    expect(getFullDayStreak().streak).toBe(0) // 5/6 yetmez
-    saveDailyState('quote', { date: today, guesses: ['a', 'b'], done: true, won: false })
+    expect(getFullDayStreak().streak).toBe(0) // eksik mod varken sayılmaz
+    // Son mod kaybedilerek tamamlansa bile "tamamlandı" sayılır
+    saveDailyState(subs.at(-1)!, { date: today, guesses: ['a', 'b'], done: true, won: false })
     expect(getFullDayStreak().streak).toBe(1)
     expect(getFullDayStreak().last).toBe(today)
   })
 
   it('Tam Gün serisi günde bir kez sayılır ve gevşek seriden bağımsızdır', () => {
     const today = todayKey()
-    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote'] as const) {
+    for (const sub of SUB_MODES.map((m) => m.id)) {
       saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
     }
     // Aynı güne ait tekrar kayıt seriyi iki kez artırmamalı

@@ -3,11 +3,12 @@ import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
 import { parseChallenge, type Challenge } from './game/challenge'
+import { parseFilterKey, type PoolFilter } from './game/filter'
 import type { Difficulty, PlaySub, TopMode } from './game/types'
 
 type Screen =
   | { name: 'menu' }
-  | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; challenge?: Challenge }
+  | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter; challenge?: Challenge }
   | { name: 'settings' }
 
 /** URL'de ?c=... varsa meydan okumayı çöz, adres çubuğunu temizle */
@@ -16,7 +17,10 @@ function initialScreen(): Screen {
   if (code) {
     const ch = parseChallenge(code)
     history.replaceState(null, '', location.pathname) // linki paylaşınca tekrar tetiklenmesin
-    if (ch) return { name: 'game', top: 'timed', sub: ch.sub, diff: ch.diff, challenge: ch }
+    if (ch) {
+      // Havuz filtresi de linkten gelir — iki oyuncu aynı havuzdan oynasın
+      return { name: 'game', top: 'timed', sub: ch.sub, diff: ch.diff, filter: parseFilterKey(ch.filter), challenge: ch }
+    }
   }
   return { name: 'menu' }
 }
@@ -31,6 +35,7 @@ export default function App() {
         top={screen.top}
         sub={screen.sub}
         diff={screen.diff}
+        filter={screen.filter}
         challenge={screen.challenge}
         onExit={() => setScreen({ name: 'menu' })}
       />
@@ -41,7 +46,7 @@ export default function App() {
   }
   return (
     <Menu
-      onPlay={(top, sub, diff) => setScreen({ name: 'game', top, sub, diff })}
+      onPlay={(top, sub, diff, filter) => setScreen({ name: 'game', top, sub, diff, filter })}
       onSettings={() => setScreen({ name: 'settings' })}
     />
   )

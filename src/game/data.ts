@@ -1,6 +1,7 @@
 import bundled from '../data/champions.json'
 import emojiData from '../data/emoji.json'
-import type { ChampionData, Champion } from './types'
+import itemData from '../data/items.json'
+import type { ChampionData, Champion, Item, ItemData } from './types'
 
 const UPDATED_KEY = 'vt:data:updated'
 
@@ -86,6 +87,21 @@ export function splashUrl(id: string, num: number): string {
 
 export function loadingUrl(id: string, num: number): string {
   return `${CDN}/img/champion/loading/${id}_${num}.jpg`
+}
+
+/**
+ * Eşya modu havuzu. Şampiyon verisinden AYRI dosyada (`items.json`) —
+ * "Veriyi güncelle" akışı şampiyonları tazeliyor, eşyalar patch'te
+ * `node scripts/build-data.mjs` ile yenilenir.
+ */
+export const ITEMS: Item[] = (itemData as ItemData).items
+
+export function itemById(id: string): Item | undefined {
+  return ITEMS.find((i) => i.id === id)
+}
+
+export function itemIconUrl(img: string): string {
+  return `${CDN}/${PATCH}/img/item/${img}`
 }
 
 export function spellUrl(img: string): string {

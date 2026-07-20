@@ -32,6 +32,21 @@ export interface ChampionData {
   champions: Champion[]
 }
 
+/** Eşya modu verisi — scripts/build-data.mjs üretir (SR, 1600+ altın, tam eşyalar) */
+export interface Item {
+  id: string // ddragon eşya id'si ("3153")
+  name: string // TR ad
+  gold: number // toplam altın
+  img: string // ikon dosyası ("3153.png")
+  tags: string[] // TR stat etiketleri — ipucu
+  from: string[] // bileşen id'leri — ipucu (ikonları gösterilir)
+}
+
+export interface ItemData {
+  version: string
+  items: Item[]
+}
+
 /** Üst mod: nasıl oynanıyor */
 export type TopMode = 'endless' | 'daily' | 'timed'
 
@@ -46,7 +61,10 @@ export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
 ]
 
 /** Alt mod: ne tahmin ediliyor (gerçek soru tipleri) */
-export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote'
+export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item'
+
+/** Şampiyon tahmin edilen alt modlar — Eşya modu bunların dışında kalır */
+export type ChampionSubMode = Exclude<SubMode, 'item'>
 
 /**
  * Oynanabilir alt mod: gerçek tipler + "mix" (Karışık).
@@ -76,4 +94,5 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string 
   { id: 'skin', name: 'Kostüm', desc: 'Görselden kostümün adını bul', icon: '🎭' },
   { id: 'emoji', name: 'Emoji', desc: 'Emoji ipuçlarından şampiyonu bul', icon: '😀' },
   { id: 'quote', name: 'Replik', desc: 'Sesinden şampiyonu bul', icon: '🔊' },
+  { id: 'item', name: 'Eşya', desc: 'İkonundan eşyayı bul', icon: '🗡' },
 ]

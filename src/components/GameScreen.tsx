@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
-import { byId, CHAMPIONS, splashUrl, squareUrl } from '../game/data'
+import { byId, CHAMPIONS, ITEMS, itemIconUrl, splashUrl, squareUrl } from '../game/data'
 import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
 import { challengeUrl, getNick, recordChallengeWin, setNick, type Challenge } from '../game/challenge'
+import { filterKey, filterLabel, type PoolFilter } from '../game/filter'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
@@ -20,6 +21,7 @@ interface Props {
   top: TopMode
   sub: PlaySub
   diff: Difficulty
+  filter: PoolFilter // havuz daraltması (Günlük'te yok sayılır)
   challenge?: Challenge // link'le açıldıysa: aynı seed + rakip skoru
   onExit: () => void
 }
@@ -39,16 +41,22 @@ function skinOptions(): AcOption[] {
   return opts
 }
 
+function itemOptions(): AcOption[] {
+  return ITEMS.map((i) => ({ key: i.id, label: i.name, img: itemIconUrl(i.img) }))
+}
+
 function isCorrect(puzzle: Puzzle, guessKey: string): boolean {
+  if (puzzle.sub === 'item') return guessKey === puzzle.item.id
   if (puzzle.sub === 'skin') return guessKey === `${puzzle.champion.id}:${puzzle.skin?.num}`
   return guessKey === puzzle.champion.id
 }
 
 function answerLabel(puzzle: Puzzle): string {
+  if (puzzle.sub === 'item') return puzzle.item.name
   return puzzle.sub === 'skin' ? `${puzzle.skin?.name}` : puzzle.champion.name
 }
 
-export default function GameScreen({ top, sub, diff, challenge, onExit }: Props) {
+export default function GameScreen({ top, sub, diff, filter, challenge, onExit }: Props) {
   const daily = top === 'daily'
   const timed = top === 'timed'
   const rules = rulesFor(top, diff)
@@ -57,7 +65,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   // daily ⟹ sub gerçek tip. 'classic' yalnız tip güvenliği için yer tutucu (daily'de asla tetiklenmez).
   const dailySub: SubMode = sub === 'mix' ? 'classic' : sub
 
-  const [puzzle, setPuzzle] = useState<Puzzle | null>(() => (timed ? null : nextPuzzle(top, sub)))
+  const [puzzle, setPuzzle] = useState<Puzzle | null>(() => (timed ? null : nextPuzzle(top, sub, filter)))
   const [guesses, setGuesses] = useState<string[]>(() => (daily ? getDailyState(dailySub).guesses : []))
   const [won, setWon] = useState<boolean>(() => (daily ? getDailyState(dailySub).won : false))
   const [copied, setCopied] = useState(false)
@@ -115,7 +123,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   /** Zamana Karşı seed'li akıştan, diğer modlar desteden çeker */
   function drawNext(): Puzzle {
     if (timed && streamRef.current) return streamRef.current.next()
-    return nextPuzzle(top, sub)
+    return nextPuzzle(top, sub, filter)
   }
 
   // Karışıkta gerçek soru tipi puzzle'dan gelir; puzzle henüz yoksa (Zamana Karşı
@@ -123,11 +131,15 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   const activeSub: SubMode = puzzle?.sub ?? (sub === 'mix' ? 'classic' : sub)
   const isMix = sub === 'mix'
 
-  const options = useMemo(() => (activeSub === 'skin' ? skinOptions() : championOptions()), [activeSub])
+  // Eşya modunda tahmin listesi eşyalardan, Kostüm'de kostümlerden, diğerlerinde şampiyonlardan
+  const options = useMemo(
+    () => (activeSub === 'item' ? itemOptions() : activeSub === 'skin' ? skinOptions() : championOptions()),
+    [activeSub],
+  )
   const guessedSet = useMemo(() => new Set(guesses), [guesses])
 
   const rows: ClassicRow[] = useMemo(() => {
-    if (activeSub !== 'classic' || !puzzle) return []
+    if (activeSub !== 'classic' || puzzle?.sub !== 'classic') return []
     return guesses
       .map((id) => byId(id))
       .filter((c): c is NonNullable<typeof c> => !!c)
@@ -142,7 +154,8 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
 
   const bonusMode = activeSub === 'ability'
   const awaitingSlot = bonusMode && won && slotGuess === null // tur bitmedi: tuş bekleniyor
-  const slotOk = bonusMode && puzzle && slotGuess !== null ? slotGuess === (puzzle.spellIndex ?? 0) : undefined
+  const spellIndex = puzzle?.sub === 'ability' ? puzzle.spellIndex ?? 0 : 0
+  const slotOk = bonusMode && puzzle && slotGuess !== null ? slotGuess === spellIndex : undefined
 
   // Zamana Karşı sayacı
   useEffect(() => {
@@ -240,7 +253,8 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
     if (timed) {
       if (correct) {
         playCorrect()
-        recordChampWin(puzzle.champion.id)
+        // Koleksiyon rozetleri şampiyon sayar — Eşya modunda şampiyon yok
+        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id)
         setAnnounce(`Doğru: ${answerLabel(puzzle)}. Skor ${score + 1}.`)
         // Yetenek modunda tur bonus sorusuyla biter — skor ve seri orada işlenir
         if (bonusMode) { setWon(true); return }
@@ -259,7 +273,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
       finishedAtRef.current = Date.now() // sonuç kartı Enter ile hemen atlanmasın
       if (correct) {
         setWon(true)
-        recordChampWin(puzzle.champion.id)
+        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id)
       }
       recordGame(top, sub, diff, correct, newGuesses.length)
       // Kayıttan sonra rozetleri kontrol et
@@ -299,7 +313,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
     finishedAtRef.current = Date.now() // tuş cevabından sonra açılan kart da atlanmasın
     setSlotGuess(idx)
     if (timed) {
-      setScore((s) => s + 1 + (idx === (puzzle.spellIndex ?? 0) ? 1 : 0))
+      setScore((s) => s + 1 + (idx === spellIndex ? 1 : 0))
       bumpCombo() // şampiyonu bildi; tuş bonusu seriyi bozmaz
     } else if (daily) {
       saveDailyState(dailySub, { ...getDailyState(dailySub), slot: idx })
@@ -318,7 +332,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
     // Meydan okuma linkiyle açıldıysa aynı seed → birebir aynı sorular; yoksa rastgele
     const seed = challenge ? challenge.seed : cryptoRandInt(0x100000000)
     setChSeed(seed)
-    streamRef.current = createTimedStream(seed, sub)
+    streamRef.current = createTimedStream(seed, sub, filter)
     setChResultWin(null)
     setScore(0)
     setTimeLeft(TIMED_SECONDS)
@@ -349,7 +363,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   async function challengeShare() {
     const currentNick = getNick()
     if (!currentNick) { setAskNick(true); return }
-    const c: Challenge = { seed: chSeed, sub, diff, score, combo: bestCombo, nick: currentNick }
+    const c: Challenge = { seed: chSeed, sub, diff, score, combo: bestCombo, nick: currentNick, filter: filterKey(filter) }
     const text = `Vadi Tahmini — sana meydan okuyorum! 👊 ${TIMED_SECONDS} sn'de ${score} yaptım, geçebilir misin?\n${challengeUrl(c)}`
     if (navigator.share) {
       try {
@@ -436,6 +450,12 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
           {!daily && !isMix && (
             <span className="block text-xs font-normal" style={{ color: 'var(--text-dim)' }}>
               {DIFFICULTIES.find((d) => d.id === diff)!.name}
+            </span>
+          )}
+          {/* Havuz daraltılmışsa göster — oyuncu neden hep aynı bölgeden geldiğini bilsin */}
+          {!daily && filter.kind !== 'all' && (
+            <span className="block text-xs font-normal" style={{ color: 'var(--gold)' }}>
+              🎯 {filterLabel(filter)}
             </span>
           )}
         </span>
@@ -601,7 +621,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
             <div className="anim-pop flex w-full flex-col items-center gap-2 rounded-xl border p-4"
               style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
               <span className="font-semibold" style={{ color: 'var(--gold)' }}>
-                🎉 {puzzle.champion.name}! Peki bu hangi tuş?
+                🎉 {answerLabel(puzzle)}! Peki bu hangi tuş?
               </span>
               <div className="flex flex-wrap justify-center gap-2">
                 {SLOT_LABELS.map((label, i) => (
@@ -634,19 +654,32 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
               </span>
 
               {/* Cevabın kendisi: görsel + ad. Kostüm/Görsel modunda sorunun görseli gösterilir */}
-              <img
-                src={splashUrl(puzzle.champion.id, puzzle.skin?.num ?? puzzle.splashNum ?? 0)}
-                alt={puzzle.champion.name}
-                className="aspect-video w-full rounded-lg border object-cover"
-                style={{ borderColor: 'var(--border)' }}
-              />
+              {puzzle.sub === 'item' ? (
+                <img
+                  src={itemIconUrl(puzzle.item.img)}
+                  alt={puzzle.item.name}
+                  className="h-24 w-24 rounded-lg border"
+                  style={{ borderColor: 'var(--gold)' }}
+                />
+              ) : (
+                <img
+                  src={splashUrl(puzzle.champion.id, puzzle.skin?.num ?? puzzle.splashNum ?? 0)}
+                  alt={puzzle.champion.name}
+                  className="aspect-video w-full rounded-lg border object-cover"
+                  style={{ borderColor: 'var(--border)' }}
+                />
+              )}
               <div>
                 <div className="font-display text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>
                   {answerLabel(puzzle)}
                 </div>
                 {/* Kostüm modunda cevap kostümün adı — şampiyonu da yaz */}
-                {activeSub === 'skin' && (
+                {puzzle.sub === 'skin' && (
                   <div className="text-sm" style={{ color: 'var(--text-dim)' }}>{puzzle.champion.name}</div>
+                )}
+                {/* Eşya modunda altın değeri kapanışta görünsün */}
+                {puzzle.sub === 'item' && (
+                  <div className="text-sm" style={{ color: 'var(--text-dim)' }}>🪙 {puzzle.item.gold} altın</div>
                 )}
                 <div className="text-sm" style={{ color: 'var(--text-dim)' }}>
                   {won ? `${guesses.length} denemede bildin` : `${guesses.length} tahmin hakkın da bitti`}
@@ -657,13 +690,13 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
               {slotOk !== undefined && (
                 <span className="text-sm font-semibold" style={{ color: slotOk ? 'var(--correct)' : 'var(--danger-text)' }}>
                   {slotOk
-                    ? `Tuş de doğru: ${SLOT_LABELS[puzzle.spellIndex ?? 0]}${timed ? ' (+1)' : ''}`
-                    : `Tuş yanlış — doğrusu ${SLOT_LABELS[puzzle.spellIndex ?? 0]}`}
+                    ? `Tuş de doğru: ${SLOT_LABELS[spellIndex]}${timed ? ' (+1)' : ''}`
+                    : `Tuş yanlış — doğrusu ${SLOT_LABELS[spellIndex]}`}
                 </span>
               )}
               {outOfGuesses && bonusMode && (
                 <span className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                  Tuş: <b style={{ color: 'var(--gold)' }}>{SLOT_LABELS[puzzle.spellIndex ?? 0]}</b>
+                  Tuş: <b style={{ color: 'var(--gold)' }}>{SLOT_LABELS[spellIndex]}</b>
                 </span>
               )}
 

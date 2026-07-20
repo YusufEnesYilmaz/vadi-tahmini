@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { applyBackup, clearProgress, downloadBackup } from '../game/backup'
 import { getNick, setNick } from '../game/challenge'
 import { DATA, PATCH } from '../game/data'
 import { checkAndUpdateData, type UpdateResult } from '../game/dataUpdate'
@@ -12,6 +13,8 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [sfx, setSfx] = useState(sfxEnabled)
   const [nick, setNickState] = useState(getNick)
   const [nickSaved, setNickSaved] = useState(false)
+  const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function saveNick() {
     setNick(nick)
@@ -38,10 +41,24 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
   function resetProgress() {
     if (!confirm('Tüm istatistik ve ilerleme silinecek. Emin misin?')) return
-    for (const k of Object.keys(localStorage)) {
-      if (k.startsWith('vt:')) localStorage.removeItem(k)
-    }
+    clearProgress()
     location.reload()
+  }
+
+  /** Yedek dosyası seçildi → doğrula, uygula, sayfayı yenile */
+  async function onBackupFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // aynı dosya tekrar seçilebilsin
+    if (!file) return
+    if (!confirm('Yedek yüklenecek ve bu cihazdaki mevcut ilerlemenin YERİNE geçecek. Devam edilsin mi?')) return
+
+    const res = applyBackup(await file.text())
+    if (res.ok) {
+      setImportMsg({ ok: true, text: `✓ ${res.count} kayıt geri yüklendi. Sayfa yenileniyor...` })
+      setTimeout(() => location.reload(), 1500)
+    } else {
+      setImportMsg({ ok: false, text: res.error })
+    }
   }
 
   return (
@@ -129,12 +146,35 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         </button>
       </section>
 
-      {/* Sıfırlama */}
+      {/* Yedekleme + sıfırlama */}
       <section className="rounded-xl border p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <h2 className="mb-1 font-bold" style={{ color: 'var(--gold-bright)' }}>İlerleme</h2>
-        <p className="mb-3 text-sm" style={{ color: 'var(--text-dim)' }}>
-          İstatistikler, seriler ve deste durumu bu cihazda saklanır.
+        <p className="mb-3 text-sm" style={{ color: 'var(--text)' }}>
+          Rozetler, seriler, rekorlar ve istatistikler <b>yalnız bu cihazda</b> saklanır.
+          Telefon değiştirirken ya da tarayıcı verisi temizlenmeden önce yedek al.
         </p>
+
+        <div className="flex flex-wrap gap-2">
+          <button onClick={downloadBackup} className="card-btn rounded-xl px-4 py-2 text-sm font-bold"
+            style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
+            ⬇ Yedek al
+          </button>
+          <button onClick={() => fileRef.current?.click()} className="card-btn rounded-xl border px-4 py-2 text-sm font-bold"
+            style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
+            ⬆ Yedeği yükle
+          </button>
+          {/* Dosya seçici gizli: kendi butonumuzun görünümünü koruyoruz */}
+          <input ref={fileRef} type="file" accept="application/json,.json" onChange={onBackupFile} className="hidden" />
+        </div>
+
+        {importMsg && (
+          <p className="mt-2 text-sm" style={{ color: importMsg.ok ? 'var(--correct)' : 'var(--danger-text)' }}>
+            {importMsg.text}
+          </p>
+        )}
+
+        <hr className="my-4" style={{ borderColor: 'var(--border)' }} />
+
         <button onClick={resetProgress} className="rounded-xl border px-4 py-2 text-sm font-semibold"
           style={{ borderColor: 'var(--wrong)', color: 'var(--danger-text)' }}>
           Tüm ilerlemeyi sıfırla

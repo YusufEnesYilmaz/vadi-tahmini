@@ -184,15 +184,98 @@ const outPath = join(ROOT, 'src', 'data', 'champions.json')
 mkdirSync(dirname(outPath), { recursive: true })
 writeFileSync(outPath, JSON.stringify(out, null, 1), 'utf8')
 
+// ---- Şampiyon bilgi kartı (ayrı dosya, tembel yüklenir) ------------------
+
+/** ddragon açıklamaları hafif HTML içerir: <br> satır sonu, kalanı temizlenir */
+function stripHtml(s) {
+  return (s ?? '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim()
+}
+
+// Lore + yetenek açıklamaları ANA veriye konmuyor: ~200 KB tutuyor ve oyun
+// oynanırken hiç gerekmiyor. Bilgi kartı açıldığında dinamik import ile iner.
+const info = {}
+for (const id of ids) {
+  const c = full.data[id]
+  info[id] = {
+    lore: stripHtml(c.lore),
+    passive: { name: c.passive.name, desc: stripHtml(c.passive.description) },
+    spells: c.spells.map((s, i) => ({
+      slot: ['Q', 'W', 'E', 'R'][i],
+      name: s.name,
+      desc: stripHtml(s.description),
+    })),
+  }
+}
+const infoPath = join(ROOT, 'src', 'data', 'champion-info.json')
+writeFileSync(infoPath, JSON.stringify(info, null, 1), 'utf8')
+
+// ---- Eşyalar (Eşya modu) ------------------------------------------------
+
+// ddragon etiketleri İngilizce; ipucu olarak gösterileceği için TR'ye çevriliyor.
+// Listede olmayan etiket sessizce atlanır (ipucu gürültüsü olmasın).
+const ITEM_TAG_TR = {
+  Damage: 'Saldırı Gücü', SpellDamage: 'Yetenek Gücü', Armor: 'Zırh',
+  SpellBlock: 'Büyü Direnci', Health: 'Can', HealthRegen: 'Can Yenilenmesi',
+  Mana: 'Mana', ManaRegen: 'Mana Yenilenmesi', AttackSpeed: 'Saldırı Hızı',
+  CriticalStrike: 'Kritik', LifeSteal: 'Can Çalma', SpellVamp: 'Büyü Emme',
+  ArmorPenetration: 'Zırh Delme', MagicPenetration: 'Büyü Delme',
+  CooldownReduction: 'Bekleme Süresi', AbilityHaste: 'Yetenek Hızı',
+  NonbootsMovement: 'Hareket Hızı', Boots: 'Ayakkabı', Tenacity: 'Sağlamlık',
+  Slow: 'Yavaşlatma', Active: 'Aktif Kullanım', Aura: 'Aura', OnHit: 'Vuruşta',
+}
+
+console.log('\nEşya verisi indiriliyor...')
+const itemRaw = await getJson(
+  `https://ddragon.leagueoflegends.com/cdn/${version}/data/tr_TR/item.json`,
+)
+
+// Havuz: Summoner's Rift'te satılan, 1600+ altınlık, şampiyona özel olmayan
+// tam eşyalar. Bileşenler/iksirler/mücevherler tahmin oyununu sulandırırdı.
+const items = Object.entries(itemRaw.data)
+  .filter(([, i]) =>
+    i.maps?.['11'] &&
+    i.gold?.purchasable &&
+    i.gold.total >= 1600 &&
+    !i.requiredChampion &&
+    i.inStore !== false &&
+    !(i.tags ?? []).includes('Consumable') &&
+    !(i.tags ?? []).includes('Trinket'),
+  )
+  .map(([id, i]) => ({
+    id,
+    name: i.name.trim(),
+    gold: i.gold.total,
+    img: i.image.full,
+    tags: (i.tags ?? []).map((t) => ITEM_TAG_TR[t]).filter(Boolean),
+    from: i.from ?? [], // bileşen id'leri — ipucu olarak ikonları gösterilir
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+
+const itemsPath = join(ROOT, 'src', 'data', 'items.json')
+writeFileSync(itemsPath, JSON.stringify({ version, items }, null, 1), 'utf8')
+
 // ---- Rapor --------------------------------------------------------------
 
 const totalSkins = champions.reduce((n, c) => n + c.skins.length, 0)
+const itemsNoTag = items.filter((i) => i.tags.length === 0).map((i) => i.name)
 const noYear = champions.filter((c) => c.year === null).map((c) => c.id)
 const noLane = champions.filter((c) => !c.lanes.length).map((c) => c.id)
 console.log('\n===== RAPOR =====')
 console.log(`Şampiyon: ${champions.length}`)
 console.log(`Skin (base hariç): ${totalSkins}`)
+console.log(`Eşya (SR, 1600+ altın): ${items.length}`)
 console.log(`Çıktı: ${outPath}`)
+console.log(`Çıktı: ${itemsPath}`)
+console.log(`Çıktı: ${infoPath} (${Math.round(JSON.stringify(info).length / 1024)} KB, tembel yüklenir)`)
+if (itemsNoTag.length) console.log(`⚠ Etiketsiz eşya (ipucu zayıf olur): ${itemsNoTag.join(', ')}`)
 if (warn.meraki.length) console.log(`⚠ Meraki verisi yok (bölge/yıl eksik): ${warn.meraki.join(', ')}`)
 if (warn.gender.length) console.log(`⚠ Cinsiyet tablosunda YOK (script'e ekle): ${warn.gender.join(', ')}`)
 if (warn.faction.length) console.log(`⚠ Bilinmeyen bölge slug'ı (FACTION_TR'ye ekle): ${warn.faction.join(', ')}`)

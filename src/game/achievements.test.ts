@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { ACHIEVEMENTS, buildSnapshot, getAchievementShowcase, type AchSnapshot } from './achievements'
+import { SUB_MODES } from './types'
 
 /** Minimal snapshot — varsayılanları override et */
 function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
@@ -86,12 +87,15 @@ describe('Achievements — check functions', () => {
   // Cesitlilik
   it('six_shooter + full_day', () => {
     expect(find('six_shooter').check(snap({ allSubsWon: true }))).toBe(true)
-    const history = { '2026-07-20': { classic: 2, ability: 1, splash: 3, skin: 1, emoji: 2, quote: 1 } }
-    expect(find('full_day').check(snap({ dailyHistory: history }))).toBe(true)
+
+    // Gün kaydını mod listesinden üret: yeni alt mod eklenince test kendiliğinden uyar
+    const day = Object.fromEntries(SUB_MODES.map((m) => [m.id, 2]))
+    expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': day } }))).toBe(true)
     expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': { classic: 2 } } }))).toBe(false)
-    // 0 = kaybedildi: 4 kazanç + 2 kayıp "hepsini kazan" sayılmaz
-    const mixed = { '2026-07-20': { classic: 2, ability: 0, splash: 3, skin: 1, emoji: 2, quote: 0 } }
-    expect(find('full_day').check(snap({ dailyHistory: mixed }))).toBe(false)
+
+    // 0 = kaybedildi: bir mod kaybedilmişse "hepsini kazan" sayılmaz
+    const mixed = { ...day, [SUB_MODES[1].id]: 0 }
+    expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': mixed } }))).toBe(false)
   })
 
   it('mix_lover/mix_master: karisik galibiyet', () => {
@@ -269,19 +273,21 @@ describe('buildSnapshot — Günlük sayımı (regresyon)', () => {
     expect(s.totalWon).toBe(2)
   })
 
-  it('allSubsWon yalnız 6 gerçek alt modun hepsinde galibiyet varsa true', () => {
+  it('allSubsWon yalnız TÜM gerçek alt modlarda galibiyet varsa true (mix sayılmaz)', () => {
     const stat = (won: number) => JSON.stringify({
       played: won, won, currentStreak: 0, bestStreak: 0, totalGuesses: 0,
       firstTry: 0, firstTryStreak: 0, bestFirstTryStreak: 0,
       dist: [0, 0, 0, 0, 0, 0], totalScore: 0,
     })
-    // 5 alt mod + mix → yetmez (mix gerçek alt mod sayılmaz)
-    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji', 'mix']) {
+    // Mod listesinden türet: yeni alt mod eklenince test kendiliğinden uyar
+    const subs = SUB_MODES.map((m) => m.id)
+    // Sonuncusu hariç hepsi + mix → yetmez (mix gerçek alt mod sayılmaz)
+    for (const sub of [...subs.slice(0, -1), 'mix']) {
       localStorage.setItem(`vt:stats:endless:${sub}:normal`, stat(1))
     }
     expect(buildSnapshot().allSubsWon).toBe(false)
 
-    localStorage.setItem('vt:stats:endless:quote:normal', stat(1)) // 6. gerçek mod
+    localStorage.setItem(`vt:stats:endless:${subs.at(-1)}:normal`, stat(1)) // son gerçek mod
     expect(buildSnapshot().allSubsWon).toBe(true)
   })
 })

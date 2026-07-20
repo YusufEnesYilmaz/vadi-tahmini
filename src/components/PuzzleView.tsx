@@ -1,5 +1,5 @@
 import type { Puzzle } from '../game/puzzle'
-import { EMOJI, passiveUrl, spellUrl, splashUrl } from '../game/data'
+import { EMOJI, itemById, itemIconUrl, passiveUrl, spellUrl, splashUrl } from '../game/data'
 import type { DiffRules } from '../game/difficulty'
 import QuoteView from './QuoteView'
 
@@ -17,8 +17,51 @@ function unlocked(at: number | null, wrongCount: number, revealed: boolean): boo
   return at !== null && wrongCount >= at
 }
 
-/** Yetenek / Görsel / Kostüm modlarının soru alanı (Classic'in tablosu ayrı) */
+/** Yetenek / Görsel / Kostüm / Emoji / Replik / Eşya modlarının soru alanı (Classic'in tablosu ayrı) */
 export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSlot }: Props) {
+  // Eşya modu: ikon soru, ipuçları sırayla altın → statlar → bileşen ikonları.
+  // İlk dal olmalı — aşağıdaki dallar şampiyon varsayıyor (TS de bunu böyle daraltıyor).
+  if (puzzle.sub === 'item') {
+    const { item } = puzzle
+    const showGold = unlocked(rules.itemGoldAt, wrongCount, revealed)
+    const showTags = unlocked(rules.itemTagsAt, wrongCount, revealed) && item.tags.length > 0
+    const showParts = unlocked(rules.itemPartsAt, wrongCount, revealed) && item.from.length > 0
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <img
+          src={itemIconUrl(item.img)}
+          alt="Eşya ikonu"
+          className="h-24 w-24 rounded-xl border-2"
+          style={{ borderColor: 'var(--gold)' }}
+        />
+        <div className="flex min-h-6 flex-col items-center gap-1 text-sm" style={{ color: 'var(--text-dim)' }}>
+          {showGold && <span>Değer: <b style={{ color: 'var(--gold)' }}>{item.gold} altın</b></span>}
+          {showTags && (
+            <span className="flex flex-wrap justify-center gap-1">
+              {item.tags.map((t) => (
+                <b key={t} className="rounded-md px-2 py-0.5 text-xs"
+                  style={{ background: 'var(--bg-input)', color: 'var(--gold)' }}>{t}</b>
+              ))}
+            </span>
+          )}
+          {showParts && (
+            <span className="flex items-center gap-1">
+              Bileşenler:
+              {item.from.map((id, i) => {
+                const part = itemById(id)
+                return part
+                  ? <img key={`${id}-${i}`} src={itemIconUrl(part.img)} alt={part.name} title={part.name}
+                      className="h-7 w-7 rounded border" style={{ borderColor: 'var(--border)' }} />
+                  : null
+              })}
+            </span>
+          )}
+          {!showGold && !showTags && !showParts && <span>İpucu: yanlış tahminlerde altın, stat ve bileşenler açılır</span>}
+        </div>
+      </div>
+    )
+  }
+
   if (puzzle.sub === 'ability') {
     const idx = puzzle.spellIndex ?? 0
     const isPassive = idx === 0

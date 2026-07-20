@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
+import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
 import { getBestScore, getDailyState, getStats } from '../game/stats'
 import { DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
 import DailyPanel from './DailyPanel'
@@ -8,9 +9,10 @@ import DifficultyTable from './DifficultyTable'
 import HowTo from './HowTo'
 import Stats from './Stats'
 import Achievements from './Achievements'
+import PoolFilterPicker from './PoolFilterPicker'
 
 interface Props {
-  onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty) => void
+  onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
 }
 
@@ -21,10 +23,16 @@ export default function Menu({ onPlay, onSettings }: Props) {
   const [achievements, setAchievements] = useState(false)
   const [diffInfo, setDiffInfo] = useState(false)
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
+  const [filter, setFilterState] = useState<PoolFilter>(getFilter)
 
   function pickDifficulty(d: Difficulty) {
     setDiff(d)
     saveDifficulty(d) // tercih hatırlansın
+  }
+
+  function pickFilter(f: PoolFilter) {
+    setFilterState(f)
+    saveFilter(f) // tercih hatırlansın
   }
 
   return (
@@ -119,6 +127,9 @@ export default function Menu({ onPlay, onSettings }: Props) {
             </div>
           )}
 
+          {/* Havuz filtresi — Günlük'te yok (herkes aynı bulmacayı çözmeli) */}
+          {top !== 'daily' && <PoolFilterPicker value={filter} onChange={pickFilter} />}
+
           {/* Alt modlar da geniş ekranda ikişerli */}
           <div className="grid gap-3 sm:grid-cols-2">
           {SUB_MODES.map((m) => {
@@ -133,7 +144,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
                     ? `Seri: ${stats.currentStreak}`
                     : ''
             return (
-              <button key={m.id} onClick={() => onPlay(top, m.id, diff)}
+              <button key={m.id} onClick={() => onPlay(top, m.id, diff, filter)}
                 className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
                 style={{
                   background: 'var(--bg-card)',
@@ -157,7 +168,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
               ? `En iyi: ${getBestScore('mix', diff)}`
               : mixStats.played > 0 ? `Seri: ${mixStats.currentStreak}` : ''
             return (
-              <button onClick={() => onPlay(top, 'mix', diff)}
+              <button onClick={() => onPlay(top, 'mix', diff, filter)}
                 className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}>
                 <span className="text-3xl">{MIX_MODE.icon}</span>

@@ -1,0 +1,2313 @@
+{
+ "version": "16.14.1",
+ "items": [
+  {
+   "id": "6616",
+   "name": "Akan Su Asası",
+   "gold": 2250,
+   "img": "6616.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3108",
+    "3114"
+   ]
+  },
+  {
+   "id": "326616",
+   "name": "Akan Su Asası",
+   "gold": 2600,
+   "img": "326616.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3108",
+    "1052",
+    "3114"
+   ]
+  },
+  {
+   "id": "3091",
+   "name": "Aklın Sonu",
+   "gold": 2800,
+   "img": "3091.png",
+   "tags": [
+    "Büyü Direnci",
+    "Saldırı Hızı",
+    "Vuruşta",
+    "Sağlamlık"
+   ],
+   "from": [
+    "1043",
+    "1057",
+    "1043"
+   ]
+  },
+  {
+   "id": "6696",
+   "name": "Aksiyom Akımı",
+   "gold": 2750,
+   "img": "6696.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2020",
+    "3133"
+   ]
+  },
+  {
+   "id": "6657",
+   "name": "Asırlık Sopa",
+   "gold": 2600,
+   "img": "6657.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi",
+    "Yetenek Gücü",
+    "Mana",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "1026",
+    "3803"
+   ]
+  },
+  {
+   "id": "326657",
+   "name": "Asırlık Sopa",
+   "gold": 2600,
+   "img": "326657.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi",
+    "Yetenek Gücü",
+    "Mana",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "1026",
+    "3803"
+   ]
+  },
+  {
+   "id": "663039",
+   "name": "Atma'nın Hesaplaşması",
+   "gold": 2500,
+   "img": "663039.png",
+   "tags": [
+    "Can",
+    "Kritik"
+   ],
+   "from": []
+  },
+  {
+   "id": "2524",
+   "name": "Bandle Gaydası",
+   "gold": 2300,
+   "img": "2524.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh",
+    "Saldırı Hızı",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1029",
+    "1033"
+   ]
+  },
+  {
+   "id": "3102",
+   "name": "Banshee'nin Duvağı",
+   "gold": 3000,
+   "img": "3102.png",
+   "tags": [
+    "Büyü Direnci",
+    "Yetenek Gücü"
+   ],
+   "from": [
+    "1058",
+    "4632"
+   ]
+  },
+  {
+   "id": "3003",
+   "name": "Başmelek Asası",
+   "gold": 2900,
+   "img": "3003.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3070",
+    "3802",
+    "3108"
+   ]
+  },
+  {
+   "id": "323003",
+   "name": "Başmelek Asası",
+   "gold": 2900,
+   "img": "323003.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "323070",
+    "3802",
+    "3108"
+   ]
+  },
+  {
+   "id": "3094",
+   "name": "Bombardıman Topu",
+   "gold": 2650,
+   "img": "3094.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Hızı",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3086",
+    "3144"
+   ]
+  },
+  {
+   "id": "6662",
+   "name": "Buzdoğan Eldiven",
+   "gold": 2900,
+   "img": "6662.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Bekleme Süresi",
+    "Yavaşlatma",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3057",
+    "1028",
+    "1031"
+   ]
+  },
+  {
+   "id": "3508",
+   "name": "Canbiçen",
+   "gold": 3050,
+   "img": "3508.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3057",
+    "3133",
+    "1018"
+   ]
+  },
+  {
+   "id": "8020",
+   "name": "Cehennem Maskesi",
+   "gold": 2650,
+   "img": "8020.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1057"
+   ]
+  },
+  {
+   "id": "328020",
+   "name": "Cehennem Maskesi",
+   "gold": 2850,
+   "img": "328020.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1057"
+   ]
+  },
+  {
+   "id": "3139",
+   "name": "Cıva Yatağan",
+   "gold": 3200,
+   "img": "3139.png",
+   "tags": [
+    "Büyü Direnci",
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Aktif Kullanım",
+    "Hareket Hızı",
+    "Sağlamlık"
+   ],
+   "from": [
+    "3140",
+    "1037",
+    "1053"
+   ]
+  },
+  {
+   "id": "3084",
+   "name": "Çelikyürek",
+   "gold": 3000,
+   "img": "3084.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi"
+   ],
+   "from": [
+    "1011",
+    "3801",
+    "1011"
+   ]
+  },
+  {
+   "id": "3075",
+   "name": "Çivili Zırh",
+   "gold": 2450,
+   "img": "3075.png",
+   "tags": [
+    "Can",
+    "Zırh"
+   ],
+   "from": [
+    "3076",
+    "1031",
+    "1028"
+   ]
+  },
+  {
+   "id": "323075",
+   "name": "Çivili Zırh",
+   "gold": 2650,
+   "img": "323075.png",
+   "tags": [
+    "Can",
+    "Zırh"
+   ],
+   "from": [
+    "3076",
+    "1031",
+    "1028"
+   ]
+  },
+  {
+   "id": "3190",
+   "name": "Demir Solari'nin Broşu",
+   "gold": 2200,
+   "img": "3190.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh",
+    "Aura",
+    "Aktif Kullanım",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1029",
+    "1033"
+   ]
+  },
+  {
+   "id": "323190",
+   "name": "Demir Solari'nin Broşu",
+   "gold": 2600,
+   "img": "323190.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh",
+    "Aura",
+    "Aktif Kullanım",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1029",
+    "1033"
+   ]
+  },
+  {
+   "id": "3073",
+   "name": "Deneysel Hexzırh",
+   "gold": 3000,
+   "img": "3073.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Bekleme Süresi",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2021",
+    "1042",
+    "3044"
+   ]
+  },
+  {
+   "id": "6617",
+   "name": "Dinçleştirici Aytaşı",
+   "gold": 2200,
+   "img": "6617.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "4642"
+   ]
+  },
+  {
+   "id": "326617",
+   "name": "Dinçleştirici Aytaşı",
+   "gold": 2900,
+   "img": "326617.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1028",
+    "4642"
+   ]
+  },
+  {
+   "id": "4401",
+   "name": "Doğanın Kudreti",
+   "gold": 2800,
+   "img": "4401.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "1057",
+    "1028",
+    "3066"
+   ]
+  },
+  {
+   "id": "3036",
+   "name": "Dominik Efendi'nin Hürmetleri",
+   "gold": 3300,
+   "img": "3036.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3035",
+    "6670"
+   ]
+  },
+  {
+   "id": "3110",
+   "name": "Donmuş Yürek",
+   "gold": 2500,
+   "img": "3110.png",
+   "tags": [
+    "Zırh",
+    "Mana",
+    "Aura",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3082",
+    "3024"
+   ]
+  },
+  {
+   "id": "323110",
+   "name": "Donmuş Yürek",
+   "gold": 2700,
+   "img": "323110.png",
+   "tags": [
+    "Zırh",
+    "Mana",
+    "Aura",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3082",
+    "3024"
+   ]
+  },
+  {
+   "id": "6664",
+   "name": "Donuk Işıltı",
+   "gold": 2800,
+   "img": "6664.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Can Yenilenmesi",
+    "Aura",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "6660",
+    "3211"
+   ]
+  },
+  {
+   "id": "2517",
+   "name": "Ebedi Açlık",
+   "gold": 3100,
+   "img": "2517.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Büyü Emme",
+    "Sağlamlık",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3133",
+    "1037",
+    "1036"
+   ]
+  },
+  {
+   "id": "3031",
+   "name": "Ebedi Kılıç",
+   "gold": 3500,
+   "img": "3031.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Gücü"
+   ],
+   "from": [
+    "1038",
+    "1037",
+    "1018"
+   ]
+  },
+  {
+   "id": "6699",
+   "name": "Elektrikli Devirkılıcı",
+   "gold": 3000,
+   "img": "6699.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2020",
+    "1036",
+    "1036"
+   ]
+  },
+  {
+   "id": "667112",
+   "name": "Etyiyen",
+   "gold": 2500,
+   "img": "667112.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Yetenek Gücü",
+    "Büyü Delme",
+    "Zırh Delme"
+   ],
+   "from": []
+  },
+  {
+   "id": "3033",
+   "name": "Fani Hatıratı",
+   "gold": 3000,
+   "img": "3033.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3123",
+    "3035",
+    "1018"
+   ]
+  },
+  {
+   "id": "3097",
+   "name": "Fırtınabiçen",
+   "gold": 3200,
+   "img": "3097.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Saldırı Hızı",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "1038",
+    "1018",
+    "3144"
+   ]
+  },
+  {
+   "id": "2526",
+   "name": "Fısıldayan Taç",
+   "gold": 2250,
+   "img": "2526.png",
+   "tags": [
+    "Can",
+    "Mana",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "3114",
+    "1028",
+    "3070"
+   ]
+  },
+  {
+   "id": "322526",
+   "name": "Fısıldayan Taç",
+   "gold": 2250,
+   "img": "322526.png",
+   "tags": [
+    "Can",
+    "Mana",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "3114",
+    "1028",
+    "323070"
+   ]
+  },
+  {
+   "id": "667109",
+   "name": "Gaddarlık",
+   "gold": 2500,
+   "img": "667109.png",
+   "tags": [
+    "Zırh",
+    "Yetenek Gücü"
+   ],
+   "from": []
+  },
+  {
+   "id": "663193",
+   "name": "Gargoyl Taşzırhı",
+   "gold": 2500,
+   "img": "663193.png",
+   "tags": [
+    "Büyü Direnci",
+    "Zırh",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": []
+  },
+  {
+   "id": "3814",
+   "name": "Gecenin Kıyısı",
+   "gold": 3000,
+   "img": "3814.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3134",
+    "2021"
+   ]
+  },
+  {
+   "id": "2522",
+   "name": "Gerçekkılan",
+   "gold": 2800,
+   "img": "2522.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3802",
+    "1026"
+   ]
+  },
+  {
+   "id": "4645",
+   "name": "Gölgealev",
+   "gold": 3200,
+   "img": "4645.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Büyü Delme"
+   ],
+   "from": [
+    "3145",
+    "1058"
+   ]
+  },
+  {
+   "id": "3124",
+   "name": "Guinsoo'nun Hiddeti",
+   "gold": 3000,
+   "img": "3124.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Vuruşta"
+   ],
+   "from": [
+    "1052",
+    "1043",
+    "1037"
+   ]
+  },
+  {
+   "id": "3068",
+   "name": "Günateşi Kalkanı",
+   "gold": 2700,
+   "img": "3068.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Aura",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "6660",
+    "1031",
+    "1028"
+   ]
+  },
+  {
+   "id": "2510",
+   "name": "Gündüz ve Gece",
+   "gold": 3100,
+   "img": "2510.png",
+   "tags": [
+    "Can",
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3057",
+    "1026",
+    "3067",
+    "1042"
+   ]
+  },
+  {
+   "id": "3118",
+   "name": "Habaset",
+   "gold": 2700,
+   "img": "3118.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3802",
+    "1026"
+   ]
+  },
+  {
+   "id": "3748",
+   "name": "Haşmetli Hydra",
+   "gold": 3300,
+   "img": "3748.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi",
+    "Saldırı Gücü",
+    "Vuruşta"
+   ],
+   "from": [
+    "3077",
+    "2021",
+    "1011"
+   ]
+  },
+  {
+   "id": "3046",
+   "name": "Hayalet Dansçı",
+   "gold": 2650,
+   "img": "3046.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Hızı",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "1042",
+    "3086",
+    "1042"
+   ]
+  },
+  {
+   "id": "6620",
+   "name": "Helia'nın Yankıları",
+   "gold": 2200,
+   "img": "6620.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "4642"
+   ]
+  },
+  {
+   "id": "326620",
+   "name": "Helia'nın Yankıları",
+   "gold": 2600,
+   "img": "326620.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "4642"
+   ]
+  },
+  {
+   "id": "2523",
+   "name": "Hexgörü C44",
+   "gold": 2800,
+   "img": "2523.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik"
+   ],
+   "from": [
+    "1037",
+    "6670",
+    "1036"
+   ]
+  },
+  {
+   "id": "3152",
+   "name": "Hextech Füzekemer",
+   "gold": 2650,
+   "img": "3152.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3145",
+    "3067",
+    "1028"
+   ]
+  },
+  {
+   "id": "3146",
+   "name": "Hextech Silahkılıç",
+   "gold": 3000,
+   "img": "3146.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Yetenek Gücü",
+    "Aktif Kullanım",
+    "Büyü Emme"
+   ],
+   "from": [
+    "1053",
+    "3145",
+    "1052"
+   ]
+  },
+  {
+   "id": "663146",
+   "name": "Hextech Silahkılıç",
+   "gold": 2500,
+   "img": "663146.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Yetenek Gücü",
+    "Aktif Kullanım",
+    "Büyü Emme"
+   ],
+   "from": []
+  },
+  {
+   "id": "6631",
+   "name": "Hızkesen",
+   "gold": 3300,
+   "img": "6631.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Yavaşlatma"
+   ],
+   "from": [
+    "3077",
+    "3044",
+    "1042"
+   ]
+  },
+  {
+   "id": "3135",
+   "name": "Hiçlik Değneği",
+   "gold": 3000,
+   "img": "3135.png",
+   "tags": [
+    "Büyü Delme",
+    "Yetenek Gücü"
+   ],
+   "from": [
+    "4630",
+    "1026"
+   ]
+  },
+  {
+   "id": "2520",
+   "name": "Hisaryıkan",
+   "gold": 3200,
+   "img": "2520.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2020",
+    "3134"
+   ]
+  },
+  {
+   "id": "2512",
+   "name": "İblis Avcısı Oku",
+   "gold": 2650,
+   "img": "2512.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Hızı",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3086",
+    "3144"
+   ]
+  },
+  {
+   "id": "663056",
+   "name": "İblis Kral'ın Tacı",
+   "gold": 2500,
+   "img": "663056.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Yetenek Hızı"
+   ],
+   "from": []
+  },
+  {
+   "id": "663060",
+   "name": "İlahların Kılıcı",
+   "gold": 2500,
+   "img": "663060.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Yetenek Gücü"
+   ],
+   "from": []
+  },
+  {
+   "id": "4005",
+   "name": "İmparatorun Fermanı",
+   "gold": 2400,
+   "img": "4005.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1052",
+    "4642",
+    "1052"
+   ]
+  },
+  {
+   "id": "324005",
+   "name": "İmparatorun Fermanı",
+   "gold": 2400,
+   "img": "324005.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1026",
+    "4642"
+   ]
+  },
+  {
+   "id": "6698",
+   "name": "İtikatsız Hydra",
+   "gold": 2850,
+   "img": "6698.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3077",
+    "2020"
+   ]
+  },
+  {
+   "id": "3072",
+   "name": "Kanasusamış",
+   "gold": 3400,
+   "img": "3072.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Can Çalma"
+   ],
+   "from": [
+    "1038",
+    "1037",
+    "1053"
+   ]
+  },
+  {
+   "id": "8010",
+   "name": "Kandöken'in Laneti",
+   "gold": 2900,
+   "img": "8010.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Bekleme Süresi",
+    "Büyü Delme"
+   ],
+   "from": [
+    "3147",
+    "3108"
+   ]
+  },
+  {
+   "id": "3071",
+   "name": "Kara Balta",
+   "gold": 3000,
+   "img": "3071.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Hareket Hızı",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3044",
+    "3067",
+    "1037"
+   ]
+  },
+  {
+   "id": "6692",
+   "name": "Kararma",
+   "gold": 2900,
+   "img": "6692.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3133",
+    "1037",
+    "1036"
+   ]
+  },
+  {
+   "id": "663172",
+   "name": "Karayel",
+   "gold": 2500,
+   "img": "663172.png",
+   "tags": [
+    "Saldırı Hızı",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Hareket Hızı",
+    "Sağlamlık"
+   ],
+   "from": []
+  },
+  {
+   "id": "3107",
+   "name": "Kefaret",
+   "gold": 2300,
+   "img": "3107.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3108",
+    "3114"
+   ]
+  },
+  {
+   "id": "323107",
+   "name": "Kefaret",
+   "gold": 2800,
+   "img": "323107.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1028",
+    "3114"
+   ]
+  },
+  {
+   "id": "3504",
+   "name": "Kızgın Buhurdanlık",
+   "gold": 2200,
+   "img": "3504.png",
+   "tags": [
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3113",
+    "3114"
+   ]
+  },
+  {
+   "id": "323504",
+   "name": "Kızgın Buhurdanlık",
+   "gold": 2600,
+   "img": "323504.png",
+   "tags": [
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3113",
+    "1052",
+    "3114"
+   ]
+  },
+  {
+   "id": "6697",
+   "name": "Kibir",
+   "gold": 2800,
+   "img": "6697.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3134",
+    "3133"
+   ]
+  },
+  {
+   "id": "3026",
+   "name": "Koruyucu Melek",
+   "gold": 3200,
+   "img": "3026.png",
+   "tags": [
+    "Zırh",
+    "Saldırı Gücü"
+   ],
+   "from": [
+    "2019",
+    "1038"
+   ]
+  },
+  {
+   "id": "4629",
+   "name": "Kozmik Hızlandırıcı",
+   "gold": 3000,
+   "img": "4629.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "3113",
+    "3108"
+   ]
+  },
+  {
+   "id": "6672",
+   "name": "Kraken Katili",
+   "gold": 3000,
+   "img": "6672.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Vuruşta",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "6690",
+    "3051",
+    "1043"
+   ]
+  },
+  {
+   "id": "2504",
+   "name": "Kutluyas Rukern",
+   "gold": 2900,
+   "img": "2504.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Can Yenilenmesi"
+   ],
+   "from": [
+    "3211",
+    "1057"
+   ]
+  },
+  {
+   "id": "6653",
+   "name": "Liandry'nin Eziyeti",
+   "gold": 3000,
+   "img": "6653.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü"
+   ],
+   "from": [
+    "3147",
+    "2508"
+   ]
+  },
+  {
+   "id": "3100",
+   "name": "Lich Boğan",
+   "gold": 2900,
+   "img": "3100.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Vuruşta",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3057",
+    "3113",
+    "1026"
+   ]
+  },
+  {
+   "id": "6655",
+   "name": "Luden'in Feryadı",
+   "gold": 2750,
+   "img": "6655.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3802",
+    "3145"
+   ]
+  },
+  {
+   "id": "2420",
+   "name": "Maceracının Pazubendi",
+   "gold": 1600,
+   "img": "2420.png",
+   "tags": [
+    "Zırh",
+    "Yetenek Gücü",
+    "Aktif Kullanım"
+   ],
+   "from": [
+    "1052",
+    "1029",
+    "1052"
+   ]
+  },
+  {
+   "id": "663058",
+   "name": "Magma Kalkanı",
+   "gold": 2500,
+   "img": "663058.png",
+   "tags": [
+    "Can",
+    "Zırh"
+   ],
+   "from": []
+  },
+  {
+   "id": "3153",
+   "name": "Mahvolmuş Kralın Kılıcı",
+   "gold": 3200,
+   "img": "3153.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Can Çalma",
+    "Yavaşlatma",
+    "Vuruşta"
+   ],
+   "from": [
+    "1053",
+    "1043",
+    "1037"
+   ]
+  },
+  {
+   "id": "3137",
+   "name": "Makber Çiçeği",
+   "gold": 3000,
+   "img": "3137.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Büyü Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "4630",
+    "3108",
+    "3108"
+   ]
+  },
+  {
+   "id": "3156",
+   "name": "Malmortius'un Ağzı",
+   "gold": 3100,
+   "img": "3156.png",
+   "tags": [
+    "Büyü Direnci",
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Büyü Emme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3155",
+    "3133"
+   ]
+  },
+  {
+   "id": "3004",
+   "name": "Manaveren",
+   "gold": 2900,
+   "img": "3004.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Mana",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3070",
+    "3133",
+    "1036"
+   ]
+  },
+  {
+   "id": "323004",
+   "name": "Manaveren",
+   "gold": 2900,
+   "img": "323004.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Mana",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "323070",
+    "3133",
+    "1036"
+   ]
+  },
+  {
+   "id": "3222",
+   "name": "Mikael'in Lütfu",
+   "gold": 2300,
+   "img": "3222.png",
+   "tags": [
+    "Can",
+    "Mana Yenilenmesi",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Sağlamlık",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "3114"
+   ]
+  },
+  {
+   "id": "323222",
+   "name": "Mikael'in Lütfu",
+   "gold": 2800,
+   "img": "323222.png",
+   "tags": [
+    "Can",
+    "Mana Yenilenmesi",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Sağlamlık",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1028",
+    "3114"
+   ]
+  },
+  {
+   "id": "3165",
+   "name": "Morellonomikon",
+   "gold": 2850,
+   "img": "3165.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3916",
+    "1026",
+    "3067"
+   ]
+  },
+  {
+   "id": "3115",
+   "name": "Nashor'un Dişi",
+   "gold": 2900,
+   "img": "3115.png",
+   "tags": [
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1043",
+    "1026",
+    "3108"
+   ]
+  },
+  {
+   "id": "6675",
+   "name": "Navori Tezbıçağı",
+   "gold": 2650,
+   "img": "6675.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Hızı",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "1042",
+    "3086",
+    "1042"
+   ]
+  },
+  {
+   "id": "3181",
+   "name": "Omurgakıran",
+   "gold": 3000,
+   "img": "3181.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "2021",
+    "3066",
+    "1037"
+   ]
+  },
+  {
+   "id": "3742",
+   "name": "Ölü Adamın Zırhı",
+   "gold": 2900,
+   "img": "3742.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Yavaşlatma",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3066",
+    "1028",
+    "1031"
+   ]
+  },
+  {
+   "id": "6673",
+   "name": "Ölümsüz Kalkanyay",
+   "gold": 3000,
+   "img": "6673.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik"
+   ],
+   "from": [
+    "1037",
+    "6670"
+   ]
+  },
+  {
+   "id": "6333",
+   "name": "Ölümün Dansı",
+   "gold": 3300,
+   "img": "6333.png",
+   "tags": [
+    "Zırh",
+    "Saldırı Gücü",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2019",
+    "1037",
+    "3133"
+   ]
+  },
+  {
+   "id": "664644",
+   "name": "Parçalanmış Kraliçe'nin Tacı",
+   "gold": 2500,
+   "img": "664644.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": []
+  },
+  {
+   "id": "2421",
+   "name": "Parçalanmış Pazubent",
+   "gold": 1600,
+   "img": "2421.png",
+   "tags": [],
+   "from": [
+    "1052",
+    "1029",
+    "1052"
+   ]
+  },
+  {
+   "id": "2525",
+   "name": "Protoplazma Teçhizatı",
+   "gold": 2600,
+   "img": "2525.png",
+   "tags": [
+    "Can",
+    "Hareket Hızı",
+    "Sağlamlık",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1011"
+   ]
+  },
+  {
+   "id": "3089",
+   "name": "Rabadon'un Şapkası",
+   "gold": 3500,
+   "img": "3089.png",
+   "tags": [
+    "Yetenek Gücü"
+   ],
+   "from": [
+    "1058",
+    "1058"
+   ]
+  },
+  {
+   "id": "3143",
+   "name": "Randuin'in Alameti",
+   "gold": 2700,
+   "img": "3143.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Aktif Kullanım",
+    "Yavaşlatma"
+   ],
+   "from": [
+    "3082",
+    "1011"
+   ]
+  },
+  {
+   "id": "667101",
+   "name": "Rizikocunun Bıçağı",
+   "gold": 2500,
+   "img": "667101.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Hareket Hızı",
+    "Büyü Delme",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": []
+  },
+  {
+   "id": "3065",
+   "name": "Ruh Gömleği",
+   "gold": 2700,
+   "img": "3065.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Can Yenilenmesi",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3211",
+    "3067"
+   ]
+  },
+  {
+   "id": "3085",
+   "name": "Runaan'ın Kasırgası",
+   "gold": 2650,
+   "img": "3085.png",
+   "tags": [
+    "Kritik",
+    "Saldırı Hızı",
+    "Vuruşta",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3086",
+    "3144"
+   ]
+  },
+  {
+   "id": "3116",
+   "name": "Rylai'nin Kristal Asası",
+   "gold": 2600,
+   "img": "3116.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Yavaşlatma"
+   ],
+   "from": [
+    "1026",
+    "1011",
+    "1052"
+   ]
+  },
+  {
+   "id": "2501",
+   "name": "Savaş Beyinin Kanzırhı",
+   "gold": 3300,
+   "img": "2501.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü"
+   ],
+   "from": [
+    "2021",
+    "2021"
+   ]
+  },
+  {
+   "id": "664011",
+   "name": "Seher Kılıcı",
+   "gold": 2500,
+   "img": "664011.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": []
+  },
+  {
+   "id": "6694",
+   "name": "Serylda'nın Garezi",
+   "gold": 3000,
+   "img": "6694.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3133",
+    "3035"
+   ]
+  },
+  {
+   "id": "3161",
+   "name": "Shojin'in Mızrağı",
+   "gold": 3100,
+   "img": "3161.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1037",
+    "2021",
+    "1028"
+   ]
+  },
+  {
+   "id": "2065",
+   "name": "Shurelya'nın Savaş Şarkısı",
+   "gold": 2200,
+   "img": "2065.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3113",
+    "4642"
+   ]
+  },
+  {
+   "id": "322065",
+   "name": "Shurelya'nın Savaş Şarkısı",
+   "gold": 2600,
+   "img": "322065.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3113",
+    "4642"
+   ]
+  },
+  {
+   "id": "2503",
+   "name": "Siyahateş Meşalesi",
+   "gold": 2800,
+   "img": "2503.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3802",
+    "2508"
+   ]
+  },
+  {
+   "id": "3302",
+   "name": "Son Durak",
+   "gold": 3000,
+   "img": "3302.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Vuruşta",
+    "Büyü Delme",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3051",
+    "1043"
+   ]
+  },
+  {
+   "id": "2502",
+   "name": "Sonsuz Çaresizlik",
+   "gold": 2800,
+   "img": "2502.png",
+   "tags": [
+    "Can",
+    "Zırh",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1031",
+    "3067",
+    "1028"
+   ]
+  },
+  {
+   "id": "3087",
+   "name": "Statikk Hançer",
+   "gold": 3000,
+   "img": "3087.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Yetenek Gücü",
+    "Vuruşta",
+    "Hareket Hızı"
+   ],
+   "from": [
+    "3144",
+    "3113",
+    "1037"
+   ]
+  },
+  {
+   "id": "3053",
+   "name": "Sterak'ın Güvencesi",
+   "gold": 3200,
+   "img": "3053.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Sağlamlık"
+   ],
+   "from": [
+    "1037",
+    "2021",
+    "1028"
+   ]
+  },
+  {
+   "id": "6621",
+   "name": "Şafağın Özü",
+   "gold": 2500,
+   "img": "6621.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "1026",
+    "3114",
+    "3114"
+   ]
+  },
+  {
+   "id": "326621",
+   "name": "Şafağın Özü",
+   "gold": 2900,
+   "img": "326621.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Mana Yenilenmesi"
+   ],
+   "from": [
+    "1026",
+    "3114",
+    "3114"
+   ]
+  },
+  {
+   "id": "6665",
+   "name": "Şahbaz Jak'Sho",
+   "gold": 3200,
+   "img": "6665.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh"
+   ],
+   "from": [
+    "1011",
+    "1031",
+    "1057"
+   ]
+  },
+  {
+   "id": "3109",
+   "name": "Şövalyenin Adağı",
+   "gold": 2300,
+   "img": "3109.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi",
+    "Zırh",
+    "Aura",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1031",
+    "1006"
+   ]
+  },
+  {
+   "id": "323109",
+   "name": "Şövalyenin Adağı",
+   "gold": 2900,
+   "img": "323109.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi",
+    "Zırh",
+    "Aura",
+    "Aktif Kullanım",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1031",
+    "1006"
+   ]
+  },
+  {
+   "id": "6676",
+   "name": "Tahsildar",
+   "gold": 3000,
+   "img": "6676.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Zırh Delme"
+   ],
+   "from": [
+    "1037",
+    "3134",
+    "1018"
+   ]
+  },
+  {
+   "id": "667666",
+   "name": "Tahsildar",
+   "gold": 3000,
+   "img": "667666.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Zırh Delme"
+   ],
+   "from": [
+    "1037",
+    "3134",
+    "1018"
+   ]
+  },
+  {
+   "id": "4628",
+   "name": "Ufukgetiren",
+   "gold": 2700,
+   "img": "4628.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3108",
+    "3108",
+    "1052"
+   ]
+  },
+  {
+   "id": "3179",
+   "name": "Umbra Mızrağı",
+   "gold": 2800,
+   "img": "3179.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Zırh Delme",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3134",
+    "3133"
+   ]
+  },
+  {
+   "id": "3078",
+   "name": "Üçlü Kuvvet",
+   "gold": 3333,
+   "img": "3078.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Saldırı Hızı",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Hareket Hızı",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3057",
+    "3044",
+    "3051"
+   ]
+  },
+  {
+   "id": "4633",
+   "name": "Vadiyaran",
+   "gold": 3100,
+   "img": "4633.png",
+   "tags": [
+    "Can",
+    "Yetenek Gücü",
+    "Bekleme Süresi",
+    "Büyü Emme"
+   ],
+   "from": [
+    "3147",
+    "3108"
+   ]
+  },
+  {
+   "id": "3074",
+   "name": "Vahşi Hydra",
+   "gold": 3300,
+   "img": "3074.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Can Çalma",
+    "Bekleme Süresi",
+    "Vuruşta",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3077",
+    "1053",
+    "3133"
+   ]
+  },
+  {
+   "id": "3083",
+   "name": "Warmog'un Zırhı",
+   "gold": 3100,
+   "img": "3083.png",
+   "tags": [
+    "Can",
+    "Can Yenilenmesi"
+   ],
+   "from": [
+    "1011",
+    "1011",
+    "3801"
+   ]
+  },
+  {
+   "id": "3119",
+   "name": "Yaklaşan Kış",
+   "gold": 2400,
+   "img": "3119.png",
+   "tags": [
+    "Can",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3070",
+    "1011",
+    "3067"
+   ]
+  },
+  {
+   "id": "323119",
+   "name": "Yaklaşan Kış",
+   "gold": 2400,
+   "img": "323119.png",
+   "tags": [
+    "Can",
+    "Mana",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "323070",
+    "1011",
+    "3067"
+   ]
+  },
+  {
+   "id": "6610",
+   "name": "Yarık Gökyüzü",
+   "gold": 3100,
+   "img": "6610.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "2021",
+    "3133",
+    "1028"
+   ]
+  },
+  {
+   "id": "4632",
+   "name": "Yeşil Bariyer",
+   "gold": 1600,
+   "img": "4632.png",
+   "tags": [
+    "Büyü Direnci",
+    "Yetenek Gücü"
+   ],
+   "from": [
+    "1052",
+    "1033",
+    "1052"
+   ]
+  },
+  {
+   "id": "6695",
+   "name": "Yılan Dişi",
+   "gold": 2500,
+   "img": "6695.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3134",
+    "1037"
+   ]
+  },
+  {
+   "id": "4646",
+   "name": "Yıldırım Asası",
+   "gold": 2800,
+   "img": "4646.png",
+   "tags": [
+    "Yetenek Gücü",
+    "Hareket Hızı",
+    "Büyü Delme"
+   ],
+   "from": [
+    "3145",
+    "3113"
+   ]
+  },
+  {
+   "id": "663059",
+   "name": "Yıldızlı Gece Pelerini",
+   "gold": 2500,
+   "img": "663059.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci"
+   ],
+   "from": []
+  },
+  {
+   "id": "3142",
+   "name": "Youmuu'nun Hayaletkılıcı",
+   "gold": 2800,
+   "img": "3142.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Aktif Kullanım",
+    "Hareket Hızı",
+    "Zırh Delme"
+   ],
+   "from": [
+    "3134",
+    "6690",
+    "1036"
+   ]
+  },
+  {
+   "id": "3032",
+   "name": "Yun Tal Yabanokları",
+   "gold": 3100,
+   "img": "3032.png",
+   "tags": [
+    "Saldırı Gücü",
+    "Kritik",
+    "Saldırı Hızı"
+   ],
+   "from": [
+    "1038",
+    "3144",
+    "1036"
+   ]
+  },
+  {
+   "id": "6609",
+   "name": "Zaun Zincirkılıcı",
+   "gold": 3000,
+   "img": "6609.png",
+   "tags": [
+    "Can",
+    "Saldırı Gücü",
+    "Bekleme Süresi",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3123",
+    "1011",
+    "3133"
+   ]
+  },
+  {
+   "id": "3050",
+   "name": "Zeke'nin Ahengi",
+   "gold": 2200,
+   "img": "3050.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "3067",
+    "1029",
+    "1033"
+   ]
+  },
+  {
+   "id": "323050",
+   "name": "Zeke'nin Ahengi",
+   "gold": 2300,
+   "img": "323050.png",
+   "tags": [
+    "Can",
+    "Büyü Direnci",
+    "Zırh",
+    "Yetenek Hızı"
+   ],
+   "from": [
+    "1029",
+    "3067",
+    "1033"
+   ]
+  },
+  {
+   "id": "3157",
+   "name": "Zhonya'nın Kumsaati",
+   "gold": 3250,
+   "img": "3157.png",
+   "tags": [
+    "Zırh",
+    "Yetenek Gücü",
+    "Aktif Kullanım"
+   ],
+   "from": [
+    "1058",
+    "2420"
+   ]
+  }
+ ]
+}
