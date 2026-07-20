@@ -100,7 +100,7 @@ export default function QuoteView({ champion, wrongCount, revealed, rules }: Pro
         className="card-btn relative overflow-hidden rounded-xl border px-4 py-3 font-semibold"
         style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
         <span className="absolute inset-y-0 left-0" aria-hidden
-          style={{ width: `${pct}%`, background: 'rgba(200, 170, 110, 0.22)' }} />
+          style={{ width: `${pct}%`, background: 'var(--gold-soft)' }} />
         <span className="relative flex items-center justify-between gap-2">
           <span>{label(kind, idle)}</span>
           {isActive && (
@@ -139,7 +139,7 @@ export default function QuoteView({ champion, wrongCount, revealed, rules }: Pro
       <div className="flex w-full items-center gap-3">
         <button onClick={() => setVolume((v) => (v > 0 ? 0 : 0.8))}
           aria-label={volume > 0 ? 'Sesi kapat' : 'Sesi aç'}
-          className="card-btn rounded-lg border px-2.5 py-1.5"
+          className="card-btn rounded-xl border px-2.5 py-1.5"
           style={{ borderColor: 'var(--border)' }}>
           {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
         </button>

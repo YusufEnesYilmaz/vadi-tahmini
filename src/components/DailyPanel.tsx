@@ -68,7 +68,7 @@ export default function DailyPanel() {
       </div>
 
       {/* Hangi modlar bitti — tek bakışta */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {SUB_MODES.map((m) => {
           const won = getDailyState(m.id).won
           return (
@@ -88,7 +88,7 @@ export default function DailyPanel() {
           Yeni bulmacalar: <b className="tabular-nums" style={{ color: 'var(--text)' }}>{hhmmss(left)}</b>
         </span>
         {done.length > 0 && (
-          <button onClick={shareDay} className="card-btn rounded-lg border px-3 py-1.5 text-xs font-semibold"
+          <button onClick={shareDay} className="card-btn rounded-xl border px-3 py-1.5 text-xs font-semibold"
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
             {copied ? '✓ Kopyalandı' : allDone ? '🏆 Günü paylaş' : 'Günü paylaş'}
           </button>

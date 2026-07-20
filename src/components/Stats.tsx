@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { getBestScore, getDailyStreak, getStats, isStreakAlive } from '../game/stats'
+import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getStats, isStreakAlive } from '../game/stats'
 import {
   DIFFICULTIES, SUB_MODES, TOP_MODES,
-  type Difficulty, type TopMode,
+  type Difficulty, type SubMode, type TopMode,
 } from '../game/types'
+import DailyCalendar from './DailyCalendar'
 
 interface Props {
   initialDifficulty: Difficulty
@@ -22,6 +23,7 @@ function pct(a: number, b: number): string {
 export default function Stats({ initialDifficulty, onClose }: Props) {
   const [top, setTop] = useState<TopMode>('endless')
   const [diff, setDiff] = useState<Difficulty>(initialDifficulty)
+  const [detail, setDetail] = useState<SubMode | null>(null) // dağılımı açılan mod
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -34,19 +36,17 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   const streak = getDailyStreak()
 
   const rows = SUB_MODES.map((m) => ({ mode: m, s: getStats(top, m.id, diff) }))
-  const totalPlayed = rows.reduce((n, r) => n + r.s.played, 0)
-  const totalWon = rows.reduce((n, r) => n + r.s.won, 0)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center"
-      style={{ background: 'rgba(4, 7, 15, 0.75)' }} onClick={onClose}>
-      <div className="anim-pop my-auto w-full max-w-lg rounded-2xl border p-5 shadow-2xl"
+      style={{ background: 'var(--overlay)' }} onClick={onClose}>
+      <div className="anim-pop my-auto w-full max-w-2xl rounded-2xl border p-5 shadow-2xl"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="İstatistikler">
 
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>İstatistikler</h2>
-          <button onClick={onClose} className="card-btn rounded-lg border px-3 py-1 text-sm"
+          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>İstatistikler</h2>
+          <button onClick={onClose} className="card-btn rounded-xl border px-3 py-1 text-sm"
             style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
             Kapat
           </button>
@@ -59,7 +59,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
               className="flex-1 px-2 py-2 text-xs font-bold sm:text-sm"
               style={{
                 background: top === m.id ? 'var(--gold)' : 'transparent',
-                color: top === m.id ? '#0a0e1a' : 'var(--text-dim)',
+                color: top === m.id ? 'var(--on-gold)' : 'var(--text-dim)',
               }}>
               {m.icon} {m.name}
             </button>
@@ -82,51 +82,102 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
           </div>
         )}
 
-        {/* Özet */}
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl border p-2" style={{ borderColor: 'var(--border)' }}>
-            <div className="text-xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>{totalPlayed}</div>
-            <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>oynanan</div>
+        {/* Gün serisi mod bazlı değil (hangi modu oynadığın fark etmez) — tek satır burada */}
+        {daily && (
+          <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border py-2 text-sm"
+            style={{ borderColor: 'var(--border)' }}>
+            <span style={{ color: 'var(--text-dim)' }}>Gün serisi</span>
+            <b style={{ color: 'var(--gold)' }}>🔥 {isStreakAlive(streak) ? streak.streak : 0}</b>
+            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>· en iyi {streak.best}</span>
           </div>
-          <div className="rounded-xl border p-2" style={{ borderColor: 'var(--border)' }}>
-            <div className="text-xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>{pct(totalWon, totalPlayed)}</div>
-            <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>kazanma</div>
-          </div>
-          <div className="rounded-xl border p-2" style={{ borderColor: 'var(--border)' }}>
-            <div className="text-xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>
-              {daily ? (isStreakAlive(streak) ? streak.streak : 0) : Math.max(...rows.map((r) => r.s.bestStreak), 0)}
-            </div>
-            <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-              {daily ? 'gün serisi' : 'en iyi seri'}
-            </div>
-          </div>
-        </div>
+        )}
 
-        {/* Mod mod döküm */}
-        <div className="mt-4 flex flex-col gap-1.5">
+        {/* Mod mod döküm — satıra dokununca tahmin dağılımı açılır */}
+        <div className="mt-3 flex flex-col gap-2">
           {rows.map(({ mode, s }) => {
             const avg = s.won > 0 ? (s.totalGuesses / s.won).toFixed(1) : '—'
+            const open = detail === mode.id
+            const maxDist = Math.max(...s.dist, 1)
             return (
-              <div key={mode.id} className="flex items-center gap-3 rounded-lg border px-3 py-2"
-                style={{ borderColor: 'var(--border)' }}>
-                <span className="text-lg">{mode.icon}</span>
-                <span className="flex-1 text-sm font-semibold">{mode.name}</span>
-                {s.played === 0 ? (
-                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>henüz oynanmadı</span>
-                ) : timed ? (
-                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-                    {s.played} tur · en iyi <b style={{ color: 'var(--gold)' }}>{getBestScore(mode.id, diff)}</b>
-                  </span>
-                ) : (
-                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-                    {s.played} oyun · {pct(s.won, s.played)} · ort. <b style={{ color: 'var(--gold)' }}>{avg}</b> tahmin
-                    {s.bestStreak > 0 && <> · seri {s.currentStreak}/{s.bestStreak}</>}
-                  </span>
+              <div key={mode.id} className="rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+                <button onClick={() => setDetail(open ? null : mode.id)} disabled={s.played === 0 || timed}
+                  className="flex w-full items-center gap-3 px-3 pt-2 text-left disabled:cursor-default">
+                  <span className="text-lg">{mode.icon}</span>
+                  <span className="flex-1 text-sm font-semibold">{mode.name}</span>
+                  {s.played === 0 ? (
+                    <span className="text-xs" style={{ color: 'var(--text-dim)' }}>henüz oynanmadı</span>
+                  ) : !timed && (
+                    <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{open ? '▴ kapat' : '▾ dağılım'}</span>
+                  )}
+                </button>
+
+                {/* Her modun kendi rakamları — üstteki özet bunların toplamı */}
+                {s.played > 0 && (
+                  <div className="grid grid-cols-4 gap-1 px-3 pb-2 pt-1">
+                    {(timed
+                      ? [
+                          { v: String(s.played), l: 'tur' },
+                          { v: String(getBestScore(mode.id, diff)), l: 'en iyi skor' },
+                          { v: (s.totalScore / s.played).toFixed(1), l: 'ort. skor' },
+                          { v: `🔥${getBestCombo(mode.id, diff)}`, l: "pas'sız seri" },
+                        ]
+                      : [
+                          { v: String(s.played), l: 'oynanan' },
+                          { v: pct(s.won, s.played), l: 'kazanma' },
+                          { v: avg, l: 'ort. tahmin' },
+                          { v: String(s.firstTry), l: 'tek seferde' },
+                        ]
+                    ).map((t) => (
+                      <div key={t.l} className="rounded-xl py-1 text-center" style={{ background: 'var(--bg-input)' }}>
+                        <div className="font-display text-base font-extrabold leading-tight" style={{ color: 'var(--gold-bright)' }}>{t.v}</div>
+                        <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>{t.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {open && !timed && (
+                  <div className="anim-row border-t px-3 py-2" style={{ borderColor: 'var(--border)' }}>
+                    <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--text-dim)' }}>
+                      <span>Kazanma: <b style={{ color: 'var(--text)' }}>{pct(s.won, s.played)}</b></span>
+                      <span>Seri: <b style={{ color: 'var(--text)' }}>{s.currentStreak}</b> (en iyi {s.bestStreak})</span>
+                      <span>Tek seferde seri: <b style={{ color: 'var(--text)' }}>{s.firstTryStreak}</b> (en iyi {s.bestFirstTryStreak})</span>
+                    </div>
+                    {/* Tahmin dağılımı: kaç oyunu kaç denemede bitirdi */}
+                    {s.dist.map((n, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-5 shrink-0 text-right text-xs tabular-nums"
+                          style={{ color: 'var(--text-dim)' }}>
+                          {i + 1 === DIST_BUCKETS ? `${DIST_BUCKETS}+` : i + 1}
+                        </span>
+                        <div className="h-4 flex-1 overflow-hidden rounded" style={{ background: 'var(--bg-input)' }}>
+                          <div className="flex h-full items-center justify-end rounded pr-1 text-xs font-bold"
+                            style={{
+                              width: `${Math.max((n / maxDist) * 100, n > 0 ? 12 : 0)}%`,
+                              background: i === 0 ? 'var(--correct)' : 'var(--gold)',
+                              color: 'var(--on-gold)',
+                            }}>
+                            {n > 0 && n}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )
           })}
         </div>
+
+        {/* Günlük takvim */}
+        {daily && (
+          <div className="mt-5">
+            <h3 className="mb-2 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+              Takvim
+            </h3>
+            <DailyCalendar />
+          </div>
+        )}
 
         <p className="mt-4 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
           {timed

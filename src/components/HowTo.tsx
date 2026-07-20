@@ -32,15 +32,16 @@ export default function HowTo({ sub, onClose }: Props) {
   }, [onClose])
 
   const modes = sub ? SUB_MODES.filter((m) => m.id === sub) : SUB_MODES
+  const showLegend = !sub || sub === 'classic' // renk anahtarı sadece Klasik'i ilgilendirir
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center"
-      style={{ background: 'rgba(4, 7, 15, 0.75)' }}
+      style={{ background: 'var(--overlay)' }}
       onClick={onClose}
     >
       <div
-        className="anim-pop my-auto w-full max-w-md rounded-2xl border p-5 shadow-2xl"
+        className="anim-pop my-auto w-full max-w-3xl rounded-2xl border p-5 shadow-2xl"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -48,67 +49,74 @@ export default function HowTo({ sub, onClose }: Props) {
         aria-label="Nasıl oynanır"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>Nasıl oynanır</h2>
-          <button onClick={onClose} className="card-btn rounded-lg border px-3 py-1 text-sm"
+          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>Nasıl oynanır</h2>
+          <button onClick={onClose} className="card-btn rounded-xl border px-3 py-1 text-sm"
             style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
             Kapat
           </button>
         </div>
 
-        <p className="mt-3 text-sm" style={{ color: 'var(--text-dim)' }}>
-          Amaç tek: doğru şampiyonu bulmak. Tahmin hakkın sınırsız — kaç denemede bildiğin sayılır.
+        <p className="mt-3 text-sm" style={{ color: 'var(--text)' }}>
+          Amaç tek: doğru şampiyonu bulmak. Tahmin hakkın sınırlı (zorluğa göre 5–10);
+          hak biterse cevap açıklanır ve o oyun kayıp sayılır. Zamana Karşı'da hak sınırı yoktur, orada süreyle yarışırsın.
         </p>
 
-        <div className="mt-4 flex flex-col gap-3">
+        {/* Geniş ekranda mod kartları yan yana — dikey liste ekranı boşuna uzatıyordu */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {modes.map((m) => (
             <div key={m.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
               <div className="flex items-center gap-2">
                 <span className="text-xl">{m.icon}</span>
                 <span className="font-bold" style={{ color: 'var(--gold)' }}>{m.name}</span>
               </div>
-              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-dim)' }}>{MODE_HOWTO[m.id]}</p>
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{MODE_HOWTO[m.id]}</p>
             </div>
           ))}
         </div>
 
-        {(!sub || sub === 'classic') && (
-          <>
-            <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-              Klasik tablosundaki renkler
+        {/* Renk anahtarı ve mod anlatımı yan yana — anahtar yoksa tek kolon kalsın */}
+        <div className={`mt-5 grid gap-4 ${showLegend ? 'sm:grid-cols-2' : ''}`}>
+          {showLegend && (
+            <section>
+              <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+                Klasik tablosundaki renkler
+              </h3>
+              <div className="mt-2 flex flex-col gap-2">
+                {CLASSIC_LEGEND.map((l) => (
+                  <div key={l.title} className="flex items-center gap-3">
+                    <span className="h-8 w-8 shrink-0 rounded-md" style={{ background: l.color }} />
+                    <span className="text-sm">
+                      <b>{l.title}</b>
+                      <span style={{ color: 'var(--text-dim)' }}> — {l.desc}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+              Modlar
             </h3>
-            <div className="mt-2 flex flex-col gap-2">
-              {CLASSIC_LEGEND.map((l) => (
-                <div key={l.title} className="flex items-center gap-3">
-                  <span className="h-8 w-8 shrink-0 rounded-md" style={{ background: l.color }} />
-                  <span className="text-sm">
-                    <b>{l.title}</b>
-                    <span style={{ color: 'var(--text-dim)' }}> — {l.desc}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+            <ul className="mt-2 flex flex-col gap-2 text-sm" style={{ color: 'var(--text)' }}>
+              <li><b style={{ color: 'var(--text)' }}>Sınırsız</b> — arka arkaya oyna. Sıran sana özel, arkadaşınla aynı şampiyon gelmez.</li>
+              <li><b style={{ color: 'var(--text)' }}>Günlük</b> — herkese aynı bulmaca, günde bir. Sonucu paylaşıp karşılaştırın.</li>
+              <li><b style={{ color: 'var(--text)' }}>Zamana Karşı</b> — süre dolmadan kaç doğru? Takıldığını "Pas" ile geç.</li>
+            </ul>
+          </section>
+        </div>
 
         <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
           Zorluk
         </h3>
-        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
           Sınırsız ve Zamana Karşı'da <b style={{ color: 'var(--text)' }}>Kolay / Normal / Zor / Aşırı Zor</b> seçebilirsin.
           İstatistikler ve rekorlar her seviye için ayrı tutulur. Günlük'te zorluk yoktur — herkes aynı şartlarda oynar.
         </p>
         <div className="mt-3">
           <DifficultyTable />
         </div>
-
-        <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-          Modlar
-        </h3>
-        <ul className="mt-2 flex flex-col gap-1.5 text-sm" style={{ color: 'var(--text-dim)' }}>
-          <li><b style={{ color: 'var(--text)' }}>Sınırsız</b> — arka arkaya oyna. Sıran sana özel, arkadaşınla aynı şampiyon gelmez.</li>
-          <li><b style={{ color: 'var(--text)' }}>Günlük</b> — herkese aynı bulmaca, günde bir. Sonucu paylaşıp karşılaştırın.</li>
-          <li><b style={{ color: 'var(--text)' }}>Zamana Karşı</b> — 60 saniyede kaç doğru? Takıldığını "Pas" ile geç.</li>
-        </ul>
       </div>
     </div>
   )

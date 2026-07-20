@@ -2,15 +2,28 @@ import type { Difficulty, SubMode, TopMode } from './types'
 import { todayKey } from './rng'
 
 /** Mod başına istatistik — localStorage */
+/** Tahmin dağılımı kutuları: 1, 2, 3, 4, 5, 6+ */
+export const DIST_BUCKETS = 6
+
 export interface ModeStats {
   played: number
   won: number
   currentStreak: number
   bestStreak: number
   totalGuesses: number // kazanılan oyunlardaki toplam tahmin (ortalama için)
+  firstTry: number // ilk tahminde bilme sayısı
+  firstTryStreak: number // üst üste ilk tahminde bilme
+  bestFirstTryStreak: number
+  dist: number[] // kaç oyunu kaç tahminde bitirdi (son kutu "6+")
+  totalScore: number // yalnız Zamana Karşı: turlarda toplanan doğru sayısı
 }
 
-const emptyStats: ModeStats = { played: 0, won: 0, currentStreak: 0, bestStreak: 0, totalGuesses: 0 }
+const emptyStats: ModeStats = {
+  played: 0, won: 0, currentStreak: 0, bestStreak: 0, totalGuesses: 0,
+  firstTry: 0, firstTryStreak: 0, bestFirstTryStreak: 0,
+  dist: Array(DIST_BUCKETS).fill(0),
+  totalScore: 0,
+}
 
 /**
  * Zorluk anahtarın parçası: Aşırı Zor'da 8 denemede bilmekle Kolay'da 2'de bilmek
@@ -23,9 +36,16 @@ function statsKey(top: TopMode, sub: SubMode, diff: Difficulty) {
 export function getStats(top: TopMode, sub: SubMode, diff: Difficulty): ModeStats {
   try {
     const raw = localStorage.getItem(statsKey(top, sub, diff))
-    if (raw) return { ...emptyStats, ...JSON.parse(raw) }
+    if (raw) {
+      const s = { ...emptyStats, ...JSON.parse(raw) } as ModeStats
+      // Eski kayıtlarda dist olmayabilir ya da kısa olabilir — normalize et
+      if (!Array.isArray(s.dist) || s.dist.length !== DIST_BUCKETS) {
+        s.dist = Array(DIST_BUCKETS).fill(0)
+      }
+      return s
+    }
   } catch { /* bozuksa sıfırdan */ }
-  return { ...emptyStats }
+  return { ...emptyStats, dist: Array(DIST_BUCKETS).fill(0) }
 }
 
 export function recordGame(top: TopMode, sub: SubMode, diff: Difficulty, won: boolean, guesses: number) {
@@ -36,8 +56,21 @@ export function recordGame(top: TopMode, sub: SubMode, diff: Difficulty, won: bo
     s.currentStreak++
     s.totalGuesses += guesses
     if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak
+
+    // Tahmin dağılımı: son kutu "6+" (uzun kuyruğu tek yerde topla)
+    s.dist[Math.min(guesses, DIST_BUCKETS) - 1]++
+
+    // İlk tahminde bilme: hem toplam hem üst üste serisi
+    if (guesses === 1) {
+      s.firstTry++
+      s.firstTryStreak++
+      if (s.firstTryStreak > s.bestFirstTryStreak) s.bestFirstTryStreak = s.firstTryStreak
+    } else {
+      s.firstTryStreak = 0
+    }
   } else {
     s.currentStreak = 0
+    s.firstTryStreak = 0
   }
   localStorage.setItem(statsKey(top, sub, diff), JSON.stringify(s))
 }
@@ -46,6 +79,31 @@ export function recordGame(top: TopMode, sub: SubMode, diff: Difficulty, won: bo
 
 export function getBestScore(sub: SubMode, diff: Difficulty): number {
   return Number(localStorage.getItem(`vt:best:${sub}:${diff}`) ?? 0)
+}
+
+/**
+ * Zamana Karşı'da bir tur bitti. `recordGame` buraya uymuyor:
+ * orada "kazandın mı / kaç tahminde" var, burada süre dolunca tur biter.
+ * Sayılan şey: kaç tur oynandı ve turlarda toplam kaç doğru yapıldı.
+ */
+export function recordTimedRun(sub: SubMode, diff: Difficulty, score: number) {
+  const s = getStats('timed', sub, diff)
+  s.played++
+  s.totalScore += score
+  localStorage.setItem(statsKey('timed', sub, diff), JSON.stringify(s))
+}
+
+/** Zamana Karşı: Pas kullanmadan üst üste bilinen en uzun seri */
+export function getBestCombo(sub: SubMode, diff: Difficulty): number {
+  return Number(localStorage.getItem(`vt:combo:${sub}:${diff}`) ?? 0)
+}
+
+export function recordCombo(sub: SubMode, diff: Difficulty, combo: number): boolean {
+  if (combo > getBestCombo(sub, diff)) {
+    localStorage.setItem(`vt:combo:${sub}:${diff}`, String(combo))
+    return true
+  }
+  return false
 }
 
 export function recordScore(sub: SubMode, diff: Difficulty, score: number): boolean {
@@ -83,7 +141,31 @@ export function getDailyState(sub: SubMode): DailyState {
 
 export function saveDailyState(sub: SubMode, s: DailyState) {
   localStorage.setItem(dailyKey(sub), JSON.stringify(s))
-  if (s.won) bumpDailyStreak()
+  if (s.won) {
+    bumpDailyStreak()
+    recordDailyWin(sub, s.date, s.guesses.length)
+  }
+}
+
+// ---- Günlük geçmiş: takvim için gün gün kayıt ----
+
+/** { "2026-07-20": { classic: 3, emoji: 1 } } — değer: kaç tahminde bilindiği */
+export type DailyHistory = Record<string, Partial<Record<SubMode, number>>>
+
+const DHIST_KEY = 'vt:dhistory'
+
+export function getDailyHistory(): DailyHistory {
+  try {
+    const raw = localStorage.getItem(DHIST_KEY)
+    if (raw) return JSON.parse(raw) as DailyHistory
+  } catch { /* yoksay */ }
+  return {}
+}
+
+function recordDailyWin(sub: SubMode, date: string, guesses: number) {
+  const h = getDailyHistory()
+  h[date] = { ...h[date], [sub]: guesses }
+  localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 
 // ---- Günlük seri: üst üste kaç gün oynandı (mod fark etmez) ----

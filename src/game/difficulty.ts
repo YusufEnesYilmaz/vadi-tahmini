@@ -26,6 +26,12 @@ export interface DiffRules {
   showPartial: boolean
   /** Zamana Karşı: tur süresi */
   timedSeconds: number
+  /**
+   * Sınırsız ve Günlük'te tahmin hakkı. Bu olmadan kaybetmek imkânsızdı,
+   * dolayısıyla "kazanma oranı" istatistiği de anlamsızdı.
+   * Zamana Karşı'da uygulanmaz — orada baskıyı süre kuruyor.
+   */
+  maxGuesses: number
 }
 
 export const RULES: Record<Difficulty, DiffRules> = {
@@ -34,28 +40,28 @@ export const RULES: Record<Difficulty, DiffRules> = {
     zoomStart: 300, zoomStep: 50,
     abilityNameAt: 2, skinChampionAt: 1, quoteSecondAt: 0,
     yearArrow: true, showPartial: true,
-    timedSeconds: 90,
+    timedSeconds: 90, maxGuesses: 10,
   },
   normal: {
     emojiStart: 1, emojiStep: 1,
     zoomStart: 500, zoomStep: 70,
     abilityNameAt: 3, skinChampionAt: 3, quoteSecondAt: 2,
     yearArrow: true, showPartial: true,
-    timedSeconds: 60,
+    timedSeconds: 60, maxGuesses: 8,
   },
   hard: {
     emojiStart: 1, emojiStep: 2,
     zoomStart: 700, zoomStep: 70,
     abilityNameAt: 5, skinChampionAt: 5, quoteSecondAt: 4,
     yearArrow: false, showPartial: true,
-    timedSeconds: 45,
+    timedSeconds: 45, maxGuesses: 6,
   },
   insane: {
     emojiStart: 1, emojiStep: 3,
     zoomStart: 900, zoomStep: 40,
     abilityNameAt: null, skinChampionAt: null, quoteSecondAt: null,
     yearArrow: false, showPartial: false,
-    timedSeconds: 30,
+    timedSeconds: 30, maxGuesses: 5,
   },
 }
 

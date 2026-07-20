@@ -1,0 +1,134 @@
+import { useState } from 'react'
+import { getDailyHistory } from '../game/stats'
+import { SUB_MODES } from '../game/types'
+
+const WEEKDAYS = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa']
+const MONTHS = [
+  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+]
+
+function dateKey(y: number, m: number, d: number): string {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+/** Pazartesi'yi haftanın ilk günü yap (JS'te 0=Pazar) */
+function firstWeekdayIndex(y: number, m: number): number {
+  return (new Date(y, m, 1).getDay() + 6) % 7
+}
+
+/**
+ * Günlük takvim: hangi gün kaç mod çözülmüş, ay ay gezilebilir.
+ * Renk doygunluğu o gün bitirilen mod sayısını gösterir.
+ */
+export default function DailyCalendar() {
+  const today = new Date()
+  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() })
+  const [selected, setSelected] = useState<string | null>(null)
+  const history = getDailyHistory()
+  const total = SUB_MODES.length
+  const todayStr = dateKey(today.getFullYear(), today.getMonth(), today.getDate())
+
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
+  const pad = firstWeekdayIndex(view.y, view.m)
+  const cells: (number | null)[] = [...Array(pad).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+
+  function shift(by: number) {
+    setView((v) => {
+      const d = new Date(v.y, v.m + by, 1)
+      return { y: d.getFullYear(), m: d.getMonth() }
+    })
+  }
+
+  const isFuture = view.y > today.getFullYear() || (view.y === today.getFullYear() && view.m >= today.getMonth())
+  const monthDays = Object.keys(history).filter((k) => k.startsWith(`${view.y}-${String(view.m + 1).padStart(2, '0')}`))
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <button onClick={() => shift(-1)} className="card-btn rounded-xl border px-2.5 py-1 text-sm"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }} aria-label="Önceki ay">←</button>
+        <span className="text-sm font-semibold" style={{ color: 'var(--gold)' }}>
+          {MONTHS[view.m]} {view.y}
+        </span>
+        <button onClick={() => shift(1)} disabled={isFuture}
+          className="card-btn rounded-xl border px-2.5 py-1 text-sm disabled:opacity-30"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }} aria-label="Sonraki ay">→</button>
+      </div>
+
+      <div className="mt-2 grid grid-cols-7 gap-1 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
+        {WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
+      </div>
+
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {cells.map((day, i) => {
+          if (day === null) return <div key={`p${i}`} />
+          const key = dateKey(view.y, view.m, day)
+          const done = Object.keys(history[key] ?? {}).length
+          const isToday = key === todayStr
+          const isFutureDay = key > todayStr
+          const isSelected = key === selected
+          // Doygunluk: 1 mod soluk, hepsi tamamsa dolu altın
+          const alpha = done === 0 ? 0 : 0.15 + (done / total) * 0.85
+          return (
+            <button key={key}
+              onClick={() => setSelected(isSelected ? null : key)}
+              disabled={isFutureDay}
+              title={done ? `${key}: ${done}/${total} mod` : key}
+              className="flex aspect-square items-center justify-center rounded-md border text-xs tabular-nums transition-transform active:scale-95 disabled:opacity-25"
+              style={{
+                borderColor: isSelected ? 'var(--gold-bright)' : isToday ? 'var(--gold)' : 'var(--border)',
+                borderWidth: isSelected ? 2 : 1,
+                background: done ? `rgba(200, 170, 110, ${alpha})` : 'transparent',
+                color: done >= total / 2 ? 'var(--on-gold)' : 'var(--text-dim)',
+                fontWeight: isToday || isSelected ? 700 : 400,
+              }}>
+              {day}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Seçilen günün dökümü */}
+      {selected && (
+        <div className="anim-pop mt-2 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>
+              {selected}
+              {selected === todayStr && ' · bugün'}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
+              {Object.keys(history[selected] ?? {}).length}/{total} mod
+            </span>
+          </div>
+          <div className="grid gap-1 sm:grid-cols-2">
+            {SUB_MODES.map((m) => {
+              const g = history[selected]?.[m.id]
+              return (
+                <div key={m.id} className="flex items-center gap-2 text-xs">
+                  <span>{m.icon}</span>
+                  <span className="flex-1" style={{ color: g ? 'var(--text)' : 'var(--text-dim)' }}>{m.name}</span>
+                  <span style={{ color: g ? 'var(--correct)' : 'var(--text-dim)' }}>
+                    {g ? `✓ ${g} tahmin` : '—'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center justify-between text-xs" style={{ color: 'var(--text-dim)' }}>
+        <span>{monthDays.length} gün oynandı</span>
+        <span className="flex items-center gap-1">
+          az
+          {[0.2, 0.45, 0.7, 1].map((a) => (
+            <span key={a} className="h-2.5 w-2.5 rounded-md border"
+              style={{ background: `rgba(200, 170, 110, ${a})`, borderColor: 'var(--border)' }} />
+          ))}
+          çok
+        </span>
+      </div>
+    </div>
+  )
+}

@@ -16,6 +16,23 @@
   /* "Yanlış" nötr gri-mavi: kırmızı her hücrede alarm veriyordu, tablo okunmuyordu */
   --wrong: #3b4455;
   --danger: #b91c1c; /* gerçek uyarı (süre bitmek üzere) */
+  --danger-text: #f87171; /* koyu zeminde okunur kırmızı yazı */
+  --overlay: rgba(4, 7, 15, 0.78); /* pencere arkası karartma */
+  --gold-soft: rgba(200, 170, 110, 0.22); /* ilerleme dolgusu, takvim gölgesi */
+  --on-gold: #0a0e1a; /* altın zemin üstündeki yazı */
+
+  /*
+   * Başlık fontu: dışarıdan font ÇEKMİYORUZ (PWA çevrimdışı çalışmalı, CDN yok).
+   * Sistemde hazır bulunan serifler LoL'ün başlık dilini (Beaufort) andırıyor,
+   * maliyeti sıfır. Gövde metni sistem sans-serif olarak kalıyor.
+   */
+  --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+/* Başlıklar ve rakamlar — gövdeden ayrışsın */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
 html {

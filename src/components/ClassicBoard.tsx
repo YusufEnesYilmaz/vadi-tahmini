@@ -28,7 +28,7 @@ export default function ClassicBoard({ rows, yearArrow = true }: { rows: Classic
     <div className="w-full min-w-0">
       <div className="w-full min-w-0 overflow-x-auto">
         <div className="min-w-[560px]">
-          <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+          <div className="mb-1 grid grid-cols-7 gap-1 text-center text-xs uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
             {HEADERS.map((h) => (
               <div key={h} className="border-b pb-1" style={{ borderColor: 'var(--border)' }}>{h}</div>
             ))}
@@ -36,10 +36,10 @@ export default function ClassicBoard({ rows, yearArrow = true }: { rows: Classic
           <div className="flex flex-col gap-1">
             {rows.map((r) => (
               <div key={r.champion.id} className="anim-row grid grid-cols-7 gap-1">
-                <div className="flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-md p-1"
+                <div className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-md p-1"
                   style={{ background: 'var(--bg-card)' }}>
                   <img src={squareUrl(r.champion.id)} alt={r.champion.name} className="h-10 w-10 rounded" />
-                  <span className="max-w-full truncate text-[10px]">{r.champion.name}</span>
+                  <span className="max-w-full truncate text-xs">{r.champion.name}</span>
                 </div>
                 <Cell result={r.cells.gender}>{r.champion.gender}</Cell>
                 <Cell result={r.cells.lanes}>{r.champion.lanes.join(', ')}</Cell>
@@ -58,7 +58,7 @@ export default function ClassicBoard({ rows, yearArrow = true }: { rows: Classic
         </div>
       </div>
       {/* Dar ekranda tablo kaydırılabilir — kullanıcı bunu görmeden kolonları kaçırıyordu */}
-      <p className="pt-1.5 text-center text-[11px] sm:hidden" style={{ color: 'var(--text-dim)' }}>
+      <p className="pt-1.5 text-center text-xs sm:hidden" style={{ color: 'var(--text-dim)' }}>
         ← tabloyu yana kaydır →
       </p>
     </div>

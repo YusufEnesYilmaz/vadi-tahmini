@@ -26,9 +26,9 @@ export default function Menu({ onPlay, onSettings }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-4 pb-10 pt-12">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-4 pb-10 pt-12">
       <header className="text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+        <h1 className="font-display text-4xl font-bold" style={{ color: 'var(--gold-bright)' }}>
           Vadi <span style={{ color: 'var(--gold)' }}>Tahmini</span>
         </h1>
         <p className="mt-1 text-sm" style={{ color: 'var(--text-dim)' }}>
@@ -38,17 +38,20 @@ export default function Menu({ onPlay, onSettings }: Props) {
 
       {!top ? (
         <div className="flex w-full flex-col gap-3">
-          {TOP_MODES.map((m) => (
-            <button key={m.id} onClick={() => setTop(m.id)}
-              className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
-              style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <span className="text-3xl">{m.icon}</span>
-              <span>
-                <span className="block text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>{m.name}</span>
-                <span className="block text-sm" style={{ color: 'var(--text-dim)' }}>{m.desc}</span>
-              </span>
-            </button>
-          ))}
+          {/* Masaüstünde üç mod yan yana — tek sütun geniş kapta boşluğa yayılıyordu */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {TOP_MODES.map((m) => (
+              <button key={m.id} onClick={() => setTop(m.id)}
+                className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left sm:flex-col sm:items-start"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <span className="text-3xl">{m.icon}</span>
+                <span>
+                  <span className="block text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>{m.name}</span>
+                  <span className="block text-sm" style={{ color: 'var(--text-dim)' }}>{m.desc}</span>
+                </span>
+              </button>
+            ))}
+          </div>
           <div className="mt-2 grid grid-cols-3 gap-2">
             <button onClick={() => setHowTo(true)} className="card-btn rounded-xl border p-3 text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
@@ -66,7 +69,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
         </div>
       ) : (
         <div className="flex w-full flex-col gap-3">
-          <button onClick={() => setTop(null)} className="card-btn self-start rounded-lg border px-3 py-1.5 text-sm"
+          <button onClick={() => setTop(null)} className="card-btn self-start rounded-xl border px-3 py-1.5 text-sm"
             style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
             ← Geri
           </button>
@@ -85,7 +88,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
                     className="flex-1 px-1 py-2 text-xs font-bold transition-colors sm:text-sm"
                     style={{
                       background: diff === d.id ? 'var(--gold)' : 'transparent',
-                      color: diff === d.id ? '#0a0e1a' : 'var(--text-dim)',
+                      color: diff === d.id ? 'var(--on-gold)' : 'var(--text-dim)',
                     }}>
                     {d.name}
                   </button>
@@ -110,6 +113,8 @@ export default function Menu({ onPlay, onSettings }: Props) {
             </div>
           )}
 
+          {/* Alt modlar da geniş ekranda ikişerli */}
+          <div className="grid gap-3 sm:grid-cols-2">
           {SUB_MODES.map((m) => {
             const dailyDone = top === 'daily' && getDailyState(m.id).done
             const stats = getStats(top, m.id, diff)
@@ -137,6 +142,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
               </button>
             )
           })}
+          </div>
         </div>
       )}
 

@@ -71,7 +71,7 @@ export default function Autocomplete({ options, placeholder, disabledKeys, onPic
           else if (e.key === 'Escape') setOpen(false)
         }}
         placeholder={placeholder}
-        className="w-full rounded-lg border px-4 py-3 text-base outline-none focus:border-[var(--gold)]"
+        className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:border-[var(--gold)]"
         style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }}
         autoComplete="off"
         autoCorrect="off"
@@ -80,7 +80,7 @@ export default function Autocomplete({ options, placeholder, disabledKeys, onPic
       {open && matches.length > 0 && (
         <div
           ref={listRef}
-          className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border shadow-xl"
+          className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border shadow-xl"
           style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         >
           {matches.map((o, i) => (
