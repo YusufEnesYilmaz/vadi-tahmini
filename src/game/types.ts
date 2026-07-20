@@ -36,7 +36,7 @@ export interface ChampionData {
 export type TopMode = 'endless' | 'daily' | 'timed'
 
 /** Alt mod: ne tahmin ediliyor */
-export type SubMode = 'classic' | 'ability' | 'splash' | 'skin'
+export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji'
 
 export const TOP_MODES: { id: TopMode; name: string; desc: string; icon: string }[] = [
   { id: 'endless', name: 'Sınırsız', desc: 'Arka arkaya oyna, bekleme yok', icon: '∞' },
@@ -49,4 +49,5 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string 
   { id: 'ability', name: 'Yetenek', desc: 'Yetenek ikonundan şampiyonu bul', icon: '✨' },
   { id: 'splash', name: 'Görsel', desc: 'Kırpılmış görselden şampiyonu bul', icon: '🖼' },
   { id: 'skin', name: 'Kostüm', desc: 'Görselden kostümün adını bul', icon: '🎭' },
+  { id: 'emoji', name: 'Emoji', desc: 'Emoji ipuçlarından şampiyonu bul', icon: '😀' },
 ]

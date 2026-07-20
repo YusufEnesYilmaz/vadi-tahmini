@@ -1,4 +1,5 @@
 import bundled from '../data/champions.json'
+import emojiData from '../data/emoji.json'
 import type { ChampionData, Champion } from './types'
 
 const UPDATED_KEY = 'vt:data:updated'
@@ -45,6 +46,18 @@ export function saveUpdatedData(data: ChampionData) {
 export function byId(id: string): Champion | undefined {
   return CHAMPIONS.find((c) => c.id === id)
 }
+
+// ---- Emoji modu ----
+
+/** Elle yazılan emoji ipuçları — ddragon'da böyle bir veri yok */
+export const EMOJI: Record<string, string[]> = (emojiData as { emoji: Record<string, string[]> }).emoji
+
+/**
+ * Emoji havuzu: sadece verisi OLAN şampiyonlar.
+ * Yeni şampiyon çıktığında emoji'si yazılana kadar bu moda girmez —
+ * boş ipuçlu bir bulmaca göstermektense atlamak daha iyi.
+ */
+export const EMOJI_IDS: string[] = CHAMPIONS.filter((c) => EMOJI[c.id]?.length).map((c) => c.id)
 
 // ---- Görsel URL'leri (hepsi ddragon CDN — repo'da görsel yok) ----
 

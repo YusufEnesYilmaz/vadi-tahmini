@@ -1,5 +1,5 @@
 import type { Puzzle } from '../game/puzzle'
-import { passiveUrl, spellUrl, splashUrl } from '../game/data'
+import { EMOJI, passiveUrl, spellUrl, splashUrl } from '../game/data'
 
 interface Props {
   puzzle: Puzzle
@@ -30,6 +30,36 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, hideSlot }: P
           {/* Tuş artık ipucu değil bonus soru — bonus cevaplanmadan gösterilmez */}
           {revealed && !hideSlot && <span>Tuş: <b style={{ color: 'var(--gold)' }}>{slot}</b></span>}
           {!revealed && wrongCount < 3 && <span>İpucu: 3 yanlışta yetenek adı</span>}
+        </div>
+      </div>
+    )
+  }
+
+  if (puzzle.sub === 'emoji') {
+    const all = EMOJI[puzzle.champion.id] ?? []
+    // Baştan tek emoji açık, her yanlışta bir tane daha (sıra belirsizden belirgine)
+    const shown = revealed ? all.length : Math.min(all.length, 1 + wrongCount)
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-wrap justify-center gap-2">
+          {all.map((e, i) => (
+            <span
+              key={i}
+              className={`flex h-14 w-14 items-center justify-center rounded-xl border text-3xl ${i < shown ? 'anim-pop' : ''}`}
+              style={{
+                background: 'var(--bg-card)',
+                borderColor: i < shown ? 'var(--gold)' : 'var(--border)',
+              }}
+              aria-label={i < shown ? 'İpucu' : 'Kilitli ipucu'}
+            >
+              {i < shown ? e : '❔'}
+            </span>
+          ))}
+        </div>
+        <div className="min-h-5 text-sm" style={{ color: 'var(--text-dim)' }}>
+          {shown < all.length
+            ? <span>İpucu: her yanlışta bir emoji daha açılır</span>
+            : <span>Bütün ipuçları açık</span>}
         </div>
       </div>
     )

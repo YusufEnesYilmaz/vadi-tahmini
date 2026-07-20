@@ -1,4 +1,4 @@
-import { CHAMPIONS, byId } from './data'
+import { CHAMPIONS, EMOJI_IDS, byId } from './data'
 import { getDeck } from './deck'
 import { cryptoRandInt, dailyIndex, fnv1a, seededRng, todayKey } from './rng'
 import type { Champion, Skin, SubMode, TopMode } from './types'
@@ -42,7 +42,9 @@ export function nextPuzzle(top: TopMode, sub: SubMode): Puzzle {
     return { sub, champion, skin, crop: { x: 20 + cryptoRandInt(61), y: 20 + cryptoRandInt(61) } }
   }
 
-  const id = getDeck(sub, CHAMPIONS.map((c) => c.id)).draw()
+  // Emoji modu yalnızca emoji verisi olan şampiyonlardan çeker
+  const pool = sub === 'emoji' ? EMOJI_IDS : CHAMPIONS.map((c) => c.id)
+  const id = getDeck(sub, pool).draw()
   const champion = byId(id)!
   if (sub === 'ability') {
     return { sub, champion, spellIndex: cryptoRandInt(5) }
@@ -61,6 +63,10 @@ function dailyPuzzle(sub: SubMode): Puzzle {
     const pool = skinPool()
     const { champion, skin } = resolveSkin(pool[dailyIndex(sub, pool.length)])
     return { sub, champion, skin, crop: { x: 20 + Math.floor(rng() * 61), y: 20 + Math.floor(rng() * 61) } }
+  }
+
+  if (sub === 'emoji') {
+    return { sub, champion: byId(EMOJI_IDS[dailyIndex(sub, EMOJI_IDS.length)])! }
   }
 
   const champion = CHAMPIONS[dailyIndex(sub, CHAMPIONS.length)]

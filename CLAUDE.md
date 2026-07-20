@@ -24,6 +24,9 @@ Konum: `C:\Users\yusfe\Desktop\Claude\vadi-tahmini`. localStorage önekleri: `vt
 | 2026-07-20 | Skin havuzu skin bazlı deste (~1917), base skin hariç | Kostüm modu şampiyon değil kostüm tahmini |
 | 2026-07-20 | Güncelleme: Ayarlar'da 2 katman — SW prompt (`registerType:'prompt'`) + ddragon veri çekme (localStorage'a, gömülü JSON yedek kalır) | Kullanıcının isteği: push'suz güncelleme; yeni şampiyon/kostüm oyuncu tarafından çekilebilsin |
 | 2026-07-20 | Classic kolonları: Cinsiyet, Rol, Koridor, Kaynak, Menzil, Bölge, Yıl | Koridor kullanıcı isteğiyle eklendi (LoLdle paritesi) |
+| 2026-07-20 | **Emoji modu** (5. alt mod): veri `src/data/emoji.json`, şampiyon başına 4–5 emoji, sıra belirsizden belirgine | Faz 2'nin ilk maddesi. ddragon'da böyle bir veri yok, elle yazıldı. Açılma: **ilk emoji açık, her yanlışta bir tane daha** (kullanıcının isteği — başta 2 açıktı, çok kolaydı). Kilitli olanlar `❔` kutusu olarak görünür ki oyuncu kaç ipucu kaldığını bilsin |
+| 2026-07-20 | Emoji havuzu yalnızca verisi olan şampiyonlardan çeker (`EMOJI_IDS`) | Yeni şampiyon geldiğinde emojisi yazılana kadar moda girmez — boş ipuçlu, çözülemez bulmaca göstermektense atlamak daha iyi. Locke/Yunara/Zaahen kullanıcıdan alınan tariflerle dolduruldu, artık 173/173 |
+| 2026-07-20 | Emoji düzenleme aracı: `node scripts/emoji-review.mjs` → `tools/emoji-review.html` (git'e girmez) | Uygulamaya dev-only ekran gömmek yerine tek seferlik üretilen statik HTML: veri gömülü geldiği için `file://` fetch sorunu yok, kullanıcı düzenleyip "JSON'u indir" ile `src/data/emoji.json`'ı değiştiriyor. Emoji bölme `Intl.Segmenter` ile grafem bazlı — bayrak/ZWJ'li emojiler bozulmuyor |
 | 2026-07-20 | Klasik tablosunda "yanlış" rengi kırmızıdan (#7f1d1d) nötr gri-maviye (#3b4455) çekildi; kehribar `--partial` altın temaya yaklaştırıldı; gerçek uyarı için ayrı `--danger` eklendi | Wordle/Wordi referanslarında "yok" nötr gridir — her satırın çoğu hücre yanlış olduğu için kırmızı tablo alarm panosuna dönüyor, doğru/kısmi hücreler seçilemiyordu. Süre sayacı artık `--danger` kullanıyor ki kırmızı gerçekten "dikkat" demeye devam etsin |
 | 2026-07-20 | **Nasıl oynanır** penceresi (`HowTo.tsx`) — menüden ve oyun içi "?" butonundan | Wordi referansındaki how-to-play ekranı. Renklerin anlamı (yeşil/kehribar/gri) hiçbir yerde yazmıyordu; arkadaş grubuna link atıldığında ilk soru bu olacaktı. Oyun içinden açılınca sadece o modun anlatımı gösterilir |
 | 2026-07-20 | UI cilası: ortak `.card-btn` (hover/active) + `anim-row/pop/shake/pulse` sınıfları `index.css`'te toplandı | Stiller inline `style` ile yazıldığı için hover/focus yazılamıyordu; tek yerde CSS sınıfı olarak durunca bileşenler kalabalıklaşmıyor. `prefers-reduced-motion` ile hepsi kapanıyor, `:focus-visible` altın halka klavye kullanıcısı için |
@@ -37,10 +40,12 @@ Konum: `C:\Users\yusfe\Desktop\Claude\vadi-tahmini`. localStorage önekleri: `vt
 - `npm run dev` — geliştirme (launch.json: "vadi-tahmini")
 - `npm run build` — üretim + PWA
 - `node scripts/build-data.mjs` — veriyi yeni patch'e güncelle (rapor basar; cinsiyet tablosuna yeni şampiyon eklemeyi unutma)
+- `node scripts/emoji-review.mjs` — emoji düzenleme aracını üretir (`tools/emoji-review.html`); yeni şampiyon geldiğinde emojisini buradan ekle
 
 ## Bilinen Sınırlar / Faz 2
 
-- Emoji modu (manuel veri + review aracı), Quote modu (CDragon ses), canlı multiplayer (Supabase Realtime, oda kodu) — MVP'ye bilinçli alınmadı.
+- Emoji modu YAPILDI ve kullanıcı tarafından oynanarak doğrulandı (2026-07-20): açılma sırası çalışıyor. Kalan Faz 2: Quote modu (CDragon ses), canlı multiplayer (Supabase Realtime, oda kodu).
+- Emoji kalitesi tur tur düzeltiliyor (ör. Wukong'un 2. emojisi 🪄 → 🦯 asa). Düzeltme yolu: `node scripts/emoji-review.mjs`.
 - localStorage anahtarları `lt:` önekli (deste: `lt:deck:*`, istatistik: `lt:stats:*`, günlük: `lt:daily:*`, veri: `lt:data:updated`).
 - Yeni şampiyonlar (Locke, Yunara, Zaahen) Meraki'de yokken elle dolduruldu — Meraki eklenince fallback otomatik devre dışı.
 
