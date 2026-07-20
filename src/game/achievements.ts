@@ -300,8 +300,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     desc: 'Bir günde 6 günlük bulmacanın hepsini kazan',
     check: (s) => {
       for (const day of Object.values(s.dailyHistory)) {
-        const subs = Object.keys(day) as SubMode[]
-        if (subs.length >= 6) return true
+        // Değer 0 = kaybedildi — "hepsini kazan" şartına sayılmaz
+        const won = Object.values(day).filter((g) => (g ?? 0) > 0)
+        if (won.length >= 6) return true
       }
       return false
     },
@@ -486,6 +487,10 @@ export function evaluateAchievements(): EarnedAchievement[] {
 /**
  * Vitrin için: tüm rozetleri kazanılma bilgisiyle döndür.
  * Kazanılmayanlar için ilerleme verisi de dahil.
+ * Önce evaluateAchievements çalışır: istatistikler rozet özelliğinden ÖNCE
+ * oluşmuş olabilir (veya oyun sonu tetiklemesi kaçmış olabilir) — şartı
+ * sağlanan rozetler vitrin açılırken sessizce depoya işlenir ki dolu
+ * ilerleme çubuklu rozetler silik görünmesin.
  */
 export function getAchievementShowcase(): {
   ach: Achievement
@@ -493,6 +498,7 @@ export function getAchievementShowcase(): {
   date?: string
   progress?: { current: number; target: number }
 }[] {
+  evaluateAchievements()
   const store = getAchStore()
   const snap = buildSnapshot()
   return ACHIEVEMENTS.map((ach) => ({

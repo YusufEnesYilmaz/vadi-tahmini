@@ -144,12 +144,14 @@ export function saveDailyState(sub: SubMode, s: DailyState) {
   if (s.won) {
     bumpDailyStreak()
     recordDailyWin(sub, s.date, s.guesses.length)
+  } else if (s.done) {
+    recordDailyLoss(sub, s.date)
   }
 }
 
 // ---- Günlük geçmiş: takvim için gün gün kayıt ----
 
-/** { "2026-07-20": { classic: 3, emoji: 1 } } — değer: kaç tahminde bilindiği */
+/** { "2026-07-20": { classic: 3, emoji: 1, quote: 0 } } — değer: kaç tahminde bilindiği; 0 = oynandı ama kaybedildi */
 export type DailyHistory = Record<string, Partial<Record<SubMode, number>>>
 
 const DHIST_KEY = 'vt:dhistory'
@@ -165,6 +167,15 @@ export function getDailyHistory(): DailyHistory {
 function recordDailyWin(sub: SubMode, date: string, guesses: number) {
   const h = getDailyHistory()
   h[date] = { ...h[date], [sub]: guesses }
+  localStorage.setItem(DHIST_KEY, JSON.stringify(h))
+}
+
+/** Hak bitti, cevap bulunamadı — takvimde ✗ görünsün diye 0 yazılır */
+function recordDailyLoss(sub: SubMode, date: string) {
+  const h = getDailyHistory()
+  // Kazanılmış bir kaydın üzerine yazma (aynı gün aynı mod iki kez bitemez ama garanti olsun)
+  if ((h[date]?.[sub] ?? 0) > 0) return
+  h[date] = { ...h[date], [sub]: 0 }
   localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ACHIEVEMENTS, type AchSnapshot } from './achievements'
+import { ACHIEVEMENTS, getAchievementShowcase, type AchSnapshot } from './achievements'
 
 /** Minimal snapshot — varsayılanları override et */
 function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
@@ -89,6 +89,9 @@ describe('Achievements — check functions', () => {
     const history = { '2026-07-20': { classic: 2, ability: 1, splash: 3, skin: 1, emoji: 2, quote: 1 } }
     expect(find('full_day').check(snap({ dailyHistory: history }))).toBe(true)
     expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': { classic: 2 } } }))).toBe(false)
+    // 0 = kaybedildi: 4 kazanç + 2 kayıp "hepsini kazan" sayılmaz
+    const mixed = { '2026-07-20': { classic: 2, ability: 0, splash: 3, skin: 1, emoji: 2, quote: 0 } }
+    expect(find('full_day').check(snap({ dailyHistory: mixed }))).toBe(false)
   })
 
   it('mix_lover/mix_master: karisik galibiyet', () => {
@@ -191,5 +194,37 @@ describe('ACHIEVEMENTS list integrity', () => {
     for (const a of ACHIEVEMENTS) {
       expect(a.cat).toBeTruthy()
     }
+  })
+})
+
+describe('getAchievementShowcase — geriye dönük eşitleme', () => {
+  it('şartı sağlanan rozet vitrin açılışında kazanılmış sayılır ve depoya yazılır', () => {
+    // Rozet özelliğinden ÖNCE oluşmuş istatistik senaryosu: 12 galibiyet, 5'lik seri
+    localStorage.setItem('vt:stats:endless:classic:normal', JSON.stringify({
+      played: 15, won: 12, currentStreak: 3, bestStreak: 5, totalGuesses: 40,
+      firstTry: 1, firstTryStreak: 1, bestFirstTryStreak: 1,
+      dist: [1, 2, 3, 2, 1, 3], totalScore: 0,
+    }))
+
+    const items = getAchievementShowcase()
+    const byId = (id: string) => items.find((i) => i.ach.id === id)!
+
+    expect(byId('first_blood').earned).toBe(true)
+    expect(byId('apprentice').earned).toBe(true) // 12 >= 10
+    expect(byId('streak5').earned).toBe(true) // bestStreak 5
+    expect(byId('master').earned).toBe(false) // 12 < 50
+    expect(byId('master').progress).toEqual({ current: 12, target: 50 })
+
+    // Depoya da yazılmış olmalı — sayaç ve sonraki açılışlar tutarlı kalır
+    const store = JSON.parse(localStorage.getItem('vt:ach')!) as Record<string, string>
+    expect(store.first_blood).toBeTruthy()
+    expect(store.apprentice).toBeTruthy()
+    expect(store.master).toBeUndefined()
+  })
+
+  it('boş kayıtlarda hiçbir rozet kazanılmış sayılmaz', () => {
+    const items = getAchievementShowcase()
+    expect(items.length).toBe(ACHIEVEMENTS.length)
+    expect(items.every((i) => !i.earned)).toBe(true)
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getBestScore, getStats, recordGame, recordScore, recordTimedRun } from './stats'
+import { getBestScore, getDailyHistory, getStats, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
+import { todayKey } from './rng'
 
 describe('istatistikler', () => {
   it('kazanılan oyun seriyi ve dağılımı günceller', () => {
@@ -59,5 +60,26 @@ describe('istatistikler', () => {
     expect(recordScore('quote', 'normal', 9)).toBe(true)
     expect(recordScore('quote', 'normal', 4)).toBe(false) // düşük skor rekoru bozmaz
     expect(getBestScore('quote', 'normal')).toBe(9)
+  })
+
+  it('Günlük kayıp takvim geçmişine 0 olarak yazılır', () => {
+    const today = todayKey()
+    saveDailyState('classic', { date: today, guesses: ['a', 'b', 'c'], done: true, won: false })
+    expect(getDailyHistory()[today]?.classic).toBe(0) // ✗ kaybedildi
+  })
+
+  it('Günlük kazanç tahmin sayısıyla yazılır ve kayıp onun üzerine yazmaz', () => {
+    const today = todayKey()
+    saveDailyState('emoji', { date: today, guesses: ['a'], done: true, won: true })
+    expect(getDailyHistory()[today]?.emoji).toBe(1)
+    // Aynı mod için sonradan gelen kayıp kaydı kazancı ezmemeli
+    saveDailyState('emoji', { date: today, guesses: ['a', 'b', 'c'], done: true, won: false })
+    expect(getDailyHistory()[today]?.emoji).toBe(1)
+  })
+
+  it('Bitmemiş günlük (done: false) geçmişe yazılmaz', () => {
+    const today = todayKey()
+    saveDailyState('splash', { date: today, guesses: ['a'], done: false, won: false })
+    expect(getDailyHistory()[today]?.splash).toBeUndefined()
   })
 })

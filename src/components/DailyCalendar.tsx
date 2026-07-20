@@ -64,7 +64,8 @@ export default function DailyCalendar() {
         {cells.map((day, i) => {
           if (day === null) return <div key={`p${i}`} />
           const key = dateKey(view.y, view.m, day)
-          const done = Object.keys(history[key] ?? {}).length
+          // Hücre doygunluğu ÇÖZÜLEN mod sayısından gelir (0 = kaybedildi, sayılmaz)
+          const done = Object.values(history[key] ?? {}).filter((g) => (g ?? 0) > 0).length
           const isToday = key === todayStr
           const isFutureDay = key > todayStr
           const isSelected = key === selected
@@ -98,18 +99,18 @@ export default function DailyCalendar() {
               {selected === todayStr && ' · bugün'}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-              {Object.keys(history[selected] ?? {}).length}/{total} mod
+              {Object.values(history[selected] ?? {}).filter((g) => (g ?? 0) > 0).length}/{total} mod
             </span>
           </div>
           <div className="grid gap-1 sm:grid-cols-2">
             {SUB_MODES.map((m) => {
-              const g = history[selected]?.[m.id]
+              const g = history[selected]?.[m.id] // undefined = oynanmadı, 0 = kaybedildi, >0 = kazanıldı
               return (
                 <div key={m.id} className="flex items-center gap-2 text-xs">
                   <span>{m.icon}</span>
-                  <span className="flex-1" style={{ color: g ? 'var(--text)' : 'var(--text-dim)' }}>{m.name}</span>
-                  <span style={{ color: g ? 'var(--correct)' : 'var(--text-dim)' }}>
-                    {g ? `✓ ${g} tahmin` : '—'}
+                  <span className="flex-1" style={{ color: g !== undefined ? 'var(--text)' : 'var(--text-dim)' }}>{m.name}</span>
+                  <span style={{ color: g === undefined ? 'var(--text-dim)' : g > 0 ? 'var(--correct)' : 'var(--danger-text)' }}>
+                    {g === undefined ? '—' : g > 0 ? `✓ ${g} tahmin` : '✗ kaybedildi'}
                   </span>
                 </div>
               )
