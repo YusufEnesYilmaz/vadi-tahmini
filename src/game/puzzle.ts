@@ -1,6 +1,6 @@
 import { CHAMPIONS, EMOJI_IDS, ITEMS, byId, itemById } from './data'
 import { getDeck } from './deck'
-import { ALL_FILTER, filterKey, pooledIds, type PoolFilter } from './filter'
+import { ALL_FILTER, filterKey, isAllFilter, pooledIds, type PoolFilter } from './filter'
 import { cryptoRandInt, dailyIndex, fnv1a, seededRng, todayKey } from './rng'
 import type { Champion, ChampionSubMode, Item, PlaySub, Skin, SubMode, TopMode } from './types'
 
@@ -10,8 +10,8 @@ import type { Champion, ChampionSubMode, Item, PlaySub, Skin, SubMode, TopMode }
  * ritmini öldürüyor (kullanıcı kararı). Sınırsız'da altısı da var.
  */
 const MIX_POOL: Record<'endless' | 'timed', SubMode[]> = {
-  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette'],
-  timed: ['ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette'],
+  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette', 'lore'],
+  timed: ['ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette', 'lore'],
 }
 
 /**
@@ -44,7 +44,7 @@ function skinPool(): string[] {
 
 /** Filtre uygulanmış kostüm havuzu; filtre havuzu boşaltırsa tüm havuza döner */
 function filteredSkinPool(filter: PoolFilter): string[] {
-  if (filter.kind === 'all') return skinPool()
+  if (isAllFilter(filter)) return skinPool()
   const allowed = new Set(pooledIds(filter, 'skin'))
   const narrowed = skinPool().filter((k) => allowed.has(k.slice(0, k.lastIndexOf(':'))))
   return narrowed.length > 0 ? narrowed : skinPool()

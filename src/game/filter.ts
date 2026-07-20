@@ -3,49 +3,101 @@ import type { Champion, SubMode } from './types'
 
 /**
  * Havuz filtresi — Sınırsız ve Zamana Karşı'da şampiyon havuzunu daraltır
- * ("sadece Noxus", "sadece Suikastçılar"). Antrenman gibi çalışır: zayıf
- * olduğun bölgeyi/rolü ayrı çalışabilirsin.
+ * ("sadece Noxus", "Noxus + Ionia", "Noxus'lu suikastçılar"). Antrenman gibi
+ * çalışır: zayıf olduğun bölgeyi/rolü ayrı çalışabilirsin.
+ *
+ * ÇOKLU SEÇİM (2026-07-21, kullanıcı isteği):
+ * - Aynı grup içinde **VEYA**: Noxus + Ionia = ikisinden biri
+ * - Gruplar arasında **VE**: Noxus + Büyücü = Noxus'lu büyücüler
+ * Boş dizi = o grupta kısıt yok.
  *
  * Günlük'te YOK — herkesin aynı bulmacayı çözmesi gerekiyor.
  * İstatistikler filtreye göre AYRIŞMAZ (bilinçli): yoksa mod × zorluk × filtre
  * kombinasyonu yüzlerce ayrı tabloya bölünür ve hiçbiri anlamlı veri toplayamaz.
  */
-export type PoolFilter =
-  | { kind: 'all' }
-  | { kind: 'region'; value: string }
-  | { kind: 'role'; value: string }
-  | { kind: 'lane'; value: string }
-
-export const ALL_FILTER: PoolFilter = { kind: 'all' }
-
-/** Deste anahtarı ve meydan okuma linki için kısa metin gösterimi */
-export function filterKey(f: PoolFilter): string {
-  return f.kind === 'all' ? 'all' : `${f.kind}:${f.value}`
+export interface PoolFilter {
+  regions: string[]
+  roles: string[]
+  lanes: string[]
 }
 
-/** "region:Noxus" → filtre nesnesi; tanınmayan girdi güvenli şekilde "tümü" olur */
+export type FilterKind = 'region' | 'role' | 'lane'
+
+export const ALL_FILTER: PoolFilter = { regions: [], roles: [], lanes: [] }
+
+/** Hangi grubun hangi alana baktığı — tek yerde tanımlı */
+const FIELD: Record<FilterKind, keyof PoolFilter> = {
+  region: 'regions',
+  role: 'roles',
+  lane: 'lanes',
+}
+
+export function isAllFilter(f: PoolFilter): boolean {
+  return f.regions.length === 0 && f.roles.length === 0 && f.lanes.length === 0
+}
+
+export function selected(f: PoolFilter, kind: FilterKind): string[] {
+  return f[FIELD[kind]]
+}
+
+/** Seçeneği ekler/çıkarır — seçiliye tekrar dokunmak kaldırır */
+export function toggleValue(f: PoolFilter, kind: FilterKind, value: string): PoolFilter {
+  const field = FIELD[kind]
+  const cur = f[field]
+  const next = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value]
+  return { ...f, [field]: next }
+}
+
+/**
+ * Deste anahtarı ve meydan okuma linki için metin gösterimi.
+ * Sıralı üretilir: aynı seçim her zaman aynı anahtarı versin (deste kararlılığı).
+ */
+export function filterKey(f: PoolFilter): string {
+  if (isAllFilter(f)) return 'all'
+  const part = (prefix: string, vals: string[]) =>
+    vals.length ? `${prefix}:${[...vals].sort((a, b) => a.localeCompare(b, 'tr')).join('+')}` : ''
+  return [part('r', f.regions), part('o', f.roles), part('k', f.lanes)].filter(Boolean).join(';')
+}
+
+/**
+ * Anahtarı filtreye çevirir. **Eski tek-seçim anahtarları da okunur**
+ * ("region:Noxus") — kayıtlı tercihler ve daha önce paylaşılmış meydan okuma
+ * linkleri çalışmaya devam etsin diye; göç kodu yazmaya gerek kalmadı.
+ */
 export function parseFilterKey(s: string | undefined | null): PoolFilter {
   if (!s || s === 'all') return ALL_FILTER
-  const i = s.indexOf(':')
-  if (i < 0) return ALL_FILTER
-  const kind = s.slice(0, i)
-  const value = s.slice(i + 1)
-  if (!value) return ALL_FILTER
-  if (kind === 'region' || kind === 'role' || kind === 'lane') return { kind, value }
-  return ALL_FILTER
+
+  // Eski biçim: "region:Noxus" / "role:Büyücü" / "lane:Üst"
+  const legacy = /^(region|role|lane):(.+)$/.exec(s)
+  if (legacy) return toggleValue(ALL_FILTER, legacy[1] as FilterKind, legacy[2])
+
+  const out: PoolFilter = { regions: [], roles: [], lanes: [] }
+  for (const chunk of s.split(';')) {
+    const i = chunk.indexOf(':')
+    if (i < 0) continue
+    // Ön ek TAM eşleşmeli: "olmayan:Noxus" ilk harfi 'o' diye rol sanılmamalı
+    const prefix = chunk.slice(0, i)
+    const values = chunk.slice(i + 1).split('+').filter(Boolean)
+    if (prefix === 'r') out.regions = values
+    else if (prefix === 'o') out.roles = values
+    else if (prefix === 'k') out.lanes = values
+  }
+  return out
 }
 
 export function filterLabel(f: PoolFilter): string {
-  return f.kind === 'all' ? 'Tüm şampiyonlar' : f.value
+  if (isAllFilter(f)) return 'Tüm şampiyonlar'
+  const all = [...f.regions, ...f.roles, ...f.lanes]
+  // Uzun listeyi başlığa sığdırmaya çalışma — sayıya düş
+  return all.length <= 3 ? all.join(' · ') : `${all.length} filtre`
 }
 
+/** Grup içi VEYA, gruplar arası VE */
 export function matches(c: Champion, f: PoolFilter): boolean {
-  switch (f.kind) {
-    case 'all': return true
-    case 'region': return c.region === f.value
-    case 'role': return c.roles.includes(f.value)
-    case 'lane': return c.lanes.includes(f.value)
-  }
+  if (f.regions.length && !f.regions.includes(c.region)) return false
+  if (f.roles.length && !f.roles.some((r) => c.roles.includes(r))) return false
+  if (f.lanes.length && !f.lanes.some((l) => c.lanes.includes(l))) return false
+  return true
 }
 
 export function filteredChampions(f: PoolFilter): Champion[] {
@@ -60,7 +112,7 @@ export function filteredChampions(f: PoolFilter): Champion[] {
  */
 export function pooledIds(f: PoolFilter, sub: SubMode): string[] {
   const base = sub === 'emoji' ? EMOJI_IDS : CHAMPIONS.map((c) => c.id)
-  if (f.kind === 'all') return base
+  if (isAllFilter(f)) return base
   const allowed = new Set(filteredChampions(f).map((c) => c.id))
   const narrowed = base.filter((id) => allowed.has(id))
   return narrowed.length > 0 ? narrowed : base
@@ -69,6 +121,11 @@ export function pooledIds(f: PoolFilter, sub: SubMode): string[] {
 /** Menüde "kaç şampiyon kaldı" göstermek için */
 export function poolCount(f: PoolFilter): number {
   return filteredChampions(f).length
+}
+
+/** Bu seçeneğe dokunursam havuz kaça iner — rozetlerin yanındaki sayı */
+export function countWith(f: PoolFilter, kind: FilterKind, value: string): number {
+  return poolCount(toggleValue(f, kind, value))
 }
 
 // ---- Seçenekler veriden türetilir (elle liste tutulmaz) ----

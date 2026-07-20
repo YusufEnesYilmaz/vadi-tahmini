@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { ACHIEVEMENTS, buildSnapshot, getAchievementShowcase, type AchSnapshot } from './achievements'
-import { SUB_MODES } from './types'
+import { DAILY_SUBS, SUB_MODES } from './types'
 
 /** Minimal snapshot — varsayılanları override et */
 function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
@@ -89,12 +89,13 @@ describe('Achievements — check functions', () => {
     expect(find('six_shooter').check(snap({ allSubsWon: true }))).toBe(true)
 
     // Gün kaydını mod listesinden üret: yeni alt mod eklenince test kendiliğinden uyar
-    const day = Object.fromEntries(SUB_MODES.map((m) => [m.id, 2]))
+    // Günlük geçmişi yalnız Günlük'te oynanabilen modları içerir
+    const day = Object.fromEntries(DAILY_SUBS.map((m) => [m.id, 2]))
     expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': day } }))).toBe(true)
     expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': { classic: 2 } } }))).toBe(false)
 
     // 0 = kaybedildi: bir mod kaybedilmişse "hepsini kazan" sayılmaz
-    const mixed = { ...day, [SUB_MODES[1].id]: 0 }
+    const mixed = { ...day, [DAILY_SUBS[1].id]: 0 }
     expect(find('full_day').check(snap({ dailyHistory: { '2026-07-20': mixed } }))).toBe(false)
   })
 

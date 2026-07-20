@@ -1,6 +1,7 @@
 import type { Puzzle } from '../game/puzzle'
 import { EMOJI, itemById, itemIconUrl, loadingUrl, passiveUrl, spellUrl, splashUrl } from '../game/data'
 import type { DiffRules } from '../game/difficulty'
+import LoreView from './LoreView'
 import QuoteView from './QuoteView'
 
 interface Props {
@@ -22,20 +23,52 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSl
   // Eşya modu: ikon soru, ipuçları sırayla altın → statlar → bileşen ikonları.
   // İlk dal olmalı — aşağıdaki dallar şampiyon varsayıyor (TS de bunu böyle daraltıyor).
   if (puzzle.sub === 'item') {
+    /*
+     * Mod TERS (2026-07-21, kullanıcı isteği): ikon soru değil, en güçlü ipucu.
+     * Baştan yalnız altın değeri var; statlar, bileşenler ve en sonda ikon açılır.
+     * Eskiden ikon baştan görünüyordu ve bilen için bilmece bitmiş oluyordu.
+     */
     const { item } = puzzle
-    const showGold = unlocked(rules.itemGoldAt, wrongCount, revealed)
     const showTags = unlocked(rules.itemTagsAt, wrongCount, revealed) && item.tags.length > 0
     const showParts = unlocked(rules.itemPartsAt, wrongCount, revealed) && item.from.length > 0
+    const showIcon = unlocked(rules.itemIconAt, wrongCount, revealed)
+    // İkon açıldıktan SONRAKİ her yanlışta biraz daha netleşir
+    const sinceIcon = Math.max(0, wrongCount - (rules.itemIconAt ?? 0))
+    const iconBlur = Math.max(0, 7 - sinceIcon * 2)
+    const iconOpacity = Math.min(1, 0.4 + sinceIcon * 0.15)
     return (
       <div className="flex flex-col items-center gap-3">
-        <img
-          src={itemIconUrl(item.img)}
-          alt="Eşya ikonu"
-          className="h-24 w-24 rounded-xl border-2"
-          style={{ borderColor: 'var(--gold)' }}
-        />
+        {showIcon ? (
+          /*
+           * İkon açılınca birden net gelmiyor: silik ve bulanık başlıyor, sonraki
+           * yanlışlarda netleşiyor. Böylece ikon "cevabı veren" değil, "yaklaştıran"
+           * bir ipucu oluyor. Tur bitince (revealed) tam net gösterilir.
+           */
+          <img
+            src={itemIconUrl(item.img)}
+            alt="Eşya ikonu"
+            className="anim-pop h-24 w-24 rounded-xl border-2"
+            style={{
+              borderColor: 'var(--gold)',
+              filter: revealed ? 'none' : `blur(${iconBlur}px) grayscale(${iconBlur / 10})`,
+              opacity: revealed ? 1 : iconOpacity,
+              transition: 'filter 0.4s ease, opacity 0.4s ease',
+            }}
+          />
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 text-4xl"
+            style={{ borderColor: 'var(--border)', background: 'var(--bg-card)', color: 'var(--text-dim)' }}
+            aria-label="Eşya ikonu henüz kapalı">
+            🗡
+          </div>
+        )}
+
+        {/* Altın: sorunun kendisi, hep açık */}
+        <div className="font-display text-2xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>
+          {item.gold} altın
+        </div>
+
         <div className="flex min-h-6 flex-col items-center gap-1 text-sm" style={{ color: 'var(--text-dim)' }}>
-          {showGold && <span>Değer: <b style={{ color: 'var(--gold)' }}>{item.gold} altın</b></span>}
           {showTags && (
             <span className="flex flex-wrap justify-center gap-1">
               {item.tags.map((t) => (
@@ -56,7 +89,26 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSl
               })}
             </span>
           )}
-          {!showGold && !showTags && !showParts && <span>İpucu: yanlış tahminlerde altın, stat ve bileşenler açılır</span>}
+          {/* Sıradaki ipucunun ne zaman geleceğini söyle — boş ekranda bekletme */}
+          {!revealed && !showTags && (
+            <span>
+              {rules.itemTagsAt === null
+                ? 'Bu zorlukta stat ipucu yok'
+                : `${rules.itemTagsAt}. yanlışta statlar açılır`}
+            </span>
+          )}
+          {!revealed && showTags && !showParts && item.from.length > 0 && (
+            <span>
+              {rules.itemPartsAt === null
+                ? 'Bu zorlukta bileşen ipucu yok'
+                : `${rules.itemPartsAt}. yanlışta bileşenler açılır`}
+            </span>
+          )}
+          {!revealed && !showIcon && (
+            <span className="text-xs">
+              {rules.itemIconAt === null ? 'İkon bu zorlukta hiç açılmaz' : `${rules.itemIconAt}. yanlışta ikon açılır`}
+            </span>
+          )}
         </div>
       </div>
     )
@@ -93,6 +145,10 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSl
         </div>
       </div>
     )
+  }
+
+  if (puzzle.sub === 'lore') {
+    return <LoreView champion={puzzle.champion} wrongCount={wrongCount} revealed={revealed} rules={rules} />
   }
 
   if (puzzle.sub === 'quote') {

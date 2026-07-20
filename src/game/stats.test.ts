@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getBestScore, getDailyHistory, getDailyStreak, getFullDayStreak, getStats, normalizeEntry, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
 import { todayKey } from './rng'
-import { SUB_MODES } from './types'
+import { DAILY_SUBS } from './types'
 
 describe('istatistikler', () => {
   it('kazanılan oyun seriyi ve dağılımı günceller', () => {
@@ -118,7 +118,7 @@ describe('istatistikler', () => {
   it('Tam Gün serisi TÜM modlar tamamlanınca ilerler — kazanmak şart değil', () => {
     const today = todayKey()
     // Mod listesinden türet: yeni alt mod eklenince test kendiliğinden uyar
-    const subs = SUB_MODES.map((m) => m.id)
+    const subs = DAILY_SUBS.map((m) => m.id)
     for (const sub of subs.slice(0, -1)) {
       saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
     }
@@ -131,7 +131,7 @@ describe('istatistikler', () => {
 
   it('Tam Gün serisi günde bir kez sayılır ve gevşek seriden bağımsızdır', () => {
     const today = todayKey()
-    for (const sub of SUB_MODES.map((m) => m.id)) {
+    for (const sub of DAILY_SUBS.map((m) => m.id)) {
       saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
     }
     // Aynı güne ait tekrar kayıt seriyi iki kez artırmamalı

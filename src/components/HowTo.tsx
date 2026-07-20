@@ -21,7 +21,8 @@ const MODE_HOWTO: Record<SubMode, string> = {
   quote: 'Şampiyonun Türkçe seslendirmesini dinle ve kimin konuştuğunu bul. Sesin açık olmalı. İlk klip yasaklanma repliği; iki yanlıştan sonra seçilme repliği de açılır.',
   emoji: 'Şampiyonu anlatan emojilerden bul. Tek emojiyle başlarsın, her yanlış tahminde bir tanesi daha açılır — sondakiler en belirgin ipuçlarıdır.',
   silhouette: 'Şampiyonun karartılmış görselinden kim olduğunu bul. Renk ve doku silinir, geriye duruş ve hatlar kalır; her yanlış tahminde görsel biraz daha aydınlanır.',
-  item: 'Ekrandaki eşya ikonunun hangi eşya olduğunu bul. Havuzda Summoner’s Rift’te satılan 1600+ altınlık tam eşyalar var. Yanlış tahminlerde sırayla altın değeri, stat etiketleri ve bileşen ikonları açılır.',
+  lore: 'Şampiyonun hikâyesini oku ve kim olduğunu bul. Adı metinden silinir (█████); her yanlış tahminde bir cümle daha açılır.',
+  item: 'Eşyayı ipuçlarından bul — ikon başta KAPALIDIR. Önce sadece altın değerini görürsün; yanlış tahminlerde sırayla stat etiketleri, bileşen ikonları ve en sonda eşyanın kendi ikonu açılır — ikon önce silik ve bulanık gelir, sonraki yanlışlarda netleşir. Havuzda Summoner’s Rift’te satılan 1600+ altınlık tam eşyalar var.',
 }
 
 /** Nasıl oynanır penceresi — menüden ve oyun içindeki "?" butonundan açılır */

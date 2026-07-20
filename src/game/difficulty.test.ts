@@ -32,6 +32,18 @@ describe('zorluk kuralları', () => {
     }
   })
 
+  it('Eşya ipuçları zorlaştıkça geç gelir; ikon her zaman en son ipucudur', () => {
+    const at = (v: number | null) => (v === null ? Infinity : v)
+    for (const key of ['itemTagsAt', 'itemPartsAt', 'itemIconAt'] as const) {
+      const vals = ORDER.map((d) => at(RULES[d][key]))
+      expect(vals, key).toEqual([...vals].sort((a, b) => a - b))
+    }
+    // Mod ters: ikon soru değil ödül — statlardan önce açılmamalı
+    for (const d of ORDER) {
+      expect(at(RULES[d].itemIconAt), d).toBeGreaterThanOrEqual(at(RULES[d].itemTagsAt))
+    }
+  })
+
   it('silüet zorlaştıkça daha yavaş aydınlanır', () => {
     const steps = ORDER.map((d) => RULES[d].silhouetteReveals)
     expect(steps).toEqual([...steps].sort((a, b) => a - b))

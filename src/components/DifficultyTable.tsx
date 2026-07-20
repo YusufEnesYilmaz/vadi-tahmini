@@ -18,6 +18,7 @@ const ROWS: { label: string; icon: string; get: (r: DiffRules) => string }[] = [
   },
   { icon: '🖼', label: 'Yakınlık', get: (r) => `%${r.zoomStart}` },
   { icon: '👤', label: 'Silüet açılma', get: (r) => `${r.silhouetteReveals} yanlış` },
+  { icon: '📜', label: 'Açık cümle', get: (r) => `${r.loreStart}` },
   { icon: '✨', label: 'Yetenek adı', get: (r) => (r.abilityNameAt === null ? '—' : `${r.abilityNameAt}.`) },
   { icon: '🎭', label: 'Şampiyon adı', get: (r) => (r.skinChampionAt === null ? '—' : `${r.skinChampionAt}.`) },
   {
@@ -25,6 +26,9 @@ const ROWS: { label: string; icon: string; get: (r: DiffRules) => string }[] = [
     label: '2. replik',
     get: (r) => (r.quoteSecondAt === null ? '—' : r.quoteSecondAt === 0 ? 'hemen' : `${r.quoteSecondAt}.`),
   },
+  { icon: '🗡', label: 'Eşya statları', get: (r) => (r.itemTagsAt === null ? '—' : `${r.itemTagsAt}.`) },
+  { icon: '🗡', label: 'Eşya bileşenleri', get: (r) => (r.itemPartsAt === null ? '—' : `${r.itemPartsAt}.`) },
+  { icon: '🗡', label: 'Eşya ikonu', get: (r) => (r.itemIconAt === null ? '—' : `${r.itemIconAt}.`) },
   { icon: '🎯', label: 'Yıl oku', get: (r) => (r.yearArrow ? '✓' : '—') },
   { icon: '🎯', label: 'Sarı hücre', get: (r) => (r.showPartial ? '✓' : '—') },
   { icon: '⏱', label: 'Süre', get: (r) => `${r.timedSeconds}sn` },

@@ -94,6 +94,11 @@ export function loadingUrl(id: string, num: number): string {
  * "Veriyi güncelle" akışı şampiyonları tazeliyor, eşyalar patch'te
  * `node scripts/build-data.mjs` ile yenilenir.
  */
+/**
+ * Fiyatlar Summoner's Rift fiyatlarıdır (ddragon `gold.total`).
+ * Tam Gaz / ARAM gibi özel modlarda oyun içi fiyatlar farklı ölçeklenir —
+ * o modlardaki rakamla karşılaştırıp "veri yanlış" sanma (2026-07-21'de bir kez yaşandı).
+ */
 export const ITEMS: Item[] = (itemData as ItemData).items
 
 export function itemById(id: string): Item | undefined {

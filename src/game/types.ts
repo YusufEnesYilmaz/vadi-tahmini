@@ -61,7 +61,7 @@ export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
 ]
 
 /** Alt mod: ne tahmin ediliyor (gerçek soru tipleri) */
-export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item' | 'silhouette'
+export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item' | 'silhouette' | 'lore'
 
 /** Şampiyon tahmin edilen alt modlar — Eşya modu bunların dışında kalır */
 export type ChampionSubMode = Exclude<SubMode, 'item'>
@@ -102,6 +102,7 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string;
   { id: 'quote', name: 'Replik', desc: 'Sesinden şampiyonu bul', icon: '🔊' },
   { id: 'item', name: 'Eşya', desc: 'İkonundan eşyayı bul', icon: '🗡' },
   { id: 'silhouette', name: 'Silüet', desc: 'Karartılmış görselden şampiyonu bul', icon: '👤', daily: false },
+  { id: 'lore', name: 'Hikâye', desc: 'Şampiyonun hikâyesinden bul', icon: '📜', daily: false },
 ]
 
 /** Günlük'te oynanabilen alt modlar — "Tam Gün" ve takvim bunların üzerinden sayar */

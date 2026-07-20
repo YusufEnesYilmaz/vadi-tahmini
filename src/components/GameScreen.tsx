@@ -5,7 +5,7 @@ import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '.
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
 import { challengeUrl, getNick, recordChallengeWin, setNick, type Challenge } from '../game/challenge'
-import { filterKey, filterLabel, type PoolFilter } from '../game/filter'
+import { filterKey, filterLabel, isAllFilter, type PoolFilter } from '../game/filter'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
@@ -30,8 +30,12 @@ interface Props {
 /** Yetenek bonusu: 0=Pasif, 1..4 = Q W E R (puzzle.spellIndex ile aynı sıra) */
 const SLOT_LABELS = ['Pasif', 'Q', 'W', 'E', 'R']
 
-function championOptions(): AcOption[] {
-  return CHAMPIONS.map((c) => ({ key: c.id, label: c.name, img: squareUrl(c.id) }))
+/**
+ * Silüet modunda portre GÖSTERİLMEZ: açılır listedeki küçük resim,
+ * ekrandaki karartılmış görselle karşılaştırılıp cevabı ele veriyordu.
+ */
+function championOptions(withImages = true): AcOption[] {
+  return CHAMPIONS.map((c) => ({ key: c.id, label: c.name, img: withImages ? squareUrl(c.id) : undefined }))
 }
 
 function skinOptions(): AcOption[] {
@@ -135,7 +139,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
 
   // Eşya modunda tahmin listesi eşyalardan, Kostüm'de kostümlerden, diğerlerinde şampiyonlardan
   const options = useMemo(
-    () => (activeSub === 'item' ? itemOptions() : activeSub === 'skin' ? skinOptions() : championOptions()),
+    () => (activeSub === 'item' ? itemOptions() : activeSub === 'skin' ? skinOptions() : championOptions(activeSub !== 'silhouette')),
     [activeSub],
   )
   const guessedSet = useMemo(() => new Set(guesses), [guesses])
@@ -457,7 +461,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
             </span>
           )}
           {/* Havuz daraltılmışsa göster — oyuncu neden hep aynı bölgeden geldiğini bilsin */}
-          {!daily && filter.kind !== 'all' && (
+          {!daily && !isAllFilter(filter) && (
             <span className="block text-xs font-normal" style={{ color: 'var(--gold)' }}>
               🎯 {filterLabel(filter)}
             </span>
@@ -767,7 +771,9 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
             <div className="flex w-full flex-wrap justify-center gap-2">
               {[...guesses].reverse().map((g, i) => {
                 const correct = isCorrect(puzzle, g)
-                const label = activeSub === 'skin'
+                // Eşya ve Kostüm tahminleri şampiyon değil: adı seçenek listesinden bul.
+                // (Eşyada `byId` boş dönüyordu ve rozetlerde ham id — "3107" — görünüyordu.)
+                const label = activeSub === 'skin' || activeSub === 'item'
                   ? options.find((o) => o.key === g)?.label ?? g
                   : byId(g)?.name ?? g
                 return (
