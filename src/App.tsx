@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
@@ -26,23 +27,34 @@ export default function App() {
 
   if (screen.name === 'game') {
     return (
-      <GameScreen
-        key={`${screen.top}:${screen.sub}:${screen.diff}${screen.challenge ? ':ch' + screen.challenge.seed : ''}`}
-        top={screen.top}
-        sub={screen.sub}
-        diff={screen.diff}
-        challenge={screen.challenge}
-        onExit={() => setScreen({ name: 'menu' })}
-      />
+      <>
+        <GameScreen
+          key={`${screen.top}:${screen.sub}:${screen.diff}${screen.challenge ? ':ch' + screen.challenge.seed : ''}`}
+          top={screen.top}
+          sub={screen.sub}
+          diff={screen.diff}
+          challenge={screen.challenge}
+          onExit={() => setScreen({ name: 'menu' })}
+        />
+        <Analytics />
+      </>
     )
   }
   if (screen.name === 'settings') {
-    return <Settings onExit={() => setScreen({ name: 'menu' })} />
+    return (
+      <>
+        <Settings onExit={() => setScreen({ name: 'menu' })} />
+        <Analytics />
+      </>
+    )
   }
   return (
-    <Menu
-      onPlay={(top, sub, diff) => setScreen({ name: 'game', top, sub, diff })}
-      onSettings={() => setScreen({ name: 'settings' })}
-    />
+    <>
+      <Menu
+        onPlay={(top, sub, diff) => setScreen({ name: 'game', top, sub, diff })}
+        onSettings={() => setScreen({ name: 'settings' })}
+      />
+      <Analytics />
+    </>
   )
 }
