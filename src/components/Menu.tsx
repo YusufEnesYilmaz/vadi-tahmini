@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PATCH } from '../game/data'
 import { getBestScore, getDailyState, getStats } from '../game/stats'
 import { SUB_MODES, TOP_MODES, type SubMode, type TopMode } from '../game/types'
+import HowTo from './HowTo'
 
 interface Props {
   onPlay: (top: TopMode, sub: SubMode) => void
@@ -10,6 +11,7 @@ interface Props {
 
 export default function Menu({ onPlay, onSettings }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
+  const [howTo, setHowTo] = useState(false)
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-4 pb-10 pt-12">
@@ -26,7 +28,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
         <div className="flex w-full flex-col gap-3">
           {TOP_MODES.map((m) => (
             <button key={m.id} onClick={() => setTop(m.id)}
-              className="flex items-center gap-4 rounded-xl border p-4 text-left transition-transform active:scale-[0.98]"
+              className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
               style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <span className="text-3xl">{m.icon}</span>
               <span>
@@ -35,14 +37,20 @@ export default function Menu({ onPlay, onSettings }: Props) {
               </span>
             </button>
           ))}
-          <button onClick={onSettings} className="mt-2 rounded-xl border p-3 text-sm"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-            ⚙ Ayarlar & Güncelleme
-          </button>
+          <div className="mt-2 flex gap-3">
+            <button onClick={() => setHowTo(true)} className="card-btn flex-1 rounded-xl border p-3 text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+              ❓ Nasıl oynanır
+            </button>
+            <button onClick={onSettings} className="card-btn flex-1 rounded-xl border p-3 text-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+              ⚙ Ayarlar
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex w-full flex-col gap-3">
-          <button onClick={() => setTop(null)} className="self-start rounded-lg border px-3 py-1.5 text-sm"
+          <button onClick={() => setTop(null)} className="card-btn self-start rounded-lg border px-3 py-1.5 text-sm"
             style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
             ← Geri
           </button>
@@ -62,7 +70,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
                     : ''
             return (
               <button key={m.id} onClick={() => onPlay(top, m.id)}
-                className="flex items-center gap-4 rounded-xl border p-4 text-left transition-transform active:scale-[0.98]"
+                className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
                 style={{
                   background: 'var(--bg-card)',
                   borderColor: dailyDone ? 'var(--correct)' : 'var(--border)',
@@ -82,6 +90,8 @@ export default function Menu({ onPlay, onSettings }: Props) {
       <footer className="mt-4 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
         Patch {PATCH} · Riot Games ile ilişkili değildir
       </footer>
+
+      {howTo && <HowTo onClose={() => setHowTo(false)} />}
     </div>
   )
 }

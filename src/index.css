@@ -12,12 +12,16 @@
   --text: #e5e7eb;
   --text-dim: #9ca3af;
   --correct: #16a34a;
-  --partial: #ca8a04;
-  --wrong: #7f1d1d;
+  --partial: #b8912f; /* altın temayla uyumlu kehribar */
+  /* "Yanlış" nötr gri-mavi: kırmızı her hücrede alarm veriyordu, tablo okunmuyordu */
+  --wrong: #3b4455;
+  --danger: #b91c1c; /* gerçek uyarı (süre bitmek üzere) */
 }
 
 html {
-  background: var(--bg);
+  /* Üstten hafif aydınlanma — düz zemin yerine derinlik (Pinterest referansları) */
+  background: radial-gradient(1100px 520px at 50% -12%, #141c33 0%, var(--bg) 62%) no-repeat, var(--bg);
+  min-height: 100%;
   color: var(--text);
 }
 
@@ -26,7 +30,52 @@ body {
   min-height: 100vh;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* iPhone çentik/gesture çubuğu altında kalmasın */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Mobil dokunma hedefleri için */
 button { touch-action: manipulation; }
+
+/* Klavye ile gezenler için görünür odak — fare kullanıcısını rahatsız etmez */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* Menü/mod kartları: masaüstünde hover, dokunmada bastırma hissi */
+.card-btn { transition: border-color 0.15s ease, transform 0.1s ease; }
+@media (hover: hover) {
+  .card-btn:hover { border-color: var(--gold); }
+}
+.card-btn:active { transform: scale(0.985); }
+
+/* --- Animasyonlar --- */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.96); }
+  60% { transform: scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes shake {
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes softPulse { 50% { opacity: 0.5; } }
+
+.anim-row { animation: rowIn 0.18s ease-out; }
+.anim-pop { animation: pop 0.22s ease-out; }
+.anim-shake { animation: shake 0.3s ease-in-out; }
+.anim-pulse { animation: softPulse 1s ease-in-out infinite; }
+
+/* Hareket hassasiyeti olan kullanıcılar için hepsini kapat */
+@media (prefers-reduced-motion: reduce) {
+  .anim-row, .anim-pop, .anim-shake, .anim-pulse { animation: none; }
+  .card-btn { transition: none; }
+}

@@ -7,6 +7,7 @@ import { getBestScore, getDailyState, recordGame, recordScore, saveDailyState, g
 import { SUB_MODES, TOP_MODES, type SubMode, type TopMode } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import ClassicBoard from './ClassicBoard'
+import HowTo from './HowTo'
 import PuzzleView from './PuzzleView'
 
 interface Props {
@@ -49,6 +50,8 @@ export default function GameScreen({ top, sub, onExit }: Props) {
   const [guesses, setGuesses] = useState<string[]>(() => (daily ? getDailyState(sub).guesses : []))
   const [won, setWon] = useState<boolean>(() => (daily ? getDailyState(sub).won : false))
   const [copied, setCopied] = useState(false)
+  const [shaking, setShaking] = useState(false) // yanlış tahminde giriş alanı titrer
+  const [howTo, setHowTo] = useState(false)
   // Yetenek modu bonusu: şampiyon bilindikten sonra "hangi tuş?" — null = henüz cevaplanmadı
   const [slotGuess, setSlotGuess] = useState<number | null>(() => (daily ? getDailyState(sub).slot ?? null : null))
 
@@ -104,6 +107,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
     setGuesses(newGuesses)
 
     const correct = isCorrect(puzzle, key)
+    if (!correct) setShaking(true)
     if (timed) {
       if (correct) {
         // Yetenek modunda tur bonus sorusuyla biter — skor orada işlenir
@@ -171,16 +175,24 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-4 px-3 pb-10">
-      {/* Üst çubuk */}
-      <div className="flex w-full items-center justify-between pt-3">
-        <button onClick={onExit} className="rounded-lg border px-3 py-1.5 text-sm"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-          ← Menü
-        </button>
-        <span className="font-semibold" style={{ color: 'var(--gold)' }}>{topName} · {subName}</span>
+      {/* Üst çubuk — altında ince altın ayraç (Wordle referansındaki gibi) */}
+      <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
+        style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-2">
+          <button onClick={onExit} className="card-btn rounded-lg border px-3 py-1.5 text-sm"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+            ← Menü
+          </button>
+          <button onClick={() => setHowTo(true)} aria-label="Nasıl oynanır"
+            className="card-btn rounded-lg border px-2.5 py-1.5 text-sm"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+            ?
+          </button>
+        </div>
+        <span className="truncate text-sm font-semibold sm:text-base" style={{ color: 'var(--gold)' }}>{topName} · {subName}</span>
         {timed && puzzle && !timedOver ? (
-          <span className="rounded-lg px-3 py-1.5 font-mono text-lg font-bold"
-            style={{ background: timeLeft <= 10 ? 'var(--wrong)' : 'var(--bg-card)', color: '#fff' }}>
+          <span className={`rounded-lg px-3 py-1.5 font-mono text-lg font-bold ${timeLeft <= 10 ? 'anim-pulse' : ''}`}
+            style={{ background: timeLeft <= 10 ? 'var(--danger)' : 'var(--bg-card)', color: '#fff' }}>
             {timeLeft}s
           </span>
         ) : (
@@ -200,7 +212,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
             Bilemediğini "Pas" ile geçebilirsin.
           </p>
           <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub)}</b></p>
-          <button onClick={startTimed} className="rounded-xl px-8 py-3 text-lg font-bold"
+          <button onClick={startTimed} className="card-btn rounded-xl px-8 py-3 text-lg font-bold"
             style={{ background: 'var(--gold)', color: '#0a0e1a' }}>
             Başla
           </button>
@@ -217,11 +229,11 @@ export default function GameScreen({ top, sub, onExit }: Props) {
           )}
           <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi: {getBestScore(sub)}</p>
           <div className="flex gap-3">
-            <button onClick={startTimed} className="rounded-xl px-6 py-3 font-bold"
+            <button onClick={startTimed} className="card-btn rounded-xl px-6 py-3 font-bold"
               style={{ background: 'var(--gold)', color: '#0a0e1a' }}>
               Tekrar
             </button>
-            <button onClick={share} className="rounded-xl border px-6 py-3 font-bold"
+            <button onClick={share} className="card-btn rounded-xl border px-6 py-3 font-bold"
               style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
               {copied ? '✓ Kopyalandı' : 'Paylaş'}
             </button>
@@ -232,8 +244,12 @@ export default function GameScreen({ top, sub, onExit }: Props) {
       {/* Oyun alanı */}
       {puzzle && !timedOver && (
         <>
+          {/* Skor: küçük etiket + büyük rakam (Wordi referansı) */}
           {timed && (
-            <div className="text-lg font-bold" style={{ color: 'var(--gold)' }}>Skor: {score}</div>
+            <div className="flex flex-col items-center leading-none">
+              <span className="text-[11px] uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>skor</span>
+              <span className="text-3xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>{score}</span>
+            </div>
           )}
 
           {sub !== 'classic' && (
@@ -242,7 +258,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
           {/* Yetenek bonusu: şampiyon bilindi, sıra tuşta */}
           {awaitingSlot && (
-            <div className="flex w-full flex-col items-center gap-2 rounded-xl border p-4"
+            <div className="anim-pop flex w-full flex-col items-center gap-2 rounded-xl border p-4"
               style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
               <span className="font-semibold" style={{ color: 'var(--gold)' }}>
                 🎉 {puzzle.champion.name}! Peki bu hangi tuş?
@@ -250,7 +266,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
               <div className="flex flex-wrap justify-center gap-2">
                 {SLOT_LABELS.map((label, i) => (
                   <button key={label} onClick={() => handleSlot(i)}
-                    className="min-w-14 rounded-lg border px-4 py-2.5 font-bold"
+                    className="card-btn min-w-14 rounded-lg border px-4 py-2.5 font-bold"
                     style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
                     {label}
                   </button>
@@ -267,7 +283,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
           {/* Kazanma bandı */}
           {won && !awaitingSlot && (
-            <div className="flex w-full flex-col items-center gap-3 rounded-xl border p-4 text-center"
+            <div className="anim-pop flex w-full flex-col items-center gap-3 rounded-xl border p-4 text-center"
               style={{ borderColor: 'var(--correct)', background: 'var(--bg-card)' }}>
               <span className="text-lg font-bold" style={{ color: 'var(--correct)' }}>
                 🎉 Doğru: {answerLabel(puzzle)} — {guesses.length} denemede
@@ -281,13 +297,13 @@ export default function GameScreen({ top, sub, onExit }: Props) {
               )}
               <div className="flex gap-3">
                 {!daily && (
-                  <button onClick={nextRound} className="rounded-xl px-6 py-2.5 font-bold"
+                  <button onClick={nextRound} className="card-btn rounded-xl px-6 py-2.5 font-bold"
                     style={{ background: 'var(--gold)', color: '#0a0e1a' }}>
                     Sonraki →
                   </button>
                 )}
                 {daily && (
-                  <button onClick={share} className="rounded-xl border px-6 py-2.5 font-bold"
+                  <button onClick={share} className="card-btn rounded-xl border px-6 py-2.5 font-bold"
                     style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
                     {copied ? '✓ Kopyalandı' : 'Paylaş'}
                   </button>
@@ -299,7 +315,8 @@ export default function GameScreen({ top, sub, onExit }: Props) {
 
           {/* Tahmin girişi */}
           {!won && (
-            <div className="flex w-full items-start gap-2">
+            <div className={`flex w-full items-start gap-2 ${shaking ? 'anim-shake' : ''}`}
+              onAnimationEnd={() => setShaking(false)}>
               <Autocomplete
                 options={options}
                 placeholder={sub === 'skin' ? 'Kostüm adı yaz...' : 'Şampiyon adı yaz...'}
@@ -309,7 +326,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
               />
               {timed && (
                 <button onClick={() => { setGuesses([]); setPuzzle(nextPuzzle(top, sub)) }}
-                  className="shrink-0 rounded-lg border px-4 py-3 text-sm font-semibold"
+                  className="card-btn shrink-0 rounded-lg border px-4 py-3 text-sm font-semibold"
                   style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
                   Pas
                 </button>
@@ -329,7 +346,7 @@ export default function GameScreen({ top, sub, onExit }: Props) {
                   ? options.find((o) => o.key === g)?.label ?? g
                   : byId(g)?.name ?? g
                 return (
-                  <span key={`${g}-${i}`} className="rounded-md px-2.5 py-1 text-sm font-medium"
+                  <span key={`${g}-${i}`} className="anim-row rounded-md px-2.5 py-1 text-sm font-medium"
                     style={{ background: correct ? 'var(--correct)' : 'var(--wrong)', color: '#fff' }}>
                     {label}
                   </span>
@@ -339,6 +356,8 @@ export default function GameScreen({ top, sub, onExit }: Props) {
           )}
         </>
       )}
+
+      {howTo && <HowTo sub={sub} onClose={() => setHowTo(false)} />}
     </div>
   )
 }
