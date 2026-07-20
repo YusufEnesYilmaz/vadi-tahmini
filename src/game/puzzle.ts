@@ -158,8 +158,15 @@ export function createTimedStream(seed: number, sub: PlaySub): PuzzleStream {
  * Not: herkesin aynı bulmacayı görmesi güncel kodu çalıştırmasına bağlı —
  * SW güncellemesini henüz almamış oyuncu o günün eski bulmacasını görür.
  */
-export const DAILY_OVERRIDES: Record<string, { splash?: { id: string; splashNum: number } }> = {
-  '2026-07-20': { splash: { id: 'Garen', splashNum: 1 } }, // Kızıl Garen (kullanıcı isteği)
+export const DAILY_OVERRIDES: Record<string, {
+  /** Klasik'in cevabını sabitler — şampiyon id'si (ör. "Seraphine") */
+  classic?: string
+  splash?: { id: string; splashNum: number }
+}> = {
+  '2026-07-20': {
+    classic: 'Seraphine', // test için sabitlendi (kullanıcı isteği)
+    splash: { id: 'Garen', splashNum: 1 }, // Kızıl Garen (kullanıcı isteği)
+  },
 }
 
 function dailyPuzzle(sub: SubMode): Puzzle {
@@ -175,7 +182,9 @@ function dailyPuzzle(sub: SubMode): Puzzle {
     return { sub, champion: byId(EMOJI_IDS[dailyIndex(sub, EMOJI_IDS.length)])! }
   }
 
-  const champion = CHAMPIONS[dailyIndex(sub, CHAMPIONS.length)]
+  // Klasik elle sabitlenmişse onu kullan; id yanlış yazılmışsa sessizce normale dön
+  const ovClassic = sub === 'classic' ? byId(DAILY_OVERRIDES[todayKey()]?.classic ?? '') : undefined
+  const champion = ovClassic ?? CHAMPIONS[dailyIndex(sub, CHAMPIONS.length)]
   if (sub === 'ability') {
     return { sub, champion, spellIndex: Math.floor(rng() * 5) }
   }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
-import { byId, CHAMPIONS, squareUrl } from '../game/data'
+import { byId, CHAMPIONS, splashUrl, squareUrl } from '../game/data'
 import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
@@ -79,6 +79,8 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   const [comboRecord, setComboRecord] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const recordedRef = useRef(false) // tur kaydı bir kez yazılsın
+  // Tur bitiş anı: sonuç kartı kazara Enter ile atlanmasın (aşağıdaki kısayola bak)
+  const finishedAtRef = useRef(0)
   // Zamana Karşı seed'li akış: tur boyunca sabit dizi (meydan okuma bunun üstüne kurulu)
   const streamRef = useRef<PuzzleStream | null>(null)
   // Meydan okuma paylaşımı
@@ -184,7 +186,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
     }
     // Rozetleri kontrol et (kayıtlardan sonra)
     setTimeout(checkAchievements, 50)
-  }, [timedOver, sub, diff, score, bestCombo, combo, awaitingSlot, challenge])
+  }, [timedOver, sub, diff, score, bestCombo, combo, awaitingSlot, challenge, checkAchievements])
 
   /**
    * Klavye kısayolları — masaüstünde fareye uzanmadan oynanabilsin.
@@ -206,8 +208,13 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
       }
       if (typing) return
 
-      // Tur bitti: Enter ile sonraki bulmaca (Günlük'te sonraki yok)
+      // Tur bitti: Enter ile sonraki bulmaca (Günlük'te sonraki yok).
+      // İki koruma: (1) `e.repeat` — tahmini seçmek için Enter'a basılı tutulunca
+      // klavye tekrarı sonuç kartını anında atlıyordu; (2) 800 ms bekleme —
+      // alışkanlıkla atılan ikinci Enter cevabı görmeden geçirmesin.
       if (e.key === 'Enter') {
+        if (e.repeat) return
+        if (finished && Date.now() - finishedAtRef.current < 800) return
         if (finished && !daily && !timed) { e.preventDefault(); nextRound() }
         else if (timed && (!puzzle || timedOver)) { e.preventDefault(); startTimed() }
         // Zamana Karşı + Yetenek: tuş bonusu cevaplandıysa Enter süre kaybettirmeden ilerletir
@@ -249,6 +256,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
 
     const ranOut = !correct && newGuesses.length >= rules.maxGuesses
     if (correct || ranOut) {
+      finishedAtRef.current = Date.now() // sonuç kartı Enter ile hemen atlanmasın
       if (correct) {
         setWon(true)
         recordChampWin(puzzle.champion.id)
@@ -288,6 +296,7 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
   /** Yetenek bonusu: tuş seçimi. Zamana Karşı'da doğru tuş +1 puan getirir. */
   function handleSlot(idx: number) {
     if (!puzzle || slotGuess !== null) return
+    finishedAtRef.current = Date.now() // tuş cevabından sonra açılan kart da atlanmasın
     setSlotGuess(idx)
     if (timed) {
       setScore((s) => s + 1 + (idx === (puzzle.spellIndex ?? 0) ? 1 : 0))
@@ -615,57 +624,50 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
             </p>
           )}
 
-          {/* Kazanma bandı */}
-          {won && !awaitingSlot && (
-            <div className="anim-pop flex w-full flex-col items-center gap-3 rounded-xl border p-4 text-center"
-              style={{ borderColor: 'var(--correct)', background: 'var(--bg-card)' }}>
-              <span className="font-display text-lg font-bold" style={{ color: 'var(--correct)' }}>
-                🎉 Doğru: {answerLabel(puzzle)} — {guesses.length} denemede
+          {/* Tur sonu kartı — kazandın da kaybettin de aynı kart: durum + şampiyon görseli + Sonraki */}
+          {(won || outOfGuesses) && !awaitingSlot && (
+            <div className="anim-pop flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-4 text-center"
+              style={{ borderColor: won ? 'var(--correct)' : 'var(--danger)', background: 'var(--bg-card)' }}>
+              <span className="font-display text-xl font-bold"
+                style={{ color: won ? 'var(--correct)' : 'var(--danger-text)' }}>
+                {won ? '🎉 Bildin!' : '😔 Bulamadın'}
               </span>
+
+              {/* Cevabın kendisi: görsel + ad. Kostüm/Görsel modunda sorunun görseli gösterilir */}
+              <img
+                src={splashUrl(puzzle.champion.id, puzzle.skin?.num ?? puzzle.splashNum ?? 0)}
+                alt={puzzle.champion.name}
+                className="aspect-video w-full rounded-lg border object-cover"
+                style={{ borderColor: 'var(--border)' }}
+              />
+              <div>
+                <div className="font-display text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>
+                  {answerLabel(puzzle)}
+                </div>
+                {/* Kostüm modunda cevap kostümün adı — şampiyonu da yaz */}
+                {activeSub === 'skin' && (
+                  <div className="text-sm" style={{ color: 'var(--text-dim)' }}>{puzzle.champion.name}</div>
+                )}
+                <div className="text-sm" style={{ color: 'var(--text-dim)' }}>
+                  {won ? `${guesses.length} denemede bildin` : `${guesses.length} tahmin hakkın da bitti`}
+                </div>
+              </div>
+
+              {/* Yetenek modu: tuş bonusunun sonucu */}
               {slotOk !== undefined && (
-                <span className="text-sm font-semibold" style={{ color: slotOk ? 'var(--correct)' : 'var(--wrong)' }}>
+                <span className="text-sm font-semibold" style={{ color: slotOk ? 'var(--correct)' : 'var(--danger-text)' }}>
                   {slotOk
                     ? `Tuş de doğru: ${SLOT_LABELS[puzzle.spellIndex ?? 0]}${timed ? ' (+1)' : ''}`
                     : `Tuş yanlış — doğrusu ${SLOT_LABELS[puzzle.spellIndex ?? 0]}`}
                 </span>
               )}
-              <div className="flex gap-3">
-                {!daily && (
-                  <button onClick={nextRound} className="card-btn rounded-xl px-6 py-2.5 font-bold"
-                    style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
-                    Sonraki →
-                  </button>
-                )}
-                {daily && (
-                  <>
-                    <button onClick={share} className="card-btn rounded-xl border px-5 py-2.5 font-bold"
-                      style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
-                      {copied ? '✓ Kopyalandı' : 'Metin'}
-                    </button>
-                    <button onClick={shareAsImage} className="card-btn rounded-xl border px-5 py-2.5 font-bold"
-                      style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
-                      {imgResult || '🖼 Görsel'}
-                    </button>
-                  </>
-                )}
-              </div>
-              {daily && <p className="text-xs" style={{ color: 'var(--text-dim)' }}>Yarın yeni bulmaca seni bekliyor.</p>}
-            </div>
-          )}
-
-          {/* Kaybetme bandı — hak bitti, cevap açıklanır */}
-          {outOfGuesses && (
-            <div className="anim-pop flex w-full flex-col items-center gap-3 rounded-xl border p-4 text-center"
-              style={{ borderColor: 'var(--danger)', background: 'var(--bg-card)' }}>
-              <span className="font-display text-lg font-bold" style={{ color: 'var(--danger-text)' }}>
-                😔 Hakkın bitti — cevap: {answerLabel(puzzle)}
-              </span>
-              {bonusMode && (
+              {outOfGuesses && bonusMode && (
                 <span className="text-sm" style={{ color: 'var(--text-dim)' }}>
                   Tuş: <b style={{ color: 'var(--gold)' }}>{SLOT_LABELS[puzzle.spellIndex ?? 0]}</b>
                 </span>
               )}
-              <div className="flex gap-3">
+
+              <div className="flex flex-wrap justify-center gap-3">
                 {!daily && (
                   <button onClick={nextRound} className="card-btn rounded-xl px-6 py-2.5 font-bold"
                     style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>

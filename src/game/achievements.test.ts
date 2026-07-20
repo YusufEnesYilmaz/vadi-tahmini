@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ACHIEVEMENTS, getAchievementShowcase, type AchSnapshot } from './achievements'
+import { ACHIEVEMENTS, buildSnapshot, getAchievementShowcase, type AchSnapshot } from './achievements'
 
 /** Minimal snapshot — varsayılanları override et */
 function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
@@ -226,5 +226,62 @@ describe('getAchievementShowcase — geriye dönük eşitleme', () => {
     const items = getAchievementShowcase()
     expect(items.length).toBe(ACHIEVEMENTS.length)
     expect(items.every((i) => !i.earned)).toBe(true)
+  })
+})
+
+describe('buildSnapshot — Günlük sayımı (regresyon)', () => {
+  /** Tek bir Günlük Klasik galibiyeti */
+  function seedDailyWin() {
+    localStorage.setItem('vt:stats:daily:classic', JSON.stringify({
+      played: 1, won: 1, currentStreak: 1, bestStreak: 1, totalGuesses: 3,
+      firstTry: 0, firstTryStreak: 0, bestFirstTryStreak: 0,
+      dist: [0, 0, 1, 0, 0, 0], totalScore: 0,
+    }))
+  }
+
+  // Günlük'te zorluk yok: statsKey diff'i yok sayar (`vt:stats:daily:{sub}`).
+  // Zorluk döngüsü Günlük için de dönerse aynı kayıt 4 kez sayılır.
+  it('Günlük kaydı yalnız BİR kez sayılır (4x şişme olmamalı)', () => {
+    seedDailyWin()
+    const s = buildSnapshot()
+    expect(s.totalPlayed).toBe(1)
+    expect(s.totalWon).toBe(1)
+  })
+
+  it('Günlük galibiyeti zorluk rozetlerini beslemez', () => {
+    seedDailyWin()
+    const s = buildSnapshot()
+    // Günlük hep normal kurallarla oynanır — Aşırı Zor/Zor sayaçlarına girmemeli
+    expect(s.hasInsaneWin).toBe(false)
+    expect(s.insaneWins).toBe(0)
+    expect(s.hardWins).toBe(0)
+  })
+
+  it('zorluk sayaçları gerçekten Aşırı Zor/Zor galibiyetlerinden beslenir', () => {
+    localStorage.setItem('vt:stats:endless:classic:insane', JSON.stringify({
+      played: 3, won: 2, currentStreak: 2, bestStreak: 2, totalGuesses: 8,
+      firstTry: 0, firstTryStreak: 0, bestFirstTryStreak: 0,
+      dist: [0, 0, 2, 0, 0, 0], totalScore: 0,
+    }))
+    const s = buildSnapshot()
+    expect(s.hasInsaneWin).toBe(true)
+    expect(s.insaneWins).toBe(2)
+    expect(s.totalWon).toBe(2)
+  })
+
+  it('allSubsWon yalnız 6 gerçek alt modun hepsinde galibiyet varsa true', () => {
+    const stat = (won: number) => JSON.stringify({
+      played: won, won, currentStreak: 0, bestStreak: 0, totalGuesses: 0,
+      firstTry: 0, firstTryStreak: 0, bestFirstTryStreak: 0,
+      dist: [0, 0, 0, 0, 0, 0], totalScore: 0,
+    })
+    // 5 alt mod + mix → yetmez (mix gerçek alt mod sayılmaz)
+    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji', 'mix']) {
+      localStorage.setItem(`vt:stats:endless:${sub}:normal`, stat(1))
+    }
+    expect(buildSnapshot().allSubsWon).toBe(false)
+
+    localStorage.setItem('vt:stats:endless:quote:normal', stat(1)) // 6. gerçek mod
+    expect(buildSnapshot().allSubsWon).toBe(true)
   })
 })

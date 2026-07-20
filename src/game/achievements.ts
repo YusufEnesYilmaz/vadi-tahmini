@@ -1,7 +1,8 @@
 import { CHAMPIONS } from './data'
 import { getChallengeWins } from './challenge'
+import { todayKey } from './rng'
 import { getDailyHistory, getDailyStreak, getStats, isStreakAlive, type ModeStats } from './stats'
-import { SUB_MODES, DIFFICULTIES, type SubMode, type TopMode, type Difficulty } from './types'
+import { SUB_MODES, DIFFICULTIES, type PlaySub, type SubMode, type TopMode, type Difficulty } from './types'
 
 // ---- localStorage depoları ----
 
@@ -103,9 +104,14 @@ export function buildSnapshot(): AchSnapshot {
   let timedRuns = 0
 
   for (const top of tops) {
+    // Günlük'te zorluk YOK: statsKey `diff`'i yok sayıp tek anahtara yazar
+    // (`vt:stats:daily:{sub}`). Dört zorluk için dönmek AYNI kaydı dört kez
+    // saymak olur ve üstelik Aşırı Zor/Zor rozetlerini Günlük oynayınca açardı.
+    // Günlük hep normal kurallarla oynanır (bkz. rulesFor), o yüzden tek tur.
+    const topDiffs: Difficulty[] = top === 'daily' ? ['normal'] : diffs
     for (const sub of subs) {
-      for (const diff of diffs) {
-        const s = getStats(top, sub as any, diff)
+      for (const diff of topDiffs) {
+        const s = getStats(top, sub as PlaySub, diff)
         allStats.push({ top, sub, diff, s })
         totalPlayed += s.played
         totalWon += s.won
@@ -113,8 +119,9 @@ export function buildSnapshot(): AchSnapshot {
         if (s.firstTry > 0) hasFirstTry = true
         if (s.bestFirstTryStreak > bestFirstTryStreak) bestFirstTryStreak = s.bestFirstTryStreak
         if (s.bestStreak > bestWinStreak) bestWinStreak = s.bestStreak
-        if (diff === 'insane' && s.won > 0) { hasInsaneWin = true; insaneWins += s.won }
-        if (diff === 'hard' && s.won > 0) hardWins += s.won
+        // Zorluk rozetleri yalnız zorluk seçilebilen modlardan beslenir
+        if (top !== 'daily' && diff === 'insane' && s.won > 0) { hasInsaneWin = true; insaneWins += s.won }
+        if (top !== 'daily' && diff === 'hard' && s.won > 0) hardWins += s.won
         if (sub === 'mix') mixWon += s.won
         if (top === 'timed') timedRuns += s.played
       }
@@ -134,15 +141,12 @@ export function buildSnapshot(): AchSnapshot {
     }
   }
 
-  // 6 alt modun tümünde galibiyet (gerçek 6 SubMode — mix hariç)
-  const subWins = new Set<SubMode>()
-  for (const sub of SUB_MODES) {
-    for (const top of tops) {
-      for (const diff of diffs) {
-        const s = getStats(top, sub.id, diff)
-        if (s.won > 0) subWins.add(sub.id)
-      }
-    }
+  // 6 alt modun tümünde galibiyet (gerçek 6 SubMode — mix sayılmaz).
+  // Yukarıda toplanan allStats'tan türetilir: aynı veriyi ikinci kez okumaya gerek yok
+  // ve Günlük'ün tek-tur kuralı burada da otomatik geçerli olur.
+  const subWins = new Set<string>()
+  for (const { sub, s } of allStats) {
+    if (s.won > 0) subWins.add(sub)
   }
 
   const streak = getDailyStreak()
@@ -168,7 +172,7 @@ export function buildSnapshot(): AchSnapshot {
     hasTimed20,
     hasCombo8,
     hasCombo12,
-    allSubsWon: subWins.size >= 6,
+    allSubsWon: SUB_MODES.every((m) => subWins.has(m.id)),
     mixWon,
     timedRuns,
     totalDailyDays: Object.keys(dailyHistory).length,
@@ -469,7 +473,9 @@ export function getEarnedAchievements(): EarnedAchievement[] {
 export function evaluateAchievements(): EarnedAchievement[] {
   const snap = buildSnapshot()
   const store = getAchStore()
-  const today = new Date().toISOString().slice(0, 10)
+  // Yerel tarih (todayKey) — toISOString UTC verir, UTC+3'te gece 00:00-03:00
+  // arası kazanılan rozet "dün" damgalanırdı. Günlük mod da aynı anahtarı kullanır.
+  const today = todayKey()
   const newlyEarned: EarnedAchievement[] = []
 
   for (const ach of ACHIEVEMENTS) {
