@@ -111,4 +111,6 @@ Not: `.claude/launch.json`'da `autoPort: true` var (paralel oturumda 5173 doluyd
 
 **Zamana Karşı × tuş bonusu düzeltmeleri (2026-07-20, ikinci oturum):** Enter ile mid-run ilerleme tarayıcıda doğrulandı (band kapandı, sayaç sıfırlanmadı, yeni soru geldi); süre-dolarken-tuş-bekliyor telafisi de canlı testle doğrulandı. `tsc`/`oxlint`/36 test yeşil.
 
-Sırada: kullanıcı GitHub repo açıp commit'leyecek + Vercel'e bağlayacak. Faz 2 adayları: Emoji modu, Quote, canlı multiplayer. Masaüstü `.exe` konuşuldu: önce PWA denenecek, gerekirse Tauri sarmalayıcısı (kod değişmez).
+**YAYINDA (2026-07-20):** https://vadi-tahmini.vercel.app — GitHub `YusufEnesYilmaz/vadi-tahmini` (main) Vercel'e bağlı, push = otomatik deploy. Güvenlik başlıkları canlıda doğrulandı (CSP, nosniff, X-Frame-Options, HSTS). `og:image` mutlak adrese çevrildi.
+
+Sıradaki aday işler: Faz 2'den kalanlar veya yeni istekler. Masaüstü `.exe` konuşuldu: önce PWA denenecek, gerekirse Tauri sarmalayıcısı (kod değişmez).
