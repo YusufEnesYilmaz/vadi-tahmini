@@ -1,5 +1,5 @@
 import type { Puzzle } from '../game/puzzle'
-import { EMOJI, itemById, itemIconUrl, passiveUrl, spellUrl, splashUrl } from '../game/data'
+import { EMOJI, itemById, itemIconUrl, loadingUrl, passiveUrl, spellUrl, splashUrl } from '../game/data'
 import type { DiffRules } from '../game/difficulty'
 import QuoteView from './QuoteView'
 
@@ -131,6 +131,42 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSl
           ) : (
             <span>İpucu: her {rules.emojiStep} yanlışta bir emoji daha açılır</span>
           )}
+        </div>
+      </div>
+    )
+  }
+
+  if (puzzle.sub === 'silhouette') {
+    /*
+     * Silüet: yükleme ekranı görseli (şampiyon ortada, tam boy) sertçe eşiklenir —
+     * renk ve doku gider, geriye duruş ve hatlar kalır. Her yanlışta eşik gevşer.
+     * Şeffaf PNG'li gerçek silüet varlığı YOK; CSS filtresi bu yüzden seçildi:
+     * ek dosya inmiyor, çevrimdışı çalışıyor.
+     */
+    const steps = Math.max(1, rules.silhouetteReveals)
+    const p = revealed ? 1 : Math.min(1, wrongCount / steps) // 0 = tam silüet, 1 = açık
+    const contrast = 8 - p * 7 // 8 → 1
+    const brightness = 0.35 + p * 0.65 // 0.35 → 1
+    const gray = 1 - p // renk yavaşça geri gelir
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <div
+          className="h-52 w-36 overflow-hidden rounded-xl border sm:h-64 sm:w-44"
+          style={{
+            borderColor: 'var(--border)',
+            backgroundImage: `url(${loadingUrl(puzzle.champion.id, 0)})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: `grayscale(${gray}) contrast(${contrast}) brightness(${brightness})`,
+            transition: 'filter 0.5s ease',
+          }}
+          role="img"
+          aria-label={revealed ? puzzle.champion.name : 'Karartılmış şampiyon görseli'}
+        />
+        <div className="min-h-5 text-xs" style={{ color: 'var(--text-dim)' }}>
+          {revealed
+            ? <span>{puzzle.champion.name}</span>
+            : <span>Her yanlışta görsel biraz aydınlanır ({Math.min(wrongCount, steps)}/{steps})</span>}
         </div>
       </div>
     )

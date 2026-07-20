@@ -3,6 +3,7 @@ import { CHAMPIONS, EMOJI, EMOJI_IDS } from './data'
 import { DAILY_OVERRIDES, nextPuzzle } from './puzzle'
 import { todayKey } from './rng'
 import { asChamp, champOf } from '../test/helpers'
+import { SUB_MODES } from './types'
 
 describe('bulmaca üretimi', () => {
   it('Günlük aynı gün içinde hep aynı cevabı verir', () => {
@@ -85,7 +86,8 @@ describe('bulmaca üretimi', () => {
       const p = nextPuzzle('endless', 'mix')
       // Eşya bulmacasında şampiyon yok — her dalın kendi cevabı dolu olmalı
       expect(p.sub === 'item' ? p.item : p.champion).toBeTruthy()
-      expect(['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item']).toContain(p.sub)
+      // Liste elle yazılmıyor: yeni alt mod eklenince test kendiliğinden kapsar
+      expect(SUB_MODES.map((m) => m.id)).toContain(p.sub)
     }
   })
 

@@ -1,4 +1,4 @@
-import { SUB_MODES, type Difficulty, type PlaySub, type SubMode, type TopMode } from './types'
+import { DAILY_SUBS, type Difficulty, type PlaySub, type SubMode, type TopMode } from './types'
 import { todayKey } from './rng'
 
 /** Mod başına istatistik — localStorage */
@@ -122,6 +122,7 @@ export interface DailyState {
   done: boolean
   won: boolean
   slot?: number | null // Yetenek modu bonusu: seçilen tuş (0=Pasif, 1..4=Q W E R)
+  answer?: string // o günün cevabı — takvimde geçmişi görebilmek için saklanır
 }
 
 function dailyKey(sub: SubMode) {
@@ -145,21 +146,42 @@ export function saveDailyState(sub: SubMode, s: DailyState) {
     // Gün serisi tamamlamaya bakar — kazanmak şart değil (kullanıcı kararı, 2026-07-20)
     bumpDailyStreak()
     // Tam Gün serisi: 6 modun 6'sı da tamamlandıysa (sonuç önemsiz)
-    if (SUB_MODES.every((m) => getDailyState(m.id).done)) bumpFullDayStreak()
+    if (DAILY_SUBS.every((m) => getDailyState(m.id).done)) bumpFullDayStreak()
   }
   if (s.won) {
-    recordDailyWin(sub, s.date, s.guesses.length)
+    recordDailyWin(sub, s.date, s.guesses.length, s.answer)
   } else if (s.done) {
-    recordDailyLoss(sub, s.date)
+    recordDailyLoss(sub, s.date, s.answer)
   }
 }
 
 // ---- Günlük geçmiş: takvim için gün gün kayıt ----
 
-/** { "2026-07-20": { classic: 3, emoji: 1, quote: 0 } } — değer: kaç tahminde bilindiği; 0 = oynandı ama kaybedildi */
-export type DailyHistory = Record<string, Partial<Record<SubMode, number>>>
+/**
+ * Gün kaydı. Eski sürümde değer düz sayıydı (kaç tahminde bilindiği; 0 = kaybedildi);
+ * cevabı da saklamak için nesneye geçildi. **Eski düz sayı kayıtları okunmaya devam
+ * eder** (`normalizeEntry`) — göç kodu gerekmedi, yalnız cevabı bilinmez.
+ *
+ * Cevap neden saklanıyor da tarihten yeniden hesaplanmıyor: günlük cevap havuz
+ * boyutuna göre türüyor (`fnv1a(tarih) % havuz`). Yeni şampiyon eklenince havuz
+ * büyür ve GEÇMİŞ günlerin hesabı kayar — yani yeniden hesap tarihi yanlış gösterirdi.
+ */
+export interface DailyEntry {
+  /** Kaç tahminde bilindi; 0 = oynandı ama kaybedildi */
+  g: number
+  /** Cevabın görünen adı (kostüm modunda kostüm adı) — eski kayıtlarda yok */
+  a?: string
+}
+
+export type DailyHistory = Record<string, Partial<Record<SubMode, DailyEntry | number>>>
 
 const DHIST_KEY = 'vt:dhistory'
+
+/** Hem eski (sayı) hem yeni (nesne) kaydı tek biçime getirir */
+export function normalizeEntry(v: DailyEntry | number | undefined): DailyEntry | undefined {
+  if (v === undefined) return undefined
+  return typeof v === 'number' ? { g: v } : v
+}
 
 export function getDailyHistory(): DailyHistory {
   try {
@@ -169,18 +191,18 @@ export function getDailyHistory(): DailyHistory {
   return {}
 }
 
-function recordDailyWin(sub: SubMode, date: string, guesses: number) {
+function recordDailyWin(sub: SubMode, date: string, guesses: number, answer?: string) {
   const h = getDailyHistory()
-  h[date] = { ...h[date], [sub]: guesses }
+  h[date] = { ...h[date], [sub]: { g: guesses, a: answer } }
   localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 
 /** Hak bitti, cevap bulunamadı — takvimde ✗ görünsün diye 0 yazılır */
-function recordDailyLoss(sub: SubMode, date: string) {
+function recordDailyLoss(sub: SubMode, date: string, answer?: string) {
   const h = getDailyHistory()
   // Kazanılmış bir kaydın üzerine yazma (aynı gün aynı mod iki kez bitemez ama garanti olsun)
-  if ((h[date]?.[sub] ?? 0) > 0) return
-  h[date] = { ...h[date], [sub]: 0 }
+  if ((normalizeEntry(h[date]?.[sub])?.g ?? 0) > 0) return
+  h[date] = { ...h[date], [sub]: { g: 0, a: answer } }
   localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 

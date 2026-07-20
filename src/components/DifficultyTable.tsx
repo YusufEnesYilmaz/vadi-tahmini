@@ -17,6 +17,7 @@ const ROWS: { label: string; icon: string; get: (r: DiffRules) => string }[] = [
     get: (r) => (r.emojiStep === 0 ? '—' : `her ${r.emojiStep}`),
   },
   { icon: '🖼', label: 'Yakınlık', get: (r) => `%${r.zoomStart}` },
+  { icon: '👤', label: 'Silüet açılma', get: (r) => `${r.silhouetteReveals} yanlış` },
   { icon: '✨', label: 'Yetenek adı', get: (r) => (r.abilityNameAt === null ? '—' : `${r.abilityNameAt}.`) },
   { icon: '🎭', label: 'Şampiyon adı', get: (r) => (r.skinChampionAt === null ? '—' : `${r.skinChampionAt}.`) },
   {

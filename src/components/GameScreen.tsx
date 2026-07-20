@@ -13,6 +13,7 @@ import { playCorrect, playLose, playWin, playWrong, playAchievement } from '../g
 import { evaluateAchievements, recordChampWin, type EarnedAchievement } from '../game/achievements'
 import { DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta, type Difficulty, type PlaySub, type SubMode, type TopMode } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
+import ChampionInfo from './ChampionInfo'
 import ClassicBoard from './ClassicBoard'
 import HowTo from './HowTo'
 import PuzzleView from './PuzzleView'
@@ -71,6 +72,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
   const [copied, setCopied] = useState(false)
   const [shaking, setShaking] = useState(false) // yanlış tahminde giriş alanı titrer
   const [howTo, setHowTo] = useState(false)
+  const [info, setInfo] = useState(false) // tur sonu: şampiyon bilgi kartı
   const [announce, setAnnounce] = useState('') // ekran okuyucuya duyurulacak sonuç
   const [imgResult, setImgResult] = useState('')
   // Yetenek modu bonusu: şampiyon bilindikten sonra "hangi tuş?" — null = henüz cevaplanmadı
@@ -296,6 +298,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
         guesses: newGuesses,
         done: correct || ranOut,
         won: correct,
+        answer: answerLabel(puzzle), // takvimde geçmiş günün cevabı görünsün
       })
     }
   }
@@ -325,6 +328,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
     setWon(false)
     setCopied(false)
     setSlotGuess(null)
+    setInfo(false) // açık kalırsa sonraki şampiyonun kartına dönüşürdü
     setPuzzle(drawNext())
   }
 
@@ -700,6 +704,14 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
                 </span>
               )}
 
+              {/* Eşya modunda şampiyon yok — bilgi kartı yalnız şampiyonlu modlarda */}
+              {puzzle.sub !== 'item' && (
+                <button onClick={() => setInfo(true)} className="card-btn rounded-xl border px-4 py-1.5 text-sm font-semibold"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+                  🔍 {puzzle.champion.name} hakkında
+                </button>
+              )}
+
               <div className="flex flex-wrap justify-center gap-3">
                 {!daily && (
                   <button onClick={nextRound} className="card-btn rounded-xl px-6 py-2.5 font-bold"
@@ -771,6 +783,13 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onExit }
       )}
 
       {howTo && <HowTo sub={activeSub} onClose={() => setHowTo(false)} />}
+      {info && puzzle && puzzle.sub !== 'item' && (
+        <ChampionInfo
+          champion={puzzle.champion}
+          splashNum={puzzle.skin?.num ?? puzzle.splashNum ?? 0}
+          onClose={() => setInfo(false)}
+        />
+      )}
 
       {/* Rozet toast kuyruğu — sağ üstte sabit */}
       {achToasts.length > 0 && (

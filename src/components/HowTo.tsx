@@ -20,6 +20,7 @@ const MODE_HOWTO: Record<SubMode, string> = {
   skin: 'Görseldeki kostümün adını bul — şampiyonu değil. Üç yanlıştan sonra şampiyon adı ipucu olarak verilir.',
   quote: 'Şampiyonun Türkçe seslendirmesini dinle ve kimin konuştuğunu bul. Sesin açık olmalı. İlk klip yasaklanma repliği; iki yanlıştan sonra seçilme repliği de açılır.',
   emoji: 'Şampiyonu anlatan emojilerden bul. Tek emojiyle başlarsın, her yanlış tahminde bir tanesi daha açılır — sondakiler en belirgin ipuçlarıdır.',
+  silhouette: 'Şampiyonun karartılmış görselinden kim olduğunu bul. Renk ve doku silinir, geriye duruş ve hatlar kalır; her yanlış tahminde görsel biraz daha aydınlanır.',
   item: 'Ekrandaki eşya ikonunun hangi eşya olduğunu bul. Havuzda Summoner’s Rift’te satılan 1600+ altınlık tam eşyalar var. Yanlış tahminlerde sırayla altın değeri, stat etiketleri ve bileşen ikonları açılır.',
 }
 

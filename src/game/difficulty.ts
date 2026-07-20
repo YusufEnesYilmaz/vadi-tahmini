@@ -30,6 +30,8 @@ export interface DiffRules {
   yearArrow: boolean
   /** Klasik: kısmi eşleşme sarı gösterilsin mi (false = gri, yani "yanlış" gibi) */
   showPartial: boolean
+  /** Silüet: kaç yanlıştan sonra görsel tamamen aydınlanır */
+  silhouetteReveals: number
   /** Zamana Karşı: tur süresi */
   timedSeconds: number
   /**
@@ -47,7 +49,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     abilityNameAt: 2, skinChampionAt: 1, quoteSecondAt: 0,
     itemGoldAt: 1, itemTagsAt: 1, itemPartsAt: 2,
     yearArrow: true, showPartial: true,
-    timedSeconds: 90, maxGuesses: 10,
+    timedSeconds: 90, maxGuesses: 10, silhouetteReveals: 3,
   },
   normal: {
     emojiStart: 1, emojiStep: 1,
@@ -55,7 +57,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     abilityNameAt: 3, skinChampionAt: 3, quoteSecondAt: 2,
     itemGoldAt: 2, itemTagsAt: 3, itemPartsAt: 4,
     yearArrow: true, showPartial: true,
-    timedSeconds: 60, maxGuesses: 8,
+    timedSeconds: 60, maxGuesses: 8, silhouetteReveals: 5,
   },
   hard: {
     emojiStart: 1, emojiStep: 2,
@@ -63,7 +65,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     abilityNameAt: 5, skinChampionAt: 5, quoteSecondAt: 4,
     itemGoldAt: 3, itemTagsAt: 5, itemPartsAt: null,
     yearArrow: false, showPartial: true,
-    timedSeconds: 45, maxGuesses: 6,
+    timedSeconds: 45, maxGuesses: 6, silhouetteReveals: 7,
   },
   insane: {
     emojiStart: 1, emojiStep: 3,
@@ -71,7 +73,7 @@ export const RULES: Record<Difficulty, DiffRules> = {
     abilityNameAt: null, skinChampionAt: null, quoteSecondAt: null,
     itemGoldAt: 4, itemTagsAt: null, itemPartsAt: null,
     yearArrow: false, showPartial: false,
-    timedSeconds: 30, maxGuesses: 5,
+    timedSeconds: 30, maxGuesses: 5, silhouetteReveals: 10,
   },
 }
 

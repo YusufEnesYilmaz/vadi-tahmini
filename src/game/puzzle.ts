@@ -10,8 +10,8 @@ import type { Champion, ChampionSubMode, Item, PlaySub, Skin, SubMode, TopMode }
  * ritmini öldürüyor (kullanıcı kararı). Sınırsız'da altısı da var.
  */
 const MIX_POOL: Record<'endless' | 'timed', SubMode[]> = {
-  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item'],
-  timed: ['ability', 'splash', 'skin', 'emoji', 'quote', 'item'],
+  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette'],
+  timed: ['ability', 'splash', 'skin', 'emoji', 'quote', 'item', 'silhouette'],
 }
 
 /**

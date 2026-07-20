@@ -5,6 +5,25 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        /**
+         * Paketi değişim hızına göre böl. Tek dosya olduğunda her kod
+         * güncellemesinde oyuncular şampiyon/eşya verisini ve React'ı da
+         * yeniden indiriyordu; ayrı chunk'lar tarayıcı önbelleğinde kalıyor,
+         * güncellemede yalnız gerçekten değişen parça iniyor.
+         * (champion-info.json zaten dinamik import ile ayrı chunk.)
+         */
+        manualChunks(id) {
+          if (id.includes('node_modules')) return 'vendor' // React & co — neredeyse hiç değişmez
+          if (id.includes('src/data/champions.json')) return 'data-champions' // patch'te değişir
+          if (id.includes('src/data/items.json')) return 'data-items'
+          if (id.includes('src/data/emoji.json')) return 'data-emoji'
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -26,8 +45,24 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // ddragon CDN görselleri: önce önbellek, arka planda tazele
+        /**
+         * Bilgi kartı verisi (~296 KB) ÖN BELLEĞE ALINMAZ: precache her kurulumda
+         * ve her güncellemede indirilir, oysa bu veri yalnız "… hakkında" açılınca
+         * gerekiyor. Aşağıdaki runtimeCaching ile ilk açılışta inip kalıcı önbelleğe
+         * giriyor. Bedeli: hiç açılmadan çevrimdışı kalınırsa kart yüklenemez —
+         * ChampionInfo bu durumu kullanıcıya açıkça söylüyor.
+         */
+        globIgnores: ['**/champion-info-*.js'],
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/champion-info-.*\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'champion-info',
+              expiration: { maxEntries: 4 }, // eski sürümler birikmesin
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/ddragon\.leagueoflegends\.com\/cdn\/.*/i,
             handler: 'CacheFirst',

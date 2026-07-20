@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { getDailyHistory } from '../game/stats'
-import { SUB_MODES } from '../game/types'
+import { getDailyHistory, normalizeEntry } from '../game/stats'
+import { DAILY_SUBS } from '../game/types'
 
 const WEEKDAYS = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa']
 const MONTHS = [
@@ -26,7 +26,7 @@ export default function DailyCalendar() {
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() })
   const [selected, setSelected] = useState<string | null>(null)
   const history = getDailyHistory()
-  const total = SUB_MODES.length
+  const total = DAILY_SUBS.length
   const todayStr = dateKey(today.getFullYear(), today.getMonth(), today.getDate())
 
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
@@ -65,7 +65,7 @@ export default function DailyCalendar() {
           if (day === null) return <div key={`p${i}`} />
           const key = dateKey(view.y, view.m, day)
           // Hücre doygunluğu ÇÖZÜLEN mod sayısından gelir (0 = kaybedildi, sayılmaz)
-          const done = Object.values(history[key] ?? {}).filter((g) => (g ?? 0) > 0).length
+          const done = Object.values(history[key] ?? {}).filter((v) => (normalizeEntry(v)?.g ?? 0) > 0).length
           const isToday = key === todayStr
           const isFutureDay = key > todayStr
           const isSelected = key === selected
@@ -99,18 +99,23 @@ export default function DailyCalendar() {
               {selected === todayStr && ' · bugün'}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-              {Object.values(history[selected] ?? {}).filter((g) => (g ?? 0) > 0).length}/{total} mod
+              {Object.values(history[selected] ?? {}).filter((v) => (normalizeEntry(v)?.g ?? 0) > 0).length}/{total} mod
             </span>
           </div>
           <div className="grid gap-1 sm:grid-cols-2">
-            {SUB_MODES.map((m) => {
-              const g = history[selected]?.[m.id] // undefined = oynanmadı, 0 = kaybedildi, >0 = kazanıldı
+            {DAILY_SUBS.map((m) => {
+              // undefined = oynanmadı, g=0 = kaybedildi, g>0 = kazanıldı
+              const e = normalizeEntry(history[selected]?.[m.id])
               return (
-                <div key={m.id} className="flex items-center gap-2 text-xs">
+                <div key={m.id} className="flex items-baseline gap-2 text-xs">
                   <span>{m.icon}</span>
-                  <span className="flex-1" style={{ color: g !== undefined ? 'var(--text)' : 'var(--text-dim)' }}>{m.name}</span>
-                  <span style={{ color: g === undefined ? 'var(--text-dim)' : g > 0 ? 'var(--correct)' : 'var(--danger-text)' }}>
-                    {g === undefined ? '—' : g > 0 ? `✓ ${g} tahmin` : '✗ kaybedildi'}
+                  <span style={{ color: e ? 'var(--text)' : 'var(--text-dim)' }}>{m.name}</span>
+                  {/* O günün cevabı — yalnız kaydedilmişse (eski kayıtlarda yok) */}
+                  <span className="min-w-0 flex-1 truncate" style={{ color: 'var(--gold)' }}>
+                    {e?.a ?? ''}
+                  </span>
+                  <span className="shrink-0" style={{ color: !e ? 'var(--text-dim)' : e.g > 0 ? 'var(--correct)' : 'var(--danger-text)' }}>
+                    {!e ? '—' : e.g > 0 ? `✓ ${e.g} tahmin` : '✗ kaybedildi'}
                   </span>
                 </div>
               )

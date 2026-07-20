@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getFullDayStreak, getStats, isStreakAlive } from '../game/stats'
 
 import {
-  DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
+  DAILY_SUBS, DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
   type Difficulty, type PlaySub, type TopMode,
 } from '../game/types'
 import DailyCalendar from './DailyCalendar'
@@ -38,7 +38,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   const fullStreak = getFullDayStreak()
 
   // Karışığın kendi rekor tablosu var; Günlük'te mix yok
-  const subIds: PlaySub[] = daily ? SUB_MODES.map((m) => m.id) : [...SUB_MODES.map((m) => m.id), 'mix']
+  const subIds: PlaySub[] = daily ? DAILY_SUBS.map((m) => m.id) : [...SUB_MODES.map((m) => m.id), 'mix']
   const rows = subIds.map((id) => ({ mode: subMeta(id), s: getStats(top, id, diff) }))
 
   return (

@@ -61,7 +61,7 @@ export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
 ]
 
 /** Alt mod: ne tahmin ediliyor (gerçek soru tipleri) */
-export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item'
+export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item' | 'silhouette'
 
 /** Şampiyon tahmin edilen alt modlar — Eşya modu bunların dışında kalır */
 export type ChampionSubMode = Exclude<SubMode, 'item'>
@@ -87,7 +87,13 @@ export const TOP_MODES: { id: TopMode; name: string; desc: string; icon: string 
   { id: 'timed', name: 'Zamana Karşı', desc: '60 saniyede kaç doğru?', icon: '⏱' },
 ]
 
-export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string }[] = [
+/**
+ * `daily: false` olan modlar Günlük'te ÇIKMAZ (kullanıcı kararı, 2026-07-21).
+ * Gerekçe: her yeni mod Günlük rutinini uzatıyor ve "Tam Gün"ün eşiğini
+ * yükseltiyordu. Günlük çekirdek 7 modda sabit; yeni modlar Sınırsız ve
+ * Zamana Karşı'da yaşıyor. Günlükte de istenirse buradaki bayrak açılır.
+ */
+export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string; daily?: boolean }[] = [
   { id: 'classic', name: 'Klasik', desc: 'İpuçlarından şampiyonu bul', icon: '🎯' },
   { id: 'ability', name: 'Yetenek', desc: 'Yetenek ikonundan şampiyonu bul', icon: '✨' },
   { id: 'splash', name: 'Görsel', desc: 'Kırpılmış görselden şampiyonu bul', icon: '🖼' },
@@ -95,4 +101,8 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string 
   { id: 'emoji', name: 'Emoji', desc: 'Emoji ipuçlarından şampiyonu bul', icon: '😀' },
   { id: 'quote', name: 'Replik', desc: 'Sesinden şampiyonu bul', icon: '🔊' },
   { id: 'item', name: 'Eşya', desc: 'İkonundan eşyayı bul', icon: '🗡' },
+  { id: 'silhouette', name: 'Silüet', desc: 'Karartılmış görselden şampiyonu bul', icon: '👤', daily: false },
 ]
+
+/** Günlük'te oynanabilen alt modlar — "Tam Gün" ve takvim bunların üzerinden sayar */
+export const DAILY_SUBS = SUB_MODES.filter((m) => m.daily !== false)

@@ -1,8 +1,8 @@
 import { CHAMPIONS } from './data'
 import { getChallengeWins } from './challenge'
 import { todayKey } from './rng'
-import { getDailyHistory, getDailyStreak, getStats, isStreakAlive, type ModeStats } from './stats'
-import { SUB_MODES, DIFFICULTIES, type PlaySub, type SubMode, type TopMode, type Difficulty } from './types'
+import { getDailyHistory, getDailyStreak, getStats, isStreakAlive, normalizeEntry, type DailyHistory, type ModeStats } from './stats'
+import { DAILY_SUBS, SUB_MODES, DIFFICULTIES, type PlaySub, type TopMode, type Difficulty } from './types'
 
 // ---- localStorage depoları ----
 
@@ -49,7 +49,7 @@ export interface AchSnapshot {
   /** Günlük gün serisi */
   dailyStreak: { streak: number; best: number; alive: boolean }
   /** Günlük tarihçe (takvim verisi) */
-  dailyHistory: Record<string, Partial<Record<SubMode, number>>>
+  dailyHistory: DailyHistory
   /** Farklı şampiyon sayısı (bilinen) */
   uniqueChamps: number
   /** Meydan okuma galibiyeti sayısı */
@@ -303,12 +303,12 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'full_day', icon: '📅', name: 'Tam Gün', cat: 'cesitlilik',
-    desc: `Bir günde ${SUB_MODES.length} günlük bulmacanın hepsini kazan`,
+    desc: `Bir günde ${DAILY_SUBS.length} günlük bulmacanın hepsini kazan`,
     check: (s) => {
       for (const day of Object.values(s.dailyHistory)) {
-        // Değer 0 = kaybedildi — "hepsini kazan" şartına sayılmaz
-        const won = Object.values(day).filter((g) => (g ?? 0) > 0)
-        if (won.length >= SUB_MODES.length) return true
+        // g=0 = kaybedildi — "hepsini kazan" şartına sayılmaz
+        const won = Object.values(day).filter((v) => (normalizeEntry(v)?.g ?? 0) > 0)
+        if (won.length >= DAILY_SUBS.length) return true
       }
       return false
     },

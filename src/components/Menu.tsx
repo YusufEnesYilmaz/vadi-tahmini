@@ -3,7 +3,7 @@ import { PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
 import { getBestScore, getDailyState, getStats } from '../game/stats'
-import { DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
+import { DAILY_SUBS, DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
 import DailyPanel from './DailyPanel'
 import DifficultyTable from './DifficultyTable'
 import HowTo from './HowTo'
@@ -132,7 +132,7 @@ export default function Menu({ onPlay, onSettings }: Props) {
 
           {/* Alt modlar da geniş ekranda ikişerli */}
           <div className="grid gap-3 sm:grid-cols-2">
-          {SUB_MODES.map((m) => {
+          {(top === 'daily' ? DAILY_SUBS : SUB_MODES).map((m) => {
             const dailyDone = top === 'daily' && getDailyState(m.id).done
             const stats = getStats(top, m.id, diff)
             const info =

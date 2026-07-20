@@ -32,6 +32,12 @@ describe('zorluk kuralları', () => {
     }
   })
 
+  it('silüet zorlaştıkça daha yavaş aydınlanır', () => {
+    const steps = ORDER.map((d) => RULES[d].silhouetteReveals)
+    expect(steps).toEqual([...steps].sort((a, b) => a - b))
+    expect(Math.min(...steps)).toBeGreaterThan(0) // sıfır olursa görsel hiç açılmaz
+  })
+
   it('görsel zorlaştıkça daha yakından başlar', () => {
     const zooms = ORDER.map((d) => RULES[d].zoomStart)
     expect(zooms).toEqual([...zooms].sort((a, b) => a - b))

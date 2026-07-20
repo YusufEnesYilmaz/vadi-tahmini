@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getBestScore, getDailyHistory, getDailyStreak, getFullDayStreak, getStats, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
+import { getBestScore, getDailyHistory, getDailyStreak, getFullDayStreak, getStats, normalizeEntry, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
 import { todayKey } from './rng'
 import { SUB_MODES } from './types'
 
@@ -63,19 +63,32 @@ describe('istatistikler', () => {
     expect(getBestScore('quote', 'normal')).toBe(9)
   })
 
-  it('Günlük kayıp takvim geçmişine 0 olarak yazılır', () => {
+  it('Günlük kayıp takvim geçmişine g=0 olarak, cevabıyla yazılır', () => {
     const today = todayKey()
-    saveDailyState('classic', { date: today, guesses: ['a', 'b', 'c'], done: true, won: false })
-    expect(getDailyHistory()[today]?.classic).toBe(0) // ✗ kaybedildi
+    saveDailyState('classic', { date: today, guesses: ['a', 'b', 'c'], done: true, won: false, answer: 'Poppy' })
+    const e = normalizeEntry(getDailyHistory()[today]?.classic)
+    expect(e?.g).toBe(0) // ✗ kaybedildi
+    expect(e?.a).toBe('Poppy') // cevap saklanır — takvimde geçmiş görünsün
   })
 
   it('Günlük kazanç tahmin sayısıyla yazılır ve kayıp onun üzerine yazmaz', () => {
     const today = todayKey()
-    saveDailyState('emoji', { date: today, guesses: ['a'], done: true, won: true })
-    expect(getDailyHistory()[today]?.emoji).toBe(1)
+    saveDailyState('emoji', { date: today, guesses: ['a'], done: true, won: true, answer: 'Ahri' })
+    expect(normalizeEntry(getDailyHistory()[today]?.emoji)?.g).toBe(1)
     // Aynı mod için sonradan gelen kayıp kaydı kazancı ezmemeli
     saveDailyState('emoji', { date: today, guesses: ['a', 'b', 'c'], done: true, won: false })
-    expect(getDailyHistory()[today]?.emoji).toBe(1)
+    const e = normalizeEntry(getDailyHistory()[today]?.emoji)
+    expect(e?.g).toBe(1)
+    expect(e?.a).toBe('Ahri') // cevap da korunur
+  })
+
+  it('ESKİ düz-sayı kayıtları okunmaya devam eder (göç kodu yazılmadı)', () => {
+    // Cevap saklama öncesi biçim: { "2026-07-19": { classic: 3 } }
+    localStorage.setItem('vt:dhistory', JSON.stringify({ '2026-07-19': { classic: 3, emoji: 0 } }))
+    const h = getDailyHistory()
+    expect(normalizeEntry(h['2026-07-19']?.classic)).toEqual({ g: 3 }) // kazanılmış, cevabı bilinmiyor
+    expect(normalizeEntry(h['2026-07-19']?.emoji)).toEqual({ g: 0 }) // kaybedilmiş
+    expect(normalizeEntry(undefined)).toBeUndefined() // oynanmamış
   })
 
   it('Bitmemiş günlük (done: false) geçmişe yazılmaz', () => {
