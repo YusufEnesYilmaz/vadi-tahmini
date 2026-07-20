@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getBestScore, getDailyState, getStats } from '../game/stats'
-import { DIFFICULTIES, SUB_MODES, TOP_MODES, type Difficulty, type SubMode, type TopMode } from '../game/types'
+import { DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
 import DailyPanel from './DailyPanel'
 import DifficultyTable from './DifficultyTable'
 import HowTo from './HowTo'
 import Stats from './Stats'
 
 interface Props {
-  onPlay: (top: TopMode, sub: SubMode, diff: Difficulty) => void
+  onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty) => void
   onSettings: () => void
 }
 
@@ -143,6 +143,28 @@ export default function Menu({ onPlay, onSettings }: Props) {
             )
           })}
           </div>
+
+          {/* Karışık — Günlük'te yok (herkes aynı bulmacayı çözmeli). Tam genişlik, altında ayrı dursun */}
+          {top !== 'daily' && (() => {
+            const mixStats = getStats(top, 'mix', diff)
+            const info = top === 'timed'
+              ? `En iyi: ${getBestScore('mix', diff)}`
+              : mixStats.played > 0 ? `Seri: ${mixStats.currentStreak}` : ''
+            return (
+              <button onClick={() => onPlay(top, 'mix', diff)}
+                className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}>
+                <span className="text-3xl">{MIX_MODE.icon}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>{MIX_MODE.name}</span>
+                  <span className="block text-sm" style={{ color: 'var(--text-dim)' }}>
+                    {top === 'timed' ? 'Her soru başka tipten (Klasik hariç)' : 'Her soru başka tipten gelsin'}
+                  </span>
+                </span>
+                {info && <span className="shrink-0 text-xs" style={{ color: 'var(--text-dim)' }}>{info}</span>}
+              </button>
+            )
+          })()}
         </div>
       )}
 

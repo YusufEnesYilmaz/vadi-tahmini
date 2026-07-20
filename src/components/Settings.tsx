@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { getNick, setNick } from '../game/challenge'
 import { DATA, PATCH } from '../game/data'
 import { checkAndUpdateData, type UpdateResult } from '../game/dataUpdate'
 import { playCorrect, setSfxEnabled, sfxEnabled } from '../game/sfx'
@@ -9,6 +10,15 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [dataResult, setDataResult] = useState<UpdateResult | null>(null)
   const [checking, setChecking] = useState(false)
   const [sfx, setSfx] = useState(sfxEnabled)
+  const [nick, setNickState] = useState(getNick)
+  const [nickSaved, setNickSaved] = useState(false)
+
+  function saveNick() {
+    setNick(nick)
+    setNickState(getNick())
+    setNickSaved(true)
+    setTimeout(() => setNickSaved(false), 2000)
+  }
 
   // Veri güncellendiyse kısa bir onay gösterip sayfayı yenile
   useEffect(() => {
@@ -86,6 +96,24 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         {dataResult?.status === 'error' && (
           <p className="mt-2 text-sm" style={{ color: 'var(--danger-text)' }}>Hata: {dataResult.message}</p>
         )}
+      </section>
+
+      {/* Takma ad — meydan okuma linkinde görünür */}
+      <section className="rounded-xl border p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <h2 className="mb-1 font-bold" style={{ color: 'var(--gold-bright)' }}>Takma Ad</h2>
+        <p className="mb-3 text-sm" style={{ color: 'var(--text-dim)' }}>
+          Zamana Karşı'da arkadaşına "Meydan oku" linki gönderdiğinde bu ad görünür.
+        </p>
+        <div className="flex gap-2">
+          <input value={nick} onChange={(e) => setNickState(e.target.value)} maxLength={20}
+            placeholder="Örn: Ahmet"
+            className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+          <button onClick={saveNick} className="card-btn shrink-0 rounded-lg px-4 py-2 text-sm font-bold"
+            style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
+            {nickSaved ? '✓' : 'Kaydet'}
+          </button>
+        </div>
       </section>
 
       {/* Ses */}

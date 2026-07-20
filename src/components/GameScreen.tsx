@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
 import { byId, CHAMPIONS, squareUrl } from '../game/data'
-import { nextPuzzle, type Puzzle } from '../game/puzzle'
+import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
-import { todayKey } from '../game/rng'
+import { challengeUrl, getNick, recordChallengeWin, setNick, type Challenge } from '../game/challenge'
+import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
-import { DIFFICULTIES, SUB_MODES, TOP_MODES, type Difficulty, type SubMode, type TopMode } from '../game/types'
+import { DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta, type Difficulty, type PlaySub, type SubMode, type TopMode } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import ClassicBoard from './ClassicBoard'
 import HowTo from './HowTo'
@@ -16,8 +17,9 @@ import PuzzleView from './PuzzleView'
 
 interface Props {
   top: TopMode
-  sub: SubMode
+  sub: PlaySub
   diff: Difficulty
+  challenge?: Challenge // link'le açıldıysa: aynı seed + rakip skoru
   onExit: () => void
 }
 
@@ -45,22 +47,25 @@ function answerLabel(puzzle: Puzzle): string {
   return puzzle.sub === 'skin' ? `${puzzle.skin?.name}` : puzzle.champion.name
 }
 
-export default function GameScreen({ top, sub, diff, onExit }: Props) {
+export default function GameScreen({ top, sub, diff, challenge, onExit }: Props) {
   const daily = top === 'daily'
   const timed = top === 'timed'
   const rules = rulesFor(top, diff)
   const TIMED_SECONDS = rules.timedSeconds
+  // Günlük fonksiyonları gerçek SubMode ister; menü Günlük'te 'mix' sunmadığı için
+  // daily ⟹ sub gerçek tip. 'classic' yalnız tip güvenliği için yer tutucu (daily'de asla tetiklenmez).
+  const dailySub: SubMode = sub === 'mix' ? 'classic' : sub
 
   const [puzzle, setPuzzle] = useState<Puzzle | null>(() => (timed ? null : nextPuzzle(top, sub)))
-  const [guesses, setGuesses] = useState<string[]>(() => (daily ? getDailyState(sub).guesses : []))
-  const [won, setWon] = useState<boolean>(() => (daily ? getDailyState(sub).won : false))
+  const [guesses, setGuesses] = useState<string[]>(() => (daily ? getDailyState(dailySub).guesses : []))
+  const [won, setWon] = useState<boolean>(() => (daily ? getDailyState(dailySub).won : false))
   const [copied, setCopied] = useState(false)
   const [shaking, setShaking] = useState(false) // yanlış tahminde giriş alanı titrer
   const [howTo, setHowTo] = useState(false)
   const [announce, setAnnounce] = useState('') // ekran okuyucuya duyurulacak sonuç
   const [imgResult, setImgResult] = useState('')
   // Yetenek modu bonusu: şampiyon bilindikten sonra "hangi tuş?" — null = henüz cevaplanmadı
-  const [slotGuess, setSlotGuess] = useState<number | null>(() => (daily ? getDailyState(sub).slot ?? null : null))
+  const [slotGuess, setSlotGuess] = useState<number | null>(() => (daily ? getDailyState(dailySub).slot ?? null : null))
 
   // Zamana Karşı
   const [timeLeft, setTimeLeft] = useState(TIMED_SECONDS)
@@ -73,25 +78,44 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
   const [comboRecord, setComboRecord] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const recordedRef = useRef(false) // tur kaydı bir kez yazılsın
+  // Zamana Karşı seed'li akış: tur boyunca sabit dizi (meydan okuma bunun üstüne kurulu)
+  const streamRef = useRef<PuzzleStream | null>(null)
+  // Meydan okuma paylaşımı
+  const [chLink, setChLink] = useState('') // "kopyalandı/paylaşıldı" geri bildirimi
+  const [nick, setNickState] = useState(getNick)
+  const [askNick, setAskNick] = useState(false)
+  const [chSeed, setChSeed] = useState(0) // bu turun seed'i (paylaşım için)
+  const [chResultWin, setChResultWin] = useState<boolean | null>(null) // meydan okuma sonucu
 
-  const options = useMemo(() => (sub === 'skin' ? skinOptions() : championOptions()), [sub])
+  /** Zamana Karşı seed'li akıştan, diğer modlar desteden çeker */
+  function drawNext(): Puzzle {
+    if (timed && streamRef.current) return streamRef.current.next()
+    return nextPuzzle(top, sub)
+  }
+
+  // Karışıkta gerçek soru tipi puzzle'dan gelir; puzzle henüz yoksa (Zamana Karşı
+  // başlangıç ekranı) yer tutucu. sub 'mix' değilse zaten gerçek tiptir.
+  const activeSub: SubMode = puzzle?.sub ?? (sub === 'mix' ? 'classic' : sub)
+  const isMix = sub === 'mix'
+
+  const options = useMemo(() => (activeSub === 'skin' ? skinOptions() : championOptions()), [activeSub])
   const guessedSet = useMemo(() => new Set(guesses), [guesses])
 
   const rows: ClassicRow[] = useMemo(() => {
-    if (sub !== 'classic' || !puzzle) return []
+    if (activeSub !== 'classic' || !puzzle) return []
     return guesses
       .map((id) => byId(id))
       .filter((c): c is NonNullable<typeof c> => !!c)
       .map((c) => evaluateGuess(c, puzzle.champion, rules.showPartial))
       .reverse() // en yeni üstte
-  }, [guesses, puzzle, sub, rules.showPartial])
+  }, [guesses, puzzle, activeSub, rules.showPartial])
 
   // Zamana Karşı'da hak sınırı yok — orada baskıyı süre kuruyor
   const outOfGuesses = !timed && !won && guesses.length >= rules.maxGuesses
   const left = rules.maxGuesses - guesses.length
   const finished = won || outOfGuesses || timedOver
 
-  const bonusMode = sub === 'ability'
+  const bonusMode = activeSub === 'ability'
   const awaitingSlot = bonusMode && won && slotGuess === null // tur bitmedi: tuş bekleniyor
   const slotOk = bonusMode && puzzle && slotGuess !== null ? slotGuess === (puzzle.spellIndex ?? 0) : undefined
 
@@ -117,10 +141,25 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
   useEffect(() => {
     if (!timedOver || recordedRef.current) return
     recordedRef.current = true
-    recordTimedRun(sub, diff, score)
-    setWasRecord(recordScore(sub, diff, score))
-    setComboRecord(recordCombo(sub, diff, bestCombo))
-  }, [timedOver, sub, diff, score, bestCombo])
+    // Süre tuş sorusu beklerken bittiyse şampiyon zaten bilinmişti — +1'i yakmadan işle
+    // (tuş bonusu kaçtı ama seri kuralı gereği şampiyonu bilmek seriyi de sayar)
+    const pending = awaitingSlot ? 1 : 0
+    const finalScore = score + pending
+    const finalBestCombo = Math.max(bestCombo, combo + pending)
+    if (pending) {
+      setScore(finalScore)
+      setBestCombo(finalBestCombo)
+    }
+    recordTimedRun(sub, diff, finalScore)
+    setWasRecord(recordScore(sub, diff, finalScore))
+    setComboRecord(recordCombo(sub, diff, finalBestCombo))
+    // Meydan okuma: rakibi geçtiysen kazandın (beraberlik kayıp sayılmaz, ama "kazandın" da denmez)
+    if (challenge) {
+      const win = finalScore > challenge.score
+      setChResultWin(win)
+      if (win) recordChallengeWin()
+    }
+  }, [timedOver, sub, diff, score, bestCombo, combo, awaitingSlot, challenge])
 
   /**
    * Klavye kısayolları — masaüstünde fareye uzanmadan oynanabilsin.
@@ -146,6 +185,8 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       if (e.key === 'Enter') {
         if (finished && !daily && !timed) { e.preventDefault(); nextRound() }
         else if (timed && (!puzzle || timedOver)) { e.preventDefault(); startTimed() }
+        // Zamana Karşı + Yetenek: tuş bonusu cevaplandıysa Enter süre kaybettirmeden ilerletir
+        else if (timed && puzzle && !timedOver && won && !awaitingSlot) { e.preventDefault(); nextRound() }
       }
     }
     window.addEventListener('keydown', onKey)
@@ -173,7 +214,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
         setScore((s) => s + 1)
         bumpCombo()
         setGuesses([])
-        setPuzzle(nextPuzzle(top, sub))
+        setPuzzle(drawNext())
       } else {
         setAnnounce(`${guessName} yanlış.`)
       }
@@ -197,8 +238,8 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       setAnnounce(`${guessName} yanlış. ${rules.maxGuesses - newGuesses.length} hakkın kaldı.`)
     }
     if (daily) {
-      saveDailyState(sub, {
-        date: getDailyState(sub).date,
+      saveDailyState(dailySub, {
+        date: getDailyState(dailySub).date,
         guesses: newGuesses,
         done: correct || ranOut,
         won: correct,
@@ -221,7 +262,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       setScore((s) => s + 1 + (idx === (puzzle.spellIndex ?? 0) ? 1 : 0))
       bumpCombo() // şampiyonu bildi; tuş bonusu seriyi bozmaz
     } else if (daily) {
-      saveDailyState(sub, { ...getDailyState(sub), slot: idx })
+      saveDailyState(dailySub, { ...getDailyState(dailySub), slot: idx })
     }
   }
 
@@ -230,10 +271,15 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
     setWon(false)
     setCopied(false)
     setSlotGuess(null)
-    setPuzzle(nextPuzzle(top, sub))
+    setPuzzle(drawNext())
   }
 
   function startTimed() {
+    // Meydan okuma linkiyle açıldıysa aynı seed → birebir aynı sorular; yoksa rastgele
+    const seed = challenge ? challenge.seed : cryptoRandInt(0x100000000)
+    setChSeed(seed)
+    streamRef.current = createTimedStream(seed, sub)
+    setChResultWin(null)
     setScore(0)
     setTimeLeft(TIMED_SECONDS)
     setTimedOver(false)
@@ -245,7 +291,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
     setGuesses([])
     setWon(false)
     setSlotGuess(null)
-    setPuzzle(nextPuzzle(top, sub))
+    setPuzzle(streamRef.current.next())
   }
 
   async function share() {
@@ -257,6 +303,32 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  /** Meydan okuma linki üret + paylaş. Takma ad yoksa önce onu sorar. */
+  async function challengeShare() {
+    const currentNick = getNick()
+    if (!currentNick) { setAskNick(true); return }
+    const c: Challenge = { seed: chSeed, sub, diff, score, combo: bestCombo, nick: currentNick }
+    const text = `Vadi Tahmini — sana meydan okuyorum! 👊 ${TIMED_SECONDS} sn'de ${score} yaptım, geçebilir misin?\n${challengeUrl(c)}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Vadi Tahmini', text })
+        setChLink('✓ Paylaşıldı')
+      } catch { return } // kullanıcı vazgeçti
+    } else {
+      setChLink((await copyToClipboard(text)) ? '✓ Link kopyalandı' : 'Kopyalanamadı')
+    }
+    setTimeout(() => setChLink(''), 2500)
+  }
+
+  function saveNickAndShare() {
+    const n = nick.trim() || 'Rakip'
+    setNick(n)
+    setNickState(n)
+    setAskNick(false)
+    // Takma ad artık localStorage'da; challengeShare onu okuyup linki üretir
+    void challengeShare()
   }
 
   /** Aynı sonucu görsel kart olarak paylaş — emoji ızgarası cihazdan cihaza kayıyordu */
@@ -273,11 +345,11 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
         title: 'Vadi Tahmini',
         subtitle,
         headline,
-        grid: sub === 'classic' && !timed
+        grid: activeSub === 'classic' && !timed
           ? [...rows].reverse().map((r) => Object.values(r.cells))
           : undefined,
-        lines: sub !== 'classic' && !timed
-          ? [`${SUB_MODES.find((m) => m.id === sub)!.icon} ${subName}: ${guesses.length} tahmin`]
+        lines: activeSub !== 'classic' && !timed
+          ? [`${activeMeta.icon} ${subName}: ${guesses.length} tahmin`]
           : timed
             ? [`🔥 Pas'sız en uzun seri: ${bestCombo}`]
             : undefined,
@@ -290,7 +362,8 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
   }
 
   const topName = TOP_MODES.find((m) => m.id === top)!.name
-  const subName = SUB_MODES.find((m) => m.id === sub)!.name
+  const subName = subMeta(sub).name // mix dahil
+  const activeMeta = SUB_MODES.find((m) => m.id === activeSub)! // o anki gerçek tip (rozet için)
   const stats = getStats(top, sub, diff)
 
   return (
@@ -314,7 +387,13 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
         </div>
         <span className="min-w-0 truncate text-center text-sm font-semibold sm:text-base" style={{ color: 'var(--gold)' }}>
           {topName} · {subName}
-          {!daily && (
+          {/* Karışıkta o anki gerçek soru tipini göster */}
+          {isMix && puzzle && !timedOver && (
+            <span className="block text-xs font-normal" style={{ color: 'var(--gold-bright)' }}>
+              🎲 {activeMeta.icon} {activeMeta.name}
+            </span>
+          )}
+          {!daily && !isMix && (
             <span className="block text-xs font-normal" style={{ color: 'var(--text-dim)' }}>
               {DIFFICULTIES.find((d) => d.id === diff)!.name}
             </span>
@@ -340,13 +419,33 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       {/* Zamana Karşı: başlangıç ekranı */}
       {timed && !puzzle && (
         <div className="flex flex-col items-center gap-4 pt-10 text-center">
-          <div className="text-5xl">⏱</div>
-          <h2 className="text-xl font-bold">Zamana Karşı — {subName}</h2>
-          <p style={{ color: 'var(--text-dim)' }}>
-            {TIMED_SECONDS} saniyede kaç tane bilebilirsin?<br />
-            Bilemediğini "Pas" ile geçebilirsin — ama Pas serini sıfırlar.
-          </p>
-          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub, diff)}</b></p>
+          {challenge ? (
+            <>
+              <div className="text-5xl">⚔️</div>
+              <h2 className="font-display text-xl font-bold">
+                <b style={{ color: 'var(--gold-bright)' }}>{challenge.nick}</b> sana meydan okuyor!
+              </h2>
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
+                <p style={{ color: 'var(--text-dim)' }}>Geçmen gereken skor:</p>
+                <p className="font-display text-4xl font-extrabold" style={{ color: 'var(--gold)' }}>{challenge.score}</p>
+                <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
+                  {subName} · {DIFFICULTIES.find((d) => d.id === diff)!.name} · {TIMED_SECONDS} sn
+                  {challenge.combo > 0 && <> · seri 🔥{challenge.combo}</>}
+                </p>
+              </div>
+              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Aynı sorular sana da gelecek — hazırsan başla.</p>
+            </>
+          ) : (
+            <>
+              <div className="text-5xl">⏱</div>
+              <h2 className="text-xl font-bold">Zamana Karşı — {subName}</h2>
+              <p style={{ color: 'var(--text-dim)' }}>
+                {TIMED_SECONDS} saniyede kaç tane bilebilirsin?<br />
+                Bilemediğini "Pas" ile geçebilirsin — ama Pas serini sıfırlar.
+              </p>
+              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub, diff)}</b></p>
+            </>
+          )}
           <button onClick={startTimed} className="card-btn rounded-xl px-8 py-3 text-lg font-bold"
             style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
             Başla
@@ -357,6 +456,30 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
       {/* Zamana Karşı: sonuç */}
       {timed && timedOver && (
         <div className="flex flex-col items-center gap-4 pt-10 text-center">
+          {/* Meydan okuma sonucu: rakiple karşılaştırma bandı */}
+          {challenge && chResultWin !== null && (
+            <div className="anim-pop w-full rounded-xl border p-4"
+              style={{
+                borderColor: chResultWin ? 'var(--correct)' : score === challenge.score ? 'var(--gold)' : 'var(--danger)',
+                background: 'var(--bg-card)',
+              }}>
+              <p className="font-display text-xl font-bold"
+                style={{ color: chResultWin ? 'var(--correct)' : score === challenge.score ? 'var(--gold)' : 'var(--danger-text)' }}>
+                {chResultWin ? '🏆 Kazandın!' : score === challenge.score ? '🤝 Berabere!' : '😔 Kaybettin'}
+              </p>
+              <div className="mt-2 flex items-center justify-center gap-6">
+                <div>
+                  <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>sen</div>
+                  <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>{score}</div>
+                </div>
+                <span style={{ color: 'var(--text-dim)' }}>vs</span>
+                <div>
+                  <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>{challenge.nick}</div>
+                  <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--text-dim)' }}>{challenge.score}</div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="text-5xl">🏁</div>
           <h2 className="font-display text-2xl font-bold">{score} doğru!</h2>
           {wasRecord && (
@@ -369,7 +492,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
             <br />
             <span className="text-xs">Seri rekorun: {getBestCombo(sub, diff)}</span>
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <button onClick={startTimed} className="card-btn rounded-xl px-6 py-3 font-bold"
               style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
               Tekrar
@@ -383,6 +506,30 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
               {imgResult || '🖼 Görsel'}
             </button>
           </div>
+
+          {/* Meydan oku: aynı seed'i link olarak paylaş */}
+          {askNick ? (
+            <div className="anim-pop flex w-full max-w-sm flex-col gap-2 rounded-xl border p-3"
+              style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
+              <label className="text-sm" style={{ color: 'var(--text-dim)' }}>Takma adın (linkte görünecek):</label>
+              <div className="flex gap-2">
+                <input value={nick} onChange={(e) => setNickState(e.target.value)} maxLength={20}
+                  onKeyDown={(e) => e.key === 'Enter' && saveNickAndShare()}
+                  placeholder="Örn: Ahmet" autoFocus
+                  className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+                  style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <button onClick={saveNickAndShare} className="card-btn shrink-0 rounded-lg px-4 py-2 text-sm font-bold"
+                  style={{ background: 'var(--gold)', color: 'var(--on-gold)' }}>
+                  Paylaş
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={challengeShare} className="card-btn rounded-xl border px-6 py-3 font-bold"
+              style={{ borderColor: 'var(--gold)', color: 'var(--gold-bright)' }}>
+              {chLink || '⚔ Meydan oku'}
+            </button>
+          )}
         </div>
       )}
 
@@ -405,7 +552,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
             </div>
           )}
 
-          {sub !== 'classic' && (
+          {activeSub !== 'classic' && (
             <PuzzleView puzzle={puzzle} wrongCount={guesses.length} revealed={won || outOfGuesses} rules={rules} hideSlot={awaitingSlot} />
           )}
 
@@ -431,7 +578,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
               </span>
             </div>
           )}
-          {sub === 'classic' && !won && guesses.length === 0 && (
+          {activeSub === 'classic' && !won && guesses.length === 0 && (
             <p className="pt-2 text-center" style={{ color: 'var(--text-dim)' }}>
               Bir şampiyon tahmin et — her tahminde hangi özelliklerin tuttuğunu göreceksin.
             </p>
@@ -517,7 +664,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
               onAnimationEnd={() => setShaking(false)}>
               <Autocomplete
                 options={options}
-                placeholder={sub === 'skin' ? 'Kostüm adı yaz...' : 'Şampiyon adı yaz...'}
+                placeholder={activeSub === 'skin' ? 'Kostüm adı yaz...' : 'Şampiyon adı yaz...'}
                 disabledKeys={guessedSet}
                 onPick={handleGuess}
                 autoFocus
@@ -534,14 +681,14 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
           )}
 
           {/* Classic tablo */}
-          {sub === 'classic' && <ClassicBoard rows={rows} yearArrow={rules.yearArrow} />}
+          {activeSub === 'classic' && <ClassicBoard rows={rows} yearArrow={rules.yearArrow} />}
 
           {/* Diğer modlarda yanlış tahmin listesi */}
-          {sub !== 'classic' && guesses.length > 0 && (
+          {activeSub !== 'classic' && guesses.length > 0 && (
             <div className="flex w-full flex-wrap justify-center gap-2">
               {[...guesses].reverse().map((g, i) => {
                 const correct = isCorrect(puzzle, g)
-                const label = sub === 'skin'
+                const label = activeSub === 'skin'
                   ? options.find((o) => o.key === g)?.label ?? g
                   : byId(g)?.name ?? g
                 return (
@@ -556,7 +703,7 @@ export default function GameScreen({ top, sub, diff, onExit }: Props) {
         </>
       )}
 
-      {howTo && <HowTo sub={sub} onClose={() => setHowTo(false)} />}
+      {howTo && <HowTo sub={activeSub} onClose={() => setHowTo(false)} />}
     </div>
   )
 }

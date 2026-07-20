@@ -1,7 +1,17 @@
 import { CHAMPIONS, EMOJI_IDS, byId } from './data'
 import { getDeck } from './deck'
 import { cryptoRandInt, dailyIndex, fnv1a, seededRng, todayKey } from './rng'
-import type { Champion, Skin, SubMode, TopMode } from './types'
+import type { Champion, PlaySub, Skin, SubMode, TopMode } from './types'
+
+/**
+ * Karışık modun havuzu: hangi gerçek tipler gelebilir.
+ * Zamana Karşı'da Klasik YOK — tablo tabanlı ve uzun sürüyor, süre modunun
+ * ritmini öldürüyor (kullanıcı kararı). Sınırsız'da altısı da var.
+ */
+const MIX_POOL: Record<'endless' | 'timed', SubMode[]> = {
+  endless: ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote'],
+  timed: ['ability', 'splash', 'skin', 'emoji', 'quote'],
+}
 
 export interface Puzzle {
   sub: SubMode
@@ -43,7 +53,14 @@ function resolveSkin(key: string): { champion: Champion; skin: Skin } {
  * Deste anahtarı alt moda göre: endless ve timed AYNI desteden çeker
  * (plan: "deck:classic" vb.) → iki üst modda da tekrar hissi olmaz.
  */
-export function nextPuzzle(top: TopMode, sub: SubMode): Puzzle {
+export function nextPuzzle(top: TopMode, sub: PlaySub): Puzzle {
+  // Karışık: izinli havuzdan gerçek bir tip seç, sonra normal yola delege et.
+  // Delegasyon sayesinde her tipin kendi destesi çalışır → tip içi tekrarsızlık korunur.
+  if (sub === 'mix') {
+    const pool = MIX_POOL[top === 'timed' ? 'timed' : 'endless'] // daily+mix menüde yok
+    return nextPuzzle(top, pool[cryptoRandInt(pool.length)])
+  }
+
   if (top === 'daily') return dailyPuzzle(sub)
 
   if (sub === 'skin') {
@@ -71,6 +88,68 @@ export function nextPuzzle(top: TopMode, sub: SubMode): Puzzle {
     }
   }
   return { sub, champion }
+}
+
+/**
+ * Zamana Karşı için seed'li soru akışı — meydan okumanın temeli.
+ *
+ * Deste sisteminden (crypto, kişiye özel) AYRI: tur başına tek bir seed'den
+ * TÜM rastgelelik (tip seçimi, şampiyon, tuş, kırpma, kostüm) türetilir. Aynı
+ * seed'i alan herkes BİREBİR aynı diziyi görür → linkle adil karşılaştırma.
+ *
+ * Trade-off (bilinçli): tur İÇİNDE tekrar yok (tip başına seed'li deste), ama
+ * ardışık TURLAR arası tekrar mümkün (her tur yeni seed). Sınırsız'ın kalıcı
+ * deste garantisi bundan etkilenmez — o hâlâ getDeck kullanır.
+ */
+export interface PuzzleStream {
+  next(): Puzzle
+}
+
+export function createTimedStream(seed: number, sub: PlaySub): PuzzleStream {
+  const rng = seededRng(seed)
+  const ri = (max: number) => Math.floor(rng() * max)
+  const allIds = CHAMPIONS.map((c) => c.id)
+  // Tip başına seed'li deste (lazy): tur içi tekrarı önler, deterministik kalır
+  const decks = new Map<string, { order: string[]; pos: number }>()
+
+  function drawFrom(key: string, pool: string[]): string {
+    let d = decks.get(key)
+    if (!d || d.pos >= d.order.length) {
+      const prevLast = d?.order[d.order.length - 1]
+      const order = [...pool]
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = ri(i + 1)
+        ;[order[i], order[j]] = [order[j], order[i]]
+      }
+      // Yeniden karışta baştaki, bir öncekinin sonuyla aynıysa takas et (ardışık tekrar yok)
+      if (prevLast && order.length > 1 && order[0] === prevLast) {
+        const j = 1 + ri(order.length - 1)
+        ;[order[0], order[j]] = [order[j], order[0]]
+      }
+      d = { order, pos: 0 }
+      decks.set(key, d)
+    }
+    return d.order[d.pos++]
+  }
+
+  return {
+    next(): Puzzle {
+      // Karışıkta gerçek tip de seed'den; değilse doğrudan sub (classic dahil olabilir)
+      const realSub: SubMode = sub === 'mix' ? MIX_POOL.timed[ri(MIX_POOL.timed.length)] : (sub as SubMode)
+
+      if (realSub === 'skin') {
+        const { champion, skin } = resolveSkin(drawFrom('skin', skinPool()))
+        return { sub: 'skin', champion, skin, crop: { x: 20 + ri(61), y: 20 + ri(61) } }
+      }
+      const pool = realSub === 'emoji' ? EMOJI_IDS : allIds
+      const champion = byId(drawFrom(realSub, pool))!
+      if (realSub === 'ability') return { sub: 'ability', champion, spellIndex: ri(5) }
+      if (realSub === 'splash') {
+        return { sub: 'splash', champion, splashNum: pickSplashNum(champion, rng), crop: { x: 20 + ri(61), y: 20 + ri(61) } }
+      }
+      return { sub: realSub, champion }
+    },
+  }
 }
 
 function dailyPuzzle(sub: SubMode): Puzzle {

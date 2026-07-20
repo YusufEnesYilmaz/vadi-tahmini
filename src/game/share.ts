@@ -1,10 +1,10 @@
 import type { ClassicRow } from './classic'
-import type { SubMode } from './types'
-import { SUB_MODES } from './types'
+import type { PlaySub } from './types'
+import { subMeta } from './types'
 import { todayKey } from './rng'
 
-function subName(sub: SubMode) {
-  return SUB_MODES.find((m) => m.id === sub)?.name ?? sub
+function subName(sub: PlaySub) {
+  return subMeta(sub).name // mix → "Karışık"
 }
 
 const CELL_EMOJI = { correct: '🟩', partial: '🟨', wrong: '🟥' } as const
@@ -23,7 +23,7 @@ export function shareDailyClassic(rows: ClassicRow[], won: boolean): string {
 }
 
 /** Günlük Yetenek/Görsel/Kostüm: deneme sayısı grid'i */
-export function shareDailySimple(sub: SubMode, guessCount: number, won: boolean, slotOk?: boolean): string {
+export function shareDailySimple(sub: PlaySub, guessCount: number, won: boolean, slotOk?: boolean): string {
   const grid = won ? '⬛'.repeat(guessCount - 1) + '🟩' : '⬛'.repeat(guessCount)
   const head = won ? `${guessCount} denemede bildim!` : 'Bilemedim 😔'
   // Yetenek modunda tuş bonusu da paylaşılır (undefined = bonus yok/atlandı)
@@ -32,7 +32,7 @@ export function shareDailySimple(sub: SubMode, guessCount: number, won: boolean,
 }
 
 /** Zamana Karşı skoru */
-export function shareTimed(sub: SubMode, score: number, isRecord: boolean): string {
+export function shareTimed(sub: PlaySub, score: number, isRecord: boolean): string {
   const rekor = isRecord ? ' 🏆 YENİ REKOR!' : ''
   return `Vadi Tahmini — Zamana Karşı ${subName(sub)}\n⏱ 60 saniyede ${score} doğru!${rekor}`
 }

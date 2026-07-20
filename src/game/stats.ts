@@ -1,4 +1,4 @@
-import type { Difficulty, SubMode, TopMode } from './types'
+import type { Difficulty, PlaySub, SubMode, TopMode } from './types'
 import { todayKey } from './rng'
 
 /** Mod başına istatistik — localStorage */
@@ -29,11 +29,11 @@ const emptyStats: ModeStats = {
  * Zorluk anahtarın parçası: Aşırı Zor'da 8 denemede bilmekle Kolay'da 2'de bilmek
  * aynı istatistiğe yazılırsa hiçbiri anlam ifade etmez. Günlük'te zorluk yok.
  */
-function statsKey(top: TopMode, sub: SubMode, diff: Difficulty) {
+function statsKey(top: TopMode, sub: PlaySub, diff: Difficulty) {
   return top === 'daily' ? `vt:stats:daily:${sub}` : `vt:stats:${top}:${sub}:${diff}`
 }
 
-export function getStats(top: TopMode, sub: SubMode, diff: Difficulty): ModeStats {
+export function getStats(top: TopMode, sub: PlaySub, diff: Difficulty): ModeStats {
   try {
     const raw = localStorage.getItem(statsKey(top, sub, diff))
     if (raw) {
@@ -48,7 +48,7 @@ export function getStats(top: TopMode, sub: SubMode, diff: Difficulty): ModeStat
   return { ...emptyStats, dist: Array(DIST_BUCKETS).fill(0) }
 }
 
-export function recordGame(top: TopMode, sub: SubMode, diff: Difficulty, won: boolean, guesses: number) {
+export function recordGame(top: TopMode, sub: PlaySub, diff: Difficulty, won: boolean, guesses: number) {
   const s = getStats(top, sub, diff)
   s.played++
   if (won) {
@@ -77,7 +77,7 @@ export function recordGame(top: TopMode, sub: SubMode, diff: Difficulty, won: bo
 
 // ---- Zamana Karşı en iyi skor (zorluk başına ayrı: süreler bile farklı) ----
 
-export function getBestScore(sub: SubMode, diff: Difficulty): number {
+export function getBestScore(sub: PlaySub, diff: Difficulty): number {
   return Number(localStorage.getItem(`vt:best:${sub}:${diff}`) ?? 0)
 }
 
@@ -86,7 +86,7 @@ export function getBestScore(sub: SubMode, diff: Difficulty): number {
  * orada "kazandın mı / kaç tahminde" var, burada süre dolunca tur biter.
  * Sayılan şey: kaç tur oynandı ve turlarda toplam kaç doğru yapıldı.
  */
-export function recordTimedRun(sub: SubMode, diff: Difficulty, score: number) {
+export function recordTimedRun(sub: PlaySub, diff: Difficulty, score: number) {
   const s = getStats('timed', sub, diff)
   s.played++
   s.totalScore += score
@@ -94,11 +94,11 @@ export function recordTimedRun(sub: SubMode, diff: Difficulty, score: number) {
 }
 
 /** Zamana Karşı: Pas kullanmadan üst üste bilinen en uzun seri */
-export function getBestCombo(sub: SubMode, diff: Difficulty): number {
+export function getBestCombo(sub: PlaySub, diff: Difficulty): number {
   return Number(localStorage.getItem(`vt:combo:${sub}:${diff}`) ?? 0)
 }
 
-export function recordCombo(sub: SubMode, diff: Difficulty, combo: number): boolean {
+export function recordCombo(sub: PlaySub, diff: Difficulty, combo: number): boolean {
   if (combo > getBestCombo(sub, diff)) {
     localStorage.setItem(`vt:combo:${sub}:${diff}`, String(combo))
     return true
@@ -106,7 +106,7 @@ export function recordCombo(sub: SubMode, diff: Difficulty, combo: number): bool
   return false
 }
 
-export function recordScore(sub: SubMode, diff: Difficulty, score: number): boolean {
+export function recordScore(sub: PlaySub, diff: Difficulty, score: number): boolean {
   if (score > getBestScore(sub, diff)) {
     localStorage.setItem(`vt:best:${sub}:${diff}`, String(score))
     return true // yeni rekor

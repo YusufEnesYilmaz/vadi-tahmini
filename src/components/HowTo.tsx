@@ -72,6 +72,19 @@ export default function HowTo({ sub, onClose }: Props) {
               <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{MODE_HOWTO[m.id]}</p>
             </div>
           ))}
+          {/* Karışık: menüden açıldığında (tüm modlar görünürken) tanıt */}
+          {!sub && (
+            <div className="rounded-xl border p-3" style={{ borderColor: 'var(--gold)' }}>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎲</span>
+                <span className="font-bold" style={{ color: 'var(--gold)' }}>Karışık</span>
+              </div>
+              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+                Her soru rastgele başka bir tipten gelir. Sınırsız'da altı tip de çıkabilir;
+                Zamana Karşı'da Klasik hariç beş tip. Sınırsız ve Zamana Karşı'da oynanır.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Renk anahtarı ve mod anlatımı yan yana — anahtar yoksa tek kolon kalsın */}

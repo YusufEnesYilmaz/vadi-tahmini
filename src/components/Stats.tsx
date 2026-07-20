@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getStats, isStreakAlive } from '../game/stats'
 import {
-  DIFFICULTIES, SUB_MODES, TOP_MODES,
-  type Difficulty, type SubMode, type TopMode,
+  DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
+  type Difficulty, type PlaySub, type TopMode,
 } from '../game/types'
 import DailyCalendar from './DailyCalendar'
 
@@ -23,7 +23,7 @@ function pct(a: number, b: number): string {
 export default function Stats({ initialDifficulty, onClose }: Props) {
   const [top, setTop] = useState<TopMode>('endless')
   const [diff, setDiff] = useState<Difficulty>(initialDifficulty)
-  const [detail, setDetail] = useState<SubMode | null>(null) // dağılımı açılan mod
+  const [detail, setDetail] = useState<PlaySub | null>(null) // dağılımı açılan mod
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -35,7 +35,9 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   const timed = top === 'timed'
   const streak = getDailyStreak()
 
-  const rows = SUB_MODES.map((m) => ({ mode: m, s: getStats(top, m.id, diff) }))
+  // Karışığın kendi rekor tablosu var; Günlük'te mix yok
+  const subIds: PlaySub[] = daily ? SUB_MODES.map((m) => m.id) : [...SUB_MODES.map((m) => m.id), 'mix']
+  const rows = subIds.map((id) => ({ mode: subMeta(id), s: getStats(top, id, diff) }))
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center"

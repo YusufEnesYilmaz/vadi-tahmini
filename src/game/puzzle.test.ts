@@ -53,4 +53,26 @@ describe('bulmaca üretimi', () => {
       expect(p.champion.skins.some((s) => s.num === p.skin?.num)).toBe(true)
     }
   })
+
+  it('Karışık (Zamana Karşı): Klasik ASLA gelmez, diğer 5 tip gelir', () => {
+    const seen = new Set<string>()
+    for (let i = 0; i < 200; i++) seen.add(nextPuzzle('timed', 'mix').sub)
+    expect(seen.has('classic')).toBe(false)
+    // Havuzdaki tiplerden çeşitlilik olmalı (istatistiksel olarak neredeyse kesin)
+    expect(seen.size).toBeGreaterThan(2)
+  })
+
+  it('Karışık (Sınırsız): Klasik dahil altı tip de gelebilir', () => {
+    const seen = new Set<string>()
+    for (let i = 0; i < 300; i++) seen.add(nextPuzzle('endless', 'mix').sub)
+    expect(seen.has('classic')).toBe(true)
+  })
+
+  it('Karışık her zaman geçerli, tam bir bulmaca üretir', () => {
+    for (let i = 0; i < 50; i++) {
+      const p = nextPuzzle('endless', 'mix')
+      expect(p.champion).toBeTruthy()
+      expect(['classic', 'ability', 'splash', 'skin', 'emoji', 'quote']).toContain(p.sub)
+    }
+  })
 })

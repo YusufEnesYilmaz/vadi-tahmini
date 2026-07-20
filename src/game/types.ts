@@ -45,8 +45,23 @@ export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
   { id: 'insane', name: 'Aşırı Zor' },
 ]
 
-/** Alt mod: ne tahmin ediliyor */
+/** Alt mod: ne tahmin ediliyor (gerçek soru tipleri) */
 export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote'
+
+/**
+ * Oynanabilir alt mod: gerçek tipler + "mix" (Karışık).
+ * SubMode bilerek 6'lı kalıyor — günlük/veri/emoji yolları hep gerçek tiple çalışır.
+ * "mix" yalnız oyun yüzeyinde (menü, oyun ekranı, istatistik anahtarı) yaşar;
+ * Puzzle.sub her zaman GERÇEK tiptir.
+ */
+export type PlaySub = SubMode | 'mix'
+
+export const MIX_MODE = { id: 'mix' as const, name: 'Karışık', desc: 'Hepsi karışık gelsin', icon: '🎲' }
+
+/** Bir PlaySub'ın görünen adı/ikonu — mix dahil */
+export function subMeta(id: PlaySub): { id: PlaySub; name: string; desc: string; icon: string } {
+  return id === 'mix' ? MIX_MODE : SUB_MODES.find((m) => m.id === id)!
+}
 
 export const TOP_MODES: { id: TopMode; name: string; desc: string; icon: string }[] = [
   { id: 'endless', name: 'Sınırsız', desc: 'Arka arkaya oyna, bekleme yok', icon: '∞' },
