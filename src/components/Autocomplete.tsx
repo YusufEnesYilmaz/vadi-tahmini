@@ -14,10 +14,11 @@ interface Props {
   disabledKeys?: Set<string>
   onPick: (key: string) => void
   autoFocus?: boolean
+  maxResults?: number // liste kaydırılabilir; kostüm modu gibi geniş havuzlarda artırılır
 }
 
 /** TR duyarlı (İ/ı, aksan, kesme işareti) arama yapan otomatik tamamlama */
-export default function Autocomplete({ options, placeholder, disabledKeys, onPick, autoFocus }: Props) {
+export default function Autocomplete({ options, placeholder, disabledKeys, onPick, autoFocus, maxResults = 8 }: Props) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [hi, setHi] = useState(0)
@@ -25,16 +26,24 @@ export default function Autocomplete({ options, placeholder, disabledKeys, onPic
   const listRef = useRef<HTMLDivElement>(null)
 
   const q = searchKey(query)
+
+  // Sıralama: etiket başlangıcı > alt yazı başlangıcı > etiket içinde > alt yazı içinde
+  function rank(o: AcOption): number {
+    const l = searchKey(o.label)
+    const s = o.sub ? searchKey(o.sub) : ''
+    if (l.startsWith(q)) return 0
+    if (s.startsWith(q)) return 1
+    if (l.includes(q)) return 2
+    return 3
+  }
+
   const matches = q
     ? options
-        .filter((o) => !disabledKeys?.has(o.key) && searchKey(o.label).includes(q))
-        .sort((a, b) => {
-          // Başlayanlar önce
-          const as = searchKey(a.label).startsWith(q) ? 0 : 1
-          const bs = searchKey(b.label).startsWith(q) ? 0 : 1
-          return as - bs || a.label.localeCompare(b.label, 'tr')
-        })
-        .slice(0, 8)
+        .filter((o) =>
+          !disabledKeys?.has(o.key) &&
+          (searchKey(o.label).includes(q) || (o.sub !== undefined && searchKey(o.sub).includes(q))))
+        .sort((a, b) => rank(a) - rank(b) || a.label.localeCompare(b.label, 'tr'))
+        .slice(0, maxResults)
     : []
 
   useEffect(() => setHi(0), [query])

@@ -1,4 +1,4 @@
-import type { Difficulty, PlaySub, SubMode, TopMode } from './types'
+import { SUB_MODES, type Difficulty, type PlaySub, type SubMode, type TopMode } from './types'
 import { todayKey } from './rng'
 
 /** Mod başına istatistik — localStorage */
@@ -141,8 +141,13 @@ export function getDailyState(sub: SubMode): DailyState {
 
 export function saveDailyState(sub: SubMode, s: DailyState) {
   localStorage.setItem(dailyKey(sub), JSON.stringify(s))
-  if (s.won) {
+  if (s.done) {
+    // Gün serisi tamamlamaya bakar — kazanmak şart değil (kullanıcı kararı, 2026-07-20)
     bumpDailyStreak()
+    // Tam Gün serisi: 6 modun 6'sı da tamamlandıysa (sonuç önemsiz)
+    if (SUB_MODES.every((m) => getDailyState(m.id).done)) bumpFullDayStreak()
+  }
+  if (s.won) {
     recordDailyWin(sub, s.date, s.guesses.length)
   } else if (s.done) {
     recordDailyLoss(sub, s.date)
@@ -203,7 +208,7 @@ function dayBefore(key: string): string {
   return d.toISOString().slice(0, 10)
 }
 
-/** Bugün ilk kez bir günlük bulmaca kazanıldığında çağrılır */
+/** Bugün ilk kez bir günlük bulmaca TAMAMLANDIĞINDA çağrılır (kazanmak şart değil) */
 function bumpDailyStreak() {
   const today = todayKey()
   const s = getDailyStreak()
@@ -218,4 +223,27 @@ function bumpDailyStreak() {
 export function isStreakAlive(s: DailyStreak): boolean {
   const today = todayKey()
   return s.last === today || s.last === dayBefore(today)
+}
+
+// ---- Tam Gün serisi: üst üste 6 modun da TAMAMLANDIĞI günler (kazanmak şart değil) ----
+
+const DFULLSTREAK_KEY = 'vt:dfullstreak'
+
+export function getFullDayStreak(): DailyStreak {
+  try {
+    const raw = localStorage.getItem(DFULLSTREAK_KEY)
+    if (raw) return JSON.parse(raw) as DailyStreak
+  } catch { /* yoksay */ }
+  return { last: '', streak: 0, best: 0 }
+}
+
+/** Bugün 6 mod da tamamlandıysa Tam Gün serisini ilerlet — günde bir kez */
+function bumpFullDayStreak() {
+  const today = todayKey()
+  const s = getFullDayStreak()
+  if (s.last === today) return
+  s.streak = s.last === dayBefore(today) ? s.streak + 1 : 1 // gün atlandıysa sıfırdan
+  s.last = today
+  s.best = Math.max(s.best, s.streak)
+  localStorage.setItem(DFULLSTREAK_KEY, JSON.stringify(s))
 }

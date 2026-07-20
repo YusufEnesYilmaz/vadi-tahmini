@@ -152,6 +152,16 @@ export function createTimedStream(seed: number, sub: PlaySub): PuzzleStream {
   }
 }
 
+/**
+ * Elle sabitlenen günlük bulmacalar — özel gün / test müdahaleleri.
+ * Tarih geçince giriş kendiliğinden etkisizleşir (silinebilir, bırakmak da zararsız).
+ * Not: herkesin aynı bulmacayı görmesi güncel kodu çalıştırmasına bağlı —
+ * SW güncellemesini henüz almamış oyuncu o günün eski bulmacasını görür.
+ */
+export const DAILY_OVERRIDES: Record<string, { splash?: { id: string; splashNum: number } }> = {
+  '2026-07-20': { splash: { id: 'Garen', splashNum: 1 } }, // Kızıl Garen (kullanıcı isteği)
+}
+
 function dailyPuzzle(sub: SubMode): Puzzle {
   const rng = seededRng(fnv1a(`${todayKey()}:${sub}:extra`))
 
@@ -170,10 +180,11 @@ function dailyPuzzle(sub: SubMode): Puzzle {
     return { sub, champion, spellIndex: Math.floor(rng() * 5) }
   }
   if (sub === 'splash') {
+    const ov = DAILY_OVERRIDES[todayKey()]?.splash
     return {
       sub,
-      champion,
-      splashNum: pickSplashNum(champion, rng), // tarihten türeyen rng: herkeste aynı görsel
+      champion: ov ? byId(ov.id)! : champion,
+      splashNum: ov ? ov.splashNum : pickSplashNum(champion, rng), // tarihten türeyen rng: herkeste aynı görsel
       crop: { x: 20 + Math.floor(rng() * 61), y: 20 + Math.floor(rng() * 61) },
     }
   }

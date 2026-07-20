@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { copyToClipboard } from '../game/share'
-import { getDailyState, getDailyStreak, isStreakAlive } from '../game/stats'
+import { getDailyState, getDailyStreak, getFullDayStreak, isStreakAlive } from '../game/stats'
 import { todayKey } from '../game/rng'
 import { SUB_MODES } from '../game/types'
 
@@ -34,18 +34,20 @@ export default function DailyPanel() {
 
   const streak = getDailyStreak()
   const alive = isStreakAlive(streak)
-  const done = SUB_MODES.filter((m) => getDailyState(m.id).won)
-  const allDone = done.length === SUB_MODES.length
+  const fullStreak = getFullDayStreak()
+  const fullAlive = isStreakAlive(fullStreak)
+  const doneCount = SUB_MODES.filter((m) => getDailyState(m.id).done).length // tamamlanan (sonuç önemsiz)
+  const allDone = doneCount === SUB_MODES.length
 
   /** Günün tamamını tek kartta paylaş — mod mod ayrı ayrı paylaşmaya gerek kalmasın */
   async function shareDay() {
     const lines = SUB_MODES.map((m) => {
       const st = getDailyState(m.id)
-      return `${m.icon} ${m.name}: ${st.won ? `${st.guesses.length} deneme` : '—'}`
+      return `${m.icon} ${m.name}: ${st.won ? `${st.guesses.length} deneme` : st.done ? '✗' : '—'}`
     })
     const text = [
       `Vadi Tahmini — Günlük ${todayKey()}`,
-      `${done.length}/${SUB_MODES.length} mod tamam${streak.streak > 1 ? ` · 🔥 ${streak.streak} gün` : ''}`,
+      `${doneCount}/${SUB_MODES.length} mod tamam${streak.streak > 1 ? ` · 🔥 ${streak.streak} gün` : ''}`,
       ...lines,
     ].join('\n')
     if (await copyToClipboard(text)) {
@@ -59,25 +61,33 @@ export default function DailyPanel() {
       style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm" style={{ color: 'var(--text-dim)' }}>
-          Bugün: <b style={{ color: 'var(--gold)' }}>{done.length}/{SUB_MODES.length}</b> mod
+          Bugün: <b style={{ color: 'var(--gold)' }}>{doneCount}/{SUB_MODES.length}</b> mod tamam
         </span>
-        <span className="text-sm" title="Üst üste günlük çözülen gün sayısı"
-          style={{ color: alive && streak.streak > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
-          🔥 {alive ? streak.streak : 0} gün{streak.best > 0 && ` · en iyi ${streak.best}`}
-        </span>
+        {/* İki seri: gevşek (en az 1 mod) + prestij (6/6 tam gün) */}
+        <div className="flex flex-col items-end gap-0.5">
+          <span className="text-sm" title="Üst üste günlük oynanan gün — en az 1 modu tamamlamak yeter (kazanmak şart değil)"
+            style={{ color: alive && streak.streak > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
+            🔥 {alive ? streak.streak : 0} gün{streak.best > 0 && ` · en iyi ${streak.best}`}
+          </span>
+          <span className="text-xs" title="Üst üste 6 modun da tamamlandığı gün — sonuç önemsiz"
+            style={{ color: fullAlive && fullStreak.streak > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
+            ⭐ {fullAlive ? fullStreak.streak : 0} tam gün{fullStreak.best > 0 && ` · en iyi ${fullStreak.best}`}
+          </span>
+        </div>
       </div>
 
-      {/* Hangi modlar bitti — tek bakışta */}
+      {/* Hangi modlar bitti — tek bakışta: ✓ kazanıldı, ✗ kaybedildi, ○ oynanmadı */}
       <div className="flex flex-wrap gap-2">
         {SUB_MODES.map((m) => {
-          const won = getDailyState(m.id).won
+          const st = getDailyState(m.id)
+          const state = st.won ? 'won' : st.done ? 'lost' : 'none'
           return (
             <span key={m.id} className="rounded-md border px-2 py-1 text-xs"
               style={{
-                borderColor: won ? 'var(--correct)' : 'var(--border)',
-                color: won ? 'var(--correct)' : 'var(--text-dim)',
+                borderColor: state === 'won' ? 'var(--correct)' : state === 'lost' ? 'var(--danger-text)' : 'var(--border)',
+                color: state === 'won' ? 'var(--correct)' : state === 'lost' ? 'var(--danger-text)' : 'var(--text-dim)',
               }}>
-              {won ? '✓' : '○'} {m.name}
+              {state === 'won' ? '✓' : state === 'lost' ? '✗' : '○'} {m.name}
             </span>
           )
         })}
@@ -87,7 +97,7 @@ export default function DailyPanel() {
         <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
           Yeni bulmacalar: <b className="tabular-nums" style={{ color: 'var(--text)' }}>{hhmmss(left)}</b>
         </span>
-        {done.length > 0 && (
+        {doneCount > 0 && (
           <button onClick={shareDay} className="card-btn rounded-xl border px-3 py-1.5 text-xs font-semibold"
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
             {copied ? '✓ Kopyalandı' : allDone ? '🏆 Günü paylaş' : 'Günü paylaş'}

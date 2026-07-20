@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getBestScore, getDailyHistory, getStats, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
+import { getBestScore, getDailyHistory, getDailyStreak, getFullDayStreak, getStats, recordGame, recordScore, recordTimedRun, saveDailyState } from './stats'
 import { todayKey } from './rng'
 
 describe('istatistikler', () => {
@@ -81,5 +81,51 @@ describe('istatistikler', () => {
     const today = todayKey()
     saveDailyState('splash', { date: today, guesses: ['a'], done: false, won: false })
     expect(getDailyHistory()[today]?.splash).toBeUndefined()
+  })
+
+  it('Gün serisi kayıpla da ilerler — tamamlamak yeterli, kazanmak şart değil', () => {
+    saveDailyState('classic', { date: todayKey(), guesses: ['a', 'b'], done: true, won: false })
+    expect(getDailyStreak().streak).toBe(1)
+    expect(getDailyStreak().last).toBe(todayKey())
+  })
+
+  it('Aynı günün ikinci tamamlaması seriyi tekrar artırmaz', () => {
+    const today = todayKey()
+    saveDailyState('classic', { date: today, guesses: ['a'], done: true, won: true })
+    saveDailyState('emoji', { date: today, guesses: ['a', 'b'], done: true, won: false })
+    expect(getDailyStreak().streak).toBe(1)
+  })
+
+  it('Bitmemiş günlük seriyi başlatmaz', () => {
+    saveDailyState('splash', { date: todayKey(), guesses: ['a'], done: false, won: false })
+    expect(getDailyStreak().streak).toBe(0)
+  })
+
+  it('Tam Gün serisi 6 modun 6sı tamamlanınca ilerler — kazanmak şart değil', () => {
+    const today = todayKey()
+    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji'] as const) {
+      saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
+    }
+    expect(getFullDayStreak().streak).toBe(0) // 5/6 yetmez
+    saveDailyState('quote', { date: today, guesses: ['a', 'b'], done: true, won: false })
+    expect(getFullDayStreak().streak).toBe(1)
+    expect(getFullDayStreak().last).toBe(today)
+  })
+
+  it('Tam Gün serisi günde bir kez sayılır ve gevşek seriden bağımsızdır', () => {
+    const today = todayKey()
+    for (const sub of ['classic', 'ability', 'splash', 'skin', 'emoji', 'quote'] as const) {
+      saveDailyState(sub, { date: today, guesses: ['a'], done: true, won: true })
+    }
+    // Aynı güne ait tekrar kayıt seriyi iki kez artırmamalı
+    saveDailyState('classic', { date: today, guesses: ['a'], done: true, won: true })
+    expect(getFullDayStreak().streak).toBe(1)
+    expect(getDailyStreak().streak).toBe(1)
+  })
+
+  it('Tek mod tamamlamak Tam Gün serisini başlatmaz ama gün serisini ilerletir', () => {
+    saveDailyState('classic', { date: todayKey(), guesses: ['a'], done: true, won: true })
+    expect(getFullDayStreak().streak).toBe(0)
+    expect(getDailyStreak().streak).toBe(1)
   })
 })

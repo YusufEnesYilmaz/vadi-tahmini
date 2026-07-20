@@ -695,10 +695,11 @@ export default function GameScreen({ top, sub, diff, challenge, onExit }: Props)
               onAnimationEnd={() => setShaking(false)}>
               <Autocomplete
                 options={options}
-                placeholder={activeSub === 'skin' ? 'Kostüm adı yaz...' : 'Şampiyon adı yaz...'}
+                placeholder={activeSub === 'skin' ? 'Kostüm veya şampiyon adı yaz...' : 'Şampiyon adı yaz...'}
                 disabledKeys={guessedSet}
                 onPick={handleGuess}
                 autoFocus
+                maxResults={activeSub === 'skin' ? 20 : 8}
               />
               {timed && (
                 <button onClick={() => { setCombo(0); setGuesses([]); setPuzzle(drawNext()) }}

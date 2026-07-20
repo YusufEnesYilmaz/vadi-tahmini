@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getStats, isStreakAlive } from '../game/stats'
+import { DIST_BUCKETS, getBestCombo, getBestScore, getDailyStreak, getFullDayStreak, getStats, isStreakAlive } from '../game/stats'
 
 import {
   DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
@@ -35,6 +35,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   const daily = top === 'daily'
   const timed = top === 'timed'
   const streak = getDailyStreak()
+  const fullStreak = getFullDayStreak()
 
   // Karışığın kendi rekor tablosu var; Günlük'te mix yok
   const subIds: PlaySub[] = daily ? SUB_MODES.map((m) => m.id) : [...SUB_MODES.map((m) => m.id), 'mix']
@@ -85,13 +86,23 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
           </div>
         )}
 
-        {/* Gün serisi mod bazlı değil (hangi modu oynadığın fark etmez) — tek satır burada */}
+        {/* İki seri: gevşek (en az 1 mod) + prestij (6/6 tam gün) */}
         {daily && (
-          <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border py-2 text-sm"
-            style={{ borderColor: 'var(--border)' }}>
-            <span style={{ color: 'var(--text-dim)' }}>Gün serisi</span>
-            <b style={{ color: 'var(--gold)' }}>🔥 {isStreakAlive(streak) ? streak.streak : 0}</b>
-            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>· en iyi {streak.best}</span>
+          <div className="mt-3 flex flex-col gap-1.5">
+            <div className="flex items-center justify-center gap-2 rounded-xl border py-2 text-sm"
+              style={{ borderColor: 'var(--border)' }}
+              title="Üst üste günlük oynanan gün — en az 1 modu tamamlamak yeter">
+              <span style={{ color: 'var(--text-dim)' }}>Gün serisi</span>
+              <b style={{ color: 'var(--gold)' }}>🔥 {isStreakAlive(streak) ? streak.streak : 0}</b>
+              <span className="text-xs" style={{ color: 'var(--text-dim)' }}>· en iyi {streak.best}</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 rounded-xl border py-2 text-sm"
+              style={{ borderColor: 'var(--border)' }}
+              title="Üst üste 6 modun da tamamlandığı gün — sonuç önemsiz">
+              <span style={{ color: 'var(--text-dim)' }}>Tam gün serisi</span>
+              <b style={{ color: 'var(--gold)' }}>⭐ {isStreakAlive(fullStreak) ? fullStreak.streak : 0}</b>
+              <span className="text-xs" style={{ color: 'var(--text-dim)' }}>· en iyi {fullStreak.best}</span>
+            </div>
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CHAMPIONS, EMOJI, EMOJI_IDS } from './data'
-import { nextPuzzle } from './puzzle'
+import { DAILY_OVERRIDES, nextPuzzle } from './puzzle'
+import { todayKey } from './rng'
 
 describe('bulmaca üretimi', () => {
   it('Günlük aynı gün içinde hep aynı cevabı verir', () => {
@@ -24,6 +25,16 @@ describe('bulmaca üretimi', () => {
     const d = nextPuzzle('daily', 'splash')
     expect(c.crop).toEqual(d.crop)
     expect(c.splashNum).toBe(d.splashNum)
+  })
+
+  it('Bugün için elle sabitlenmiş görsel bulmaca varsa uygulanır (yoksa atlanır)', () => {
+    // Zaman bombası olmasın: override yalnız kendi tarihinde aktif, sonrasında bu test koşulsuz geçer
+    const ov = DAILY_OVERRIDES[todayKey()]?.splash
+    if (ov) {
+      const p = nextPuzzle('daily', 'splash')
+      expect(p.champion.id).toBe(ov.id)
+      expect(p.splashNum).toBe(ov.splashNum)
+    }
   })
 
   it('Emoji modu yalnız emoji verisi olan şampiyonları seçer', () => {
