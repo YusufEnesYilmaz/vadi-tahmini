@@ -1,5 +1,5 @@
 {
-  "_not": "Elle yazılmış emoji ipuçları. Sıra ÖNEMLİ: baştan sona belirginleşir (ilk 2 açılır, her yanlışta +1). Düzenlemek için: node scripts/emoji-review.mjs",
+  "_not": "Elle yazılmış emoji ipuçları. Sıra ÖNEMLİ: baştan sona belirginleşir (ilk emoji açık gelir, her yanlışta +1). İlk emoji tek başına şampiyonu ele vermemeli. Düzenlemek için: node scripts/emoji-review.mjs",
   "emoji": {
     "Aatrox": ["😈", "🌑", "⚔️", "🩸"],
     "Ahri": ["💃", "🔮", "💋", "🦊"],
