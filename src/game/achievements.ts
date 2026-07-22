@@ -1,7 +1,7 @@
 import { CHAMPIONS } from './data'
 import { getChallengeWins } from './challenge'
 import { todayKey } from './rng'
-import { getDailyHistory, getDailyStreak, getStats, isStreakAlive, normalizeEntry, type DailyHistory, type ModeStats } from './stats'
+import { getDailyHistory, getDailyStreak, getFullDayStreak, getStats, isStreakAlive, normalizeEntry, type DailyHistory, type ModeStats } from './stats'
 import { DAILY_SUBS, SUB_MODES, DIFFICULTIES, type PlaySub, type TopMode, type Difficulty } from './types'
 
 // ---- localStorage depoları ----
@@ -78,6 +78,16 @@ export interface AchSnapshot {
   timedRuns: number
   /** Günlük tarihçedeki gün sayısı (kaç gün oynandı) */
   totalDailyDays: number
+  /** Tam Gün serisi: üst üste tüm günlük modların tamamlandığı günler */
+  fullDayStreak: { streak: number; best: number; alive: boolean }
+  /** Bir günde tüm günlük bulmacalar ilk tahminde bilinmiş mi */
+  dailyPerfect: boolean
+  /** Herhangi bir Zamana Karşı turunda 5+ skor var mı? */
+  hasTimed5: boolean
+  /** 3 üst modun (endless, daily, timed) tümünde galibiyet var mı? */
+  allTopsWon: boolean
+  /** Replik modunda toplam kazanılan oyun */
+  quoteWins: number
   /** Mini oyun — Kelime toplam galibiyet */
   wordleWins: number
   /** Mini oyun — Kelime en az denemeyle kazanma (küçük daha iyi) */
@@ -103,6 +113,7 @@ export function buildSnapshot(): AchSnapshot {
   let hasInsaneWin = false
   let insaneWins = 0
   let hardWins = 0
+  let hasTimed5 = false
   let hasTimed10 = false
   let hasTimed15 = false
   let hasTimed20 = false
@@ -110,6 +121,7 @@ export function buildSnapshot(): AchSnapshot {
   let hasCombo12 = false
   let mixWon = 0
   let timedRuns = 0
+  let quoteWins = 0
 
   for (const top of tops) {
     // Günlük'te zorluk YOK: statsKey `diff`'i yok sayıp tek anahtara yazar
@@ -131,6 +143,7 @@ export function buildSnapshot(): AchSnapshot {
         if (top !== 'daily' && diff === 'insane' && s.won > 0) { hasInsaneWin = true; insaneWins += s.won }
         if (top !== 'daily' && diff === 'hard' && s.won > 0) hardWins += s.won
         if (sub === 'mix') mixWon += s.won
+        if (sub === 'quote') quoteWins += s.won
         if (top === 'timed') timedRuns += s.played
       }
     }
@@ -140,6 +153,7 @@ export function buildSnapshot(): AchSnapshot {
   for (const sub of subs) {
     for (const diff of diffs) {
       const best = Number(localStorage.getItem(`vt:best:${sub}:${diff}`) ?? 0)
+      if (best >= 5) hasTimed5 = true
       if (best >= 10) hasTimed10 = true
       if (best >= 15) hasTimed15 = true
       if (best >= 20) hasTimed20 = true
@@ -153,12 +167,21 @@ export function buildSnapshot(): AchSnapshot {
   // Yukarıda toplanan allStats'tan türetilir: aynı veriyi ikinci kez okumaya gerek yok
   // ve Günlük'ün tek-tur kuralı burada da otomatik geçerli olur.
   const subWins = new Set<string>()
-  for (const { sub, s } of allStats) {
-    if (s.won > 0) subWins.add(sub)
+  const topWins = new Set<string>()
+  for (const { top, sub, s } of allStats) {
+    if (s.won > 0) { subWins.add(sub); topWins.add(top) }
   }
 
   const streak = getDailyStreak()
   const dailyHistory = getDailyHistory()
+  const fds = getFullDayStreak()
+
+  // Kusursuz gün: tüm günlük modlar ilk tahminde bilinmiş mi?
+  let dailyPerfect = false
+  for (const day of Object.values(dailyHistory)) {
+    const entries = DAILY_SUBS.map((m) => normalizeEntry(day[m.id]))
+    if (entries.every((e) => e && e.g === 1)) { dailyPerfect = true; break }
+  }
 
   return {
     stats: allStats,
@@ -175,6 +198,7 @@ export function buildSnapshot(): AchSnapshot {
     hasInsaneWin,
     insaneWins,
     hardWins,
+    hasTimed5,
     hasTimed10,
     hasTimed15,
     hasTimed20,
@@ -184,6 +208,10 @@ export function buildSnapshot(): AchSnapshot {
     mixWon,
     timedRuns,
     totalDailyDays: Object.keys(dailyHistory).length,
+    fullDayStreak: { streak: fds.streak, best: fds.best, alive: isStreakAlive(fds) },
+    dailyPerfect,
+    allTopsWon: (['endless', 'daily', 'timed'] as TopMode[]).every((t) => topWins.has(t)),
+    quoteWins,
     wordleWins: num('vt:wordle:wins'),
     wordleBestTries: num('vt:wordle:bestTries', 99),
     bingoBest: num('vt:bingo:best'),
@@ -245,6 +273,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     progress: (s) => ({ current: Math.min(s.totalWon, 50), target: 50 }),
   },
   {
+    id: 'centurion', icon: '🏛️', name: 'Yüzbaşı', cat: 'temel',
+    desc: 'Toplam 100 oyun kazan',
+    check: (s) => s.totalWon >= 100,
+    progress: (s) => ({ current: Math.min(s.totalWon, 100), target: 100 }),
+  },
+  {
     id: 'legend', icon: '👑', name: 'Efsane', cat: 'temel',
     desc: 'Toplam 250 oyun kazan',
     check: (s) => s.totalWon >= 250,
@@ -271,10 +305,22 @@ export const ACHIEVEMENTS: Achievement[] = [
     progress: (s) => ({ current: Math.min(s.dailyStreak.alive ? s.dailyStreak.streak : 0, 30), target: 30 }),
   },
   {
+    id: 'two_week', icon: '📆', name: 'İki Hafta', cat: 'seri',
+    desc: '14 gün üst üste günlük oyna',
+    check: (s) => s.dailyStreak.best >= 14,
+    progress: (s) => ({ current: Math.min(s.dailyStreak.alive ? s.dailyStreak.streak : 0, 14), target: 14 }),
+  },
+  {
     id: 'daily_veteran', icon: '🗓️', name: 'Günlük Emektarı', cat: 'seri',
     desc: 'Toplam 50 farklı günde günlük oyna',
     check: (s) => s.totalDailyDays >= 50,
     progress: (s) => ({ current: Math.min(s.totalDailyDays, 50), target: 50 }),
+  },
+  {
+    id: 'full_day_streak', icon: '🌟', name: 'Tam Günler', cat: 'seri',
+    desc: '3 gün üst üste tüm günlük bulmacaları tamamla',
+    check: (s) => s.fullDayStreak.best >= 3,
+    progress: (s) => ({ current: Math.min(s.fullDayStreak.alive ? s.fullDayStreak.streak : 0, 3), target: 3 }),
   },
 
   // ═══ Tahmin ustalığı ═══
@@ -303,6 +349,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'streak5', icon: '🔥', name: 'Seri Katil', cat: 'tahmin',
     desc: 'Bir modda üst üste 5 oyun kazan',
     check: (s) => s.bestWinStreak >= 5,
+  },
+  {
+    id: 'streak10', icon: '⚡', name: 'Durdurulamaz', cat: 'tahmin',
+    desc: 'Bir modda üst üste 10 oyun kazan',
+    check: (s) => s.bestWinStreak >= 10,
+    progress: (s) => ({ current: Math.min(s.bestWinStreak, 10), target: 10 }),
   },
   {
     id: 'streak15', icon: '💥', name: 'Yenilmez', cat: 'tahmin',
@@ -343,8 +395,29 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.mixWon >= 50,
     progress: (s) => ({ current: Math.min(s.mixWon, 50), target: 50 }),
   },
+  {
+    id: 'daily_perfect', icon: '💎', name: 'Kusursuz Gün', cat: 'cesitlilik',
+    desc: 'Bir günde tüm günlük bulmacaları ilk tahminde bil',
+    check: (s) => s.dailyPerfect,
+  },
+  {
+    id: 'all_tops', icon: '🎪', name: 'Üçlü Taç', cat: 'cesitlilik',
+    desc: 'Sınırsız, Günlük ve Zamana Karşı modlarında en az 1 galibiyet',
+    check: (s) => s.allTopsWon,
+  },
+  {
+    id: 'sound_hunter', icon: '🎧', name: 'Ses Avcısı', cat: 'cesitlilik',
+    desc: 'Replik modunda toplam 15 oyun kazan',
+    check: (s) => s.quoteWins >= 15,
+    progress: (s) => ({ current: Math.min(s.quoteWins, 15), target: 15 }),
+  },
 
   // ═══ Zamana Karşı ═══
+  {
+    id: 'speed_start', icon: '🏃', name: 'İlk Adım', cat: 'hiz',
+    desc: 'Zamana Karşı bir turda 5+ doğru',
+    check: (s) => s.hasTimed5,
+  },
   {
     id: 'speed_master', icon: '⚡', name: 'Hız Ustası', cat: 'hiz',
     desc: 'Zamana Karşı bir turda 10+ doğru',
@@ -376,6 +449,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.timedRuns >= 50,
     progress: (s) => ({ current: Math.min(s.timedRuns, 50), target: 50 }),
   },
+  {
+    id: 'timed_100', icon: '🎯', name: 'Yüz Tur', cat: 'hiz',
+    desc: 'Zamana Karşı toplamda 100 tur oyna',
+    check: (s) => s.timedRuns >= 100,
+    progress: (s) => ({ current: Math.min(s.timedRuns, 100), target: 100 }),
+  },
 
   // ═══ Azim ═══
   {
@@ -396,6 +475,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.totalPlayed >= 1000,
     progress: (s) => ({ current: Math.min(s.totalPlayed, 1000), target: 1000 }),
   },
+  {
+    id: 'marathon_player', icon: '🏅', name: 'Maratoncu', cat: 'azim',
+    desc: 'Toplamda 2500 oyun oyna',
+    check: (s) => s.totalPlayed >= 2500,
+    progress: (s) => ({ current: Math.min(s.totalPlayed, 2500), target: 2500 }),
+  },
 
   // ═══ Zorluk ═══
   {
@@ -415,8 +500,26 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.insaneWins >= 10,
     progress: (s) => ({ current: Math.min(s.insaneWins, 10), target: 10 }),
   },
+  {
+    id: 'hard_master', icon: '⚔️', name: 'Zor Ustası', cat: 'zorluk',
+    desc: 'Zor zorlukta toplam 25 oyun kazan',
+    check: (s) => s.hardWins >= 25,
+    progress: (s) => ({ current: Math.min(s.hardWins, 25), target: 25 }),
+  },
+  {
+    id: 'insane_legend', icon: '💀', name: 'Delilik Efsanesi', cat: 'zorluk',
+    desc: 'Aşırı Zor zorlukta toplam 25 oyun kazan',
+    check: (s) => s.insaneWins >= 25,
+    progress: (s) => ({ current: Math.min(s.insaneWins, 25), target: 25 }),
+  },
 
   // ═══ Koleksiyon ═══
+  {
+    id: 'explorer', icon: '🔍', name: 'Kaşif', cat: 'koleksiyon',
+    desc: '25 farklı şampiyonu bil',
+    check: (s) => s.uniqueChamps >= 25,
+    progress: (s) => ({ current: Math.min(s.uniqueChamps, 25), target: 25 }),
+  },
   {
     id: 'hunter', icon: '🏹', name: 'Avcı', cat: 'koleksiyon',
     desc: '50 farklı şampiyonu bil',
@@ -430,6 +533,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     progress: (s) => ({ current: Math.min(s.uniqueChamps, 100), target: 100 }),
   },
   {
+    id: 'grand_collector', icon: '🗃️', name: 'Büyük Koleksiyoncu', cat: 'koleksiyon',
+    desc: '150 farklı şampiyonu bil',
+    check: (s) => s.uniqueChamps >= 150,
+    progress: (s) => ({ current: Math.min(s.uniqueChamps, 150), target: 150 }),
+  },
+  {
     id: 'encyclopedia', icon: '📖', name: 'Ansiklopedi', cat: 'koleksiyon',
     desc: `Tüm ${CHAMPIONS.length} şampiyonu bil`,
     check: (s) => s.uniqueChamps >= CHAMPIONS.length,
@@ -441,6 +550,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'challenger', icon: '⚔️', name: 'Meydan Okuyucu', cat: 'sosyal',
     desc: 'Bir meydan okumayı kazan',
     check: (s) => s.challengeWins >= 1,
+  },
+  {
+    id: 'rival', icon: '🤝', name: 'Rakip', cat: 'sosyal',
+    desc: '3 meydan okuma kazan',
+    check: (s) => s.challengeWins >= 3,
+    progress: (s) => ({ current: Math.min(s.challengeWins, 3), target: 3 }),
   },
   {
     id: 'gladiator', icon: '🏟️', name: 'Gladyatör', cat: 'sosyal',

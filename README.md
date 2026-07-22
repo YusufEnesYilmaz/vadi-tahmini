@@ -14,9 +14,9 @@
 League of Legends şampiyonlarını ve eşyalarını çeşitli ipuçlarıyla tahmin etmeye çalıştığın,  
 arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tabanlı tahmin oyunu.
 
-**9 farklı alt mod** · **3 oyun modu** · **4 zorluk seviyesi** · **36 başarım rozeti** · **Küresel sıralama**
+**9 farklı alt mod** · **3 oyun modu** · **4 zorluk seviyesi** · **56 başarım rozeti** · **Küresel sıralama**
 
-[🎮 **Oyna**](#) · [🐛 Hata Bildir](https://github.com/YusufEnesYilmaz/vadi-tahmini/issues)
+[🎮 **Oyna**](https://vadi-tahmini.vercel.app) · [🐛 Hata Bildir](https://github.com/YusufEnesYilmaz/vadi-tahmini/issues)
 
 </div>
 
@@ -47,7 +47,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 | 🏆 | **Küresel Sıralama** | Supabase üzerinden canlı liderlik tablosu |
 | 🎯 | **9 Farklı Alt Mod** | Klasik, Yetenek, Görsel, Kostüm, Replik, Emoji, Eşya, Silüet, Hikâye |
 | ⚔️ | **Meydan Okuma** | Arkadaşlarına özel link ile meydan oku |
-| 🎖 | **36 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
+| 🎖 | **56 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
 | 📅 | **Günlük Bulmaca** | Her gün herkese aynı soru, takvim takibi |
 | 📊 | **Detaylı İstatistik** | Mod bazlı kazanma oranları, seriler ve grafikler |
 | 🔒 | **Güvenli** | CSP, X-Frame-Options ve modern güvenlik başlıkları |

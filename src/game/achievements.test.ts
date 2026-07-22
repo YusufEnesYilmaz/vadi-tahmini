@@ -19,6 +19,7 @@ function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
     hasInsaneWin: false,
     insaneWins: 0,
     hardWins: 0,
+    hasTimed5: false,
     hasTimed10: false,
     hasTimed15: false,
     hasTimed20: false,
@@ -28,6 +29,10 @@ function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
     mixWon: 0,
     timedRuns: 0,
     totalDailyDays: 0,
+    fullDayStreak: { streak: 0, best: 0, alive: false },
+    dailyPerfect: false,
+    allTopsWon: false,
+    quoteWins: 0,
     wordleWins: 0,
     wordleBestTries: 99, // hiç kazanılmadı
     bingoBest: 0,
@@ -47,10 +52,12 @@ describe('Achievements — check functions', () => {
     expect(find('first_blood').check(snap({ totalWon: 1 }))).toBe(true)
   })
 
-  it('apprentice/master/legend: galibiyet kademe', () => {
+  it('apprentice/master/centurion/legend: galibiyet kademe', () => {
     expect(find('apprentice').check(snap({ totalWon: 9 }))).toBe(false)
     expect(find('apprentice').check(snap({ totalWon: 10 }))).toBe(true)
     expect(find('master').check(snap({ totalWon: 50 }))).toBe(true)
+    expect(find('centurion').check(snap({ totalWon: 99 }))).toBe(false)
+    expect(find('centurion').check(snap({ totalWon: 100 }))).toBe(true)
     expect(find('legend').check(snap({ totalWon: 250 }))).toBe(true)
   })
 
@@ -64,9 +71,21 @@ describe('Achievements — check functions', () => {
     expect(find('habit').check(snap({ dailyStreak: { streak: 0, best: 5, alive: false } }))).toBe(true)
   })
 
-  it('daily_veteran: 50 farklı gunde', () => {
+  it('two_week: 14 gün serisi', () => {
+    expect(find('two_week').check(snap({ dailyStreak: { streak: 13, best: 13, alive: true } }))).toBe(false)
+    expect(find('two_week').check(snap({ dailyStreak: { streak: 14, best: 14, alive: true } }))).toBe(true)
+  })
+
+  it('daily_veteran: 50 farklı günde', () => {
     expect(find('daily_veteran').check(snap({ totalDailyDays: 49 }))).toBe(false)
     expect(find('daily_veteran').check(snap({ totalDailyDays: 50 }))).toBe(true)
+  })
+
+  it('full_day_streak: 3 gün üst üste tam gün', () => {
+    expect(find('full_day_streak').check(snap({ fullDayStreak: { streak: 2, best: 2, alive: true } }))).toBe(false)
+    expect(find('full_day_streak').check(snap({ fullDayStreak: { streak: 3, best: 3, alive: true } }))).toBe(true)
+    // best yeterli
+    expect(find('full_day_streak').check(snap({ fullDayStreak: { streak: 0, best: 3, alive: false } }))).toBe(true)
   })
 
   // Tahmin ustaligi
@@ -82,9 +101,11 @@ describe('Achievements — check functions', () => {
     expect(find('bullseye').check(snap({ totalFirstTry: 25 }))).toBe(true)
   })
 
-  it('streak5/streak15: kazanma serisi', () => {
+  it('streak5/streak10/streak15: kazanma serisi', () => {
     expect(find('streak5').check(snap({ bestWinStreak: 4 }))).toBe(false)
     expect(find('streak5').check(snap({ bestWinStreak: 5 }))).toBe(true)
+    expect(find('streak10').check(snap({ bestWinStreak: 9 }))).toBe(false)
+    expect(find('streak10').check(snap({ bestWinStreak: 10 }))).toBe(true)
     expect(find('streak15').check(snap({ bestWinStreak: 15 }))).toBe(true)
   })
 
@@ -109,8 +130,24 @@ describe('Achievements — check functions', () => {
     expect(find('mix_master').check(snap({ mixWon: 50 }))).toBe(true)
   })
 
+  it('daily_perfect: kusursuz gün', () => {
+    expect(find('daily_perfect').check(snap({ dailyPerfect: false }))).toBe(false)
+    expect(find('daily_perfect').check(snap({ dailyPerfect: true }))).toBe(true)
+  })
+
+  it('all_tops: üçlü taç', () => {
+    expect(find('all_tops').check(snap({ allTopsWon: false }))).toBe(false)
+    expect(find('all_tops').check(snap({ allTopsWon: true }))).toBe(true)
+  })
+
+  it('sound_hunter: replik 15 galibiyet', () => {
+    expect(find('sound_hunter').check(snap({ quoteWins: 14 }))).toBe(false)
+    expect(find('sound_hunter').check(snap({ quoteWins: 15 }))).toBe(true)
+  })
+
   // Zamana Karsi
-  it('speed_master/light_speed/supersonic', () => {
+  it('speed_start/speed_master/light_speed/supersonic', () => {
+    expect(find('speed_start').check(snap({ hasTimed5: true }))).toBe(true)
     expect(find('speed_master').check(snap({ hasTimed10: true }))).toBe(true)
     expect(find('light_speed').check(snap({ hasTimed15: true }))).toBe(true)
     expect(find('supersonic').check(snap({ hasTimed20: true }))).toBe(true)
@@ -121,37 +158,51 @@ describe('Achievements — check functions', () => {
     expect(find('chain_master').check(snap({ hasCombo12: true }))).toBe(true)
   })
 
-  it('timed_veteran: 50 tur', () => {
+  it('timed_veteran/timed_100: tur sayısı', () => {
     expect(find('timed_veteran').check(snap({ timedRuns: 49 }))).toBe(false)
     expect(find('timed_veteran').check(snap({ timedRuns: 50 }))).toBe(true)
+    expect(find('timed_100').check(snap({ timedRuns: 99 }))).toBe(false)
+    expect(find('timed_100').check(snap({ timedRuns: 100 }))).toBe(true)
   })
 
   // Azim
-  it('dedicated/addicted/veteran: oyun kademe', () => {
+  it('dedicated/addicted/veteran/marathon_player: oyun kademe', () => {
     expect(find('dedicated').check(snap({ totalPlayed: 100 }))).toBe(true)
     expect(find('addicted').check(snap({ totalPlayed: 500 }))).toBe(true)
     expect(find('veteran').check(snap({ totalPlayed: 1000 }))).toBe(true)
+    expect(find('marathon_player').check(snap({ totalPlayed: 2499 }))).toBe(false)
+    expect(find('marathon_player').check(snap({ totalPlayed: 2500 }))).toBe(true)
   })
 
   // Zorluk
-  it('fearless/hard_grinder/iron_will', () => {
+  it('fearless/hard_grinder/iron_will/hard_master/insane_legend', () => {
     expect(find('fearless').check(snap({ hasInsaneWin: true }))).toBe(true)
     expect(find('hard_grinder').check(snap({ hardWins: 9 }))).toBe(false)
     expect(find('hard_grinder').check(snap({ hardWins: 10 }))).toBe(true)
     expect(find('iron_will').check(snap({ insaneWins: 10 }))).toBe(true)
+    expect(find('hard_master').check(snap({ hardWins: 24 }))).toBe(false)
+    expect(find('hard_master').check(snap({ hardWins: 25 }))).toBe(true)
+    expect(find('insane_legend').check(snap({ insaneWins: 24 }))).toBe(false)
+    expect(find('insane_legend').check(snap({ insaneWins: 25 }))).toBe(true)
   })
 
   // Koleksiyon
-  it('hunter/collector/encyclopedia', () => {
+  it('explorer/hunter/collector/grand_collector/encyclopedia', () => {
+    expect(find('explorer').check(snap({ uniqueChamps: 24 }))).toBe(false)
+    expect(find('explorer').check(snap({ uniqueChamps: 25 }))).toBe(true)
     expect(find('hunter').check(snap({ uniqueChamps: 50 }))).toBe(true)
     expect(find('collector').check(snap({ uniqueChamps: 100 }))).toBe(true)
+    expect(find('grand_collector').check(snap({ uniqueChamps: 149 }))).toBe(false)
+    expect(find('grand_collector').check(snap({ uniqueChamps: 150 }))).toBe(true)
     expect(find('encyclopedia').check(snap({ uniqueChamps: 999 }))).toBe(true)
   })
 
   // Sosyal
-  it('challenger/gladiator/champion', () => {
+  it('challenger/rival/gladiator/champion', () => {
     expect(find('challenger').check(snap({ challengeWins: 0 }))).toBe(false)
     expect(find('challenger').check(snap({ challengeWins: 1 }))).toBe(true)
+    expect(find('rival').check(snap({ challengeWins: 2 }))).toBe(false)
+    expect(find('rival').check(snap({ challengeWins: 3 }))).toBe(true)
     expect(find('gladiator').check(snap({ challengeWins: 5 }))).toBe(true)
     expect(find('champion').check(snap({ challengeWins: 15 }))).toBe(true)
   })
@@ -209,8 +260,8 @@ describe('Mini oyun rozetleri', () => {
 })
 
 describe('ACHIEVEMENTS list integrity', () => {
-  it('41 rozet tanımli', () => {
-    expect(ACHIEVEMENTS).toHaveLength(41)
+  it('56 rozet tanımli', () => {
+    expect(ACHIEVEMENTS).toHaveLength(56)
   })
 
   it('idler benzersiz', () => {
