@@ -12,6 +12,12 @@ const ACH_KEY = 'vt:ach'
 /** Bilinen farklı şampiyon id listesi (çoklu sayım yok) */
 const CHAMP_WINS_KEY = 'vt:champwins'
 
+/** İlk tahminde bilinen şampiyon id listesi */
+const FIRST_TRY_CHAMPS_KEY = 'vt:firsttrychamps'
+
+/** Aktif galibiyet serisinde/turunda bilinen şampiyon id listesi */
+const STREAK_CHAMPS_KEY = 'vt:streak_champs'
+
 // ---- Kazanılmış şampiyon kaydı ----
 
 export function getChampWins(): string[] {
@@ -21,12 +27,63 @@ export function getChampWins(): string[] {
   } catch { return [] }
 }
 
-export function recordChampWin(champId: string) {
+export function getFirstTryChamps(): string[] {
+  try {
+    const raw = localStorage.getItem(FIRST_TRY_CHAMPS_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch { return [] }
+}
+
+export function getStreakChamps(): string[] {
+  try {
+    const raw = localStorage.getItem(STREAK_CHAMPS_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch { return [] }
+}
+
+export function resetStreakChamps() {
+  try {
+    localStorage.removeItem(STREAK_CHAMPS_KEY)
+  } catch { /* yoksay */ }
+}
+
+export function recordStreakChampWin(champId: string) {
+  const list = getStreakChamps()
+  if (!list.includes(champId)) {
+    list.push(champId)
+    localStorage.setItem(STREAK_CHAMPS_KEY, JSON.stringify(list))
+  }
+
+  // Kombo 1: Rüzgârın Yolu (Yasuo + Yone aynı seride)
+  if (list.includes('Yasuo') && list.includes('Yone')) {
+    localStorage.setItem('vt:combo_wind_brothers', '1')
+  }
+
+  // Kombo 2: Kaos ve Katliam (Jinx + Vi + Ekko aynı seride)
+  if (list.includes('Jinx') && list.includes('Vi') && list.includes('Ekko')) {
+    localStorage.setItem('vt:combo_jinx_chaos', '1')
+  }
+
+  // Kombo 3: Ruh Toplayıcı (Thresh + Lucian + Senna aynı seride)
+  if (list.includes('Thresh') && list.includes('Lucian') && list.includes('Senna')) {
+    localStorage.setItem('vt:combo_chain_warden', '1')
+  }
+}
+
+export function recordChampWin(champId: string, firstTry?: boolean) {
   const list = getChampWins()
   if (!list.includes(champId)) {
     list.push(champId)
     localStorage.setItem(CHAMP_WINS_KEY, JSON.stringify(list))
   }
+  if (firstTry) {
+    const ftList = getFirstTryChamps()
+    if (!ftList.includes(champId)) {
+      ftList.push(champId)
+      localStorage.setItem(FIRST_TRY_CHAMPS_KEY, JSON.stringify(ftList))
+    }
+  }
+  recordStreakChampWin(champId)
 }
 
 // ---- Snapshot: tüm verileri tek seferde topla ----
@@ -88,6 +145,24 @@ export interface AchSnapshot {
   allTopsWon: boolean
   /** Replik modunda toplam kazanılan oyun */
   quoteWins: number
+  /** Eşya modunda toplam kazanılan oyun */
+  itemWins: number
+  /** Bilinen tüm şampiyon ID'lerinin dizisi */
+  champWins: string[]
+  /** İlk tahminde bilinen şampiyon ID'lerinin dizisi */
+  firstTryChamps: string[]
+  /** Gece yarısı (00:00 - 05:00) kazanılmış oyun var mı */
+  hasNightWin: boolean
+  /** Son tahmin hakkında (son canı kala) kazanılmış oyun var mı */
+  hasLastChanceWin: boolean
+  /** Skor/sonuç paylaşma sayısı */
+  shareCount: number
+  /** Aynı seride Yasuo + Yone kombosu yapıldı mı */
+  hasWindBrothersCombo: boolean
+  /** Aynı seride Jinx + Vi + Ekko kombosu yapıldı mı */
+  hasJinxChaosCombo: boolean
+  /** Aynı seride Thresh + Lucian + Senna kombosu yapıldı mı */
+  hasChainWardenCombo: boolean
   /** Mini oyun — Kelime toplam galibiyet */
   wordleWins: number
   /** Mini oyun — Kelime en az denemeyle kazanma (küçük daha iyi) */
@@ -122,6 +197,7 @@ export function buildSnapshot(): AchSnapshot {
   let mixWon = 0
   let timedRuns = 0
   let quoteWins = 0
+  let itemWins = 0
 
   for (const top of tops) {
     // Günlük'te zorluk YOK: statsKey `diff`'i yok sayıp tek anahtara yazar
@@ -144,6 +220,7 @@ export function buildSnapshot(): AchSnapshot {
         if (top !== 'daily' && diff === 'hard' && s.won > 0) hardWins += s.won
         if (sub === 'mix') mixWon += s.won
         if (sub === 'quote') quoteWins += s.won
+        if (sub === 'item') itemWins += s.won
         if (top === 'timed') timedRuns += s.played
       }
     }
@@ -212,6 +289,15 @@ export function buildSnapshot(): AchSnapshot {
     dailyPerfect,
     allTopsWon: (['endless', 'daily', 'timed'] as TopMode[]).every((t) => topWins.has(t)),
     quoteWins,
+    itemWins,
+    champWins: getChampWins(),
+    firstTryChamps: getFirstTryChamps(),
+    hasNightWin: localStorage.getItem('vt:nightwin') === '1',
+    hasLastChanceWin: localStorage.getItem('vt:lastchance') === '1',
+    shareCount: num('vt:sharecount'),
+    hasWindBrothersCombo: localStorage.getItem('vt:combo_wind_brothers') === '1',
+    hasJinxChaosCombo: localStorage.getItem('vt:combo_jinx_chaos') === '1',
+    hasChainWardenCombo: localStorage.getItem('vt:combo_chain_warden') === '1',
     wordleWins: num('vt:wordle:wins'),
     wordleBestTries: num('vt:wordle:bestTries', 99),
     bingoBest: num('vt:bingo:best'),
@@ -362,6 +448,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.bestWinStreak >= 15,
     progress: (s) => ({ current: Math.min(s.bestWinStreak, 15), target: 15 }),
   },
+  {
+    id: 'last_chance', icon: '⌛', name: 'Son Nefes', cat: 'tahmin',
+    desc: 'Son tahmin hakkında (1 canın kala) oyunu kazan',
+    check: (s) => s.hasLastChanceWin,
+  },
 
   // ═══ Çeşitlilik ═══
   {
@@ -410,6 +501,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     desc: 'Replik modunda toplam 15 oyun kazan',
     check: (s) => s.quoteWins >= 15,
     progress: (s) => ({ current: Math.min(s.quoteWins, 15), target: 15 }),
+  },
+  {
+    id: 'item_master', icon: '🗡️', name: 'Eşya Uzmanı', cat: 'cesitlilik',
+    desc: 'Eşya modunda toplam 50 oyun kazan',
+    check: (s) => s.itemWins >= 50,
+    progress: (s) => ({ current: Math.min(s.itemWins, 50), target: 50 }),
   },
 
   // ═══ Zamana Karşı ═══
@@ -481,6 +578,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.totalPlayed >= 2500,
     progress: (s) => ({ current: Math.min(s.totalPlayed, 2500), target: 2500 }),
   },
+  {
+    id: 'night_owl', icon: '🦉', name: 'Gece Kuşu', cat: 'azim',
+    desc: 'Gece yarısı (00:00 - 05:00) bir oyun kazan',
+    check: (s) => s.hasNightWin,
+  },
 
   // ═══ Zorluk ═══
   {
@@ -544,6 +646,189 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.uniqueChamps >= CHAMPIONS.length,
     progress: (s) => ({ current: Math.min(s.uniqueChamps, CHAMPIONS.length), target: CHAMPIONS.length }),
   },
+  {
+    id: 'shroom_hunter', icon: '🍄', name: 'Mantar Avcısı', cat: 'koleksiyon',
+    desc: 'Teemo şampiyonunu tahmin et',
+    check: (s) => s.champWins.includes('Teemo'),
+  },
+  {
+    id: 'draven_league', icon: '🪓', name: 'Draven Ligi', cat: 'koleksiyon',
+    desc: 'Draven şampiyonunu tahmin et',
+    check: (s) => s.champWins.includes('Draven'),
+  },
+
+  {
+    id: 'adc_main', icon: '🏹', name: 'Alt Koridor Muhafızı', cat: 'koleksiyon',
+    desc: 'Alt koridordan en az 15 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => c.lanes.includes('Alt') && s.champWins.includes(c.id)).length >= 15,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => c.lanes.includes('Alt') && s.champWins.includes(c.id)).length, 15),
+      target: 15,
+    }),
+  },
+  {
+    id: 'top_main', icon: '🏔️', name: 'Üst Koridor Savaşçısı', cat: 'koleksiyon',
+    desc: 'Üst koridordan en az 20 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => c.lanes.includes('Üst') && s.champWins.includes(c.id)).length >= 20,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => c.lanes.includes('Üst') && s.champWins.includes(c.id)).length, 20),
+      target: 20,
+    }),
+  },
+  {
+    id: 'mid_main', icon: '🔮', name: 'Vadi Büyücüsü', cat: 'koleksiyon',
+    desc: 'Orta koridordan en az 20 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => c.lanes.includes('Orta') && s.champWins.includes(c.id)).length >= 20,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => c.lanes.includes('Orta') && s.champWins.includes(c.id)).length, 20),
+      target: 20,
+    }),
+  },
+  {
+    id: 'jungle_main', icon: '🌲', name: 'Orman Avcısı', cat: 'koleksiyon',
+    desc: 'Orman koridorundan en az 20 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => c.lanes.includes('Orman') && s.champWins.includes(c.id)).length >= 20,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => c.lanes.includes('Orman') && s.champWins.includes(c.id)).length, 20),
+      target: 20,
+    }),
+  },
+  {
+    id: 'support_main', icon: '🛡️', name: 'Koruyucu Melek', cat: 'koleksiyon',
+    desc: 'Destek koridorundan en az 15 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => c.lanes.includes('Destek') && s.champWins.includes(c.id)).length >= 15,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => c.lanes.includes('Destek') && s.champWins.includes(c.id)).length, 15),
+      target: 15,
+    }),
+  },
+  {
+    id: 'demacia_fan', icon: '🛡️', name: 'Demacia Adaleti', cat: 'koleksiyon',
+    desc: 'Demacia bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Demacia')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Demacia')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'noxus_fan', icon: '🏰', name: 'Noxus Neferi', cat: 'koleksiyon',
+    desc: 'Noxus bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Noxus')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Noxus')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'ionia_master', icon: '🌸', name: 'Ionia Bilgesi', cat: 'koleksiyon',
+    desc: 'Ionia bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Ionia')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Ionia')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'freljord_fan', icon: '❄️', name: 'Freljord Ayazı', cat: 'koleksiyon',
+    desc: 'Freljord bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Freljord')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Freljord')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'piltover_zaun_fan', icon: '⚙️', name: 'İnovasyon & Kimya', cat: 'koleksiyon',
+    desc: 'Piltover ve Zaun bölgelerindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Piltover' || c.region === 'Zaun')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Piltover' || c.region === 'Zaun')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'bilgewater_fan', icon: '🏴‍☠️', name: 'Korsan Koyu', cat: 'koleksiyon',
+    desc: 'Bilgewater bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Bilgewater')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Bilgewater')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'shurima_fan', icon: '🏜️', name: 'Güneş İmparatorluğu', cat: 'koleksiyon',
+    desc: 'Shurima bölgesindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Shurima')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Shurima')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'shadow_void_fan', icon: '👻', name: 'Karanlık Taraf', cat: 'koleksiyon',
+    desc: 'Gölge Adaları veya Boşluk bölgesinden en az 3 farklı şampiyonu doğru bil',
+    check: (s) => CHAMPIONS.filter((c) => (c.region === 'Gölge Adaları' || c.region === 'Boşluk') && s.champWins.includes(c.id)).length >= 3,
+    progress: (s) => ({
+      current: Math.min(CHAMPIONS.filter((c) => (c.region === 'Gölge Adaları' || c.region === 'Boşluk') && s.champWins.includes(c.id)).length, 3),
+      target: 3,
+    }),
+  },
+  {
+    id: 'wind_brothers', icon: '⚔️', name: 'Rüzgârın Yolu', cat: 'koleksiyon',
+    desc: 'Aynı galibiyet serisi içinde hem Yasuo hem Yone şampiyonunu doğru bil',
+    check: (s) => s.hasWindBrothersCombo,
+  },
+  {
+    id: 'jinx_chaos', icon: '💣', name: 'Kaos ve Katliam', cat: 'koleksiyon',
+    desc: 'Aynı galibiyet serisi içinde Jinx, Vi ve Ekko şampiyonlarının üçünü de doğru bil',
+    check: (s) => s.hasJinxChaosCombo,
+  },
+  {
+    id: 'nine_tails', icon: '🦊', name: 'Dokuz Kuyruklu', cat: 'koleksiyon',
+    desc: 'Ahri şampiyonunu ilk tahminde bil',
+    check: (s) => s.firstTryChamps.includes('Ahri'),
+  },
+  {
+    id: 'blind_monk', icon: '🥋', name: 'Kör Keşiş', cat: 'koleksiyon',
+    desc: 'Lee Sin şampiyonunu ilk tahminde bil',
+    check: (s) => s.firstTryChamps.includes('LeeSin'),
+  },
+  {
+    id: 'chain_warden', icon: '🪝', name: 'Ruh Toplayıcı', cat: 'koleksiyon',
+    desc: 'Aynı galibiyet serisi içinde Thresh, Lucian ve Senna şampiyonlarının üçünü de doğru bil',
+    check: (s) => s.hasChainWardenCombo,
+  },
+  {
+    id: 'arcane_legends', icon: '🎬', name: 'Arcane Efsaneleri', cat: 'koleksiyon',
+    desc: 'Arcane dizisindeki tüm 10 şampiyonu (Jinx, Vi, Ekko, Caitlyn, Jayce, Viktor, Heimerdinger, Singed, Warwick, Ambessa) doğru bil',
+    check: (s) => ['Jinx', 'Vi', 'Ekko', 'Caitlyn', 'Jayce', 'Viktor', 'Heimerdinger', 'Singed', 'Warwick', 'Ambessa'].every((id) => s.champWins.includes(id)),
+    progress: (s) => {
+      const list = ['Jinx', 'Vi', 'Ekko', 'Caitlyn', 'Jayce', 'Viktor', 'Heimerdinger', 'Singed', 'Warwick', 'Ambessa']
+      return { current: list.filter((id) => s.champWins.includes(id)).length, target: list.length }
+    },
+  },
 
   // ═══ Sosyal ═══
   {
@@ -568,6 +853,11 @@ export const ACHIEVEMENTS: Achievement[] = [
     desc: '15 meydan okuma kazan',
     check: (s) => s.challengeWins >= 15,
     progress: (s) => ({ current: Math.min(s.challengeWins, 15), target: 15 }),
+  },
+  {
+    id: 'social_butterfly', icon: '📣', name: 'Haberci', cat: 'sosyal',
+    desc: 'Oyun sonucunu arkadaşlarınla paylaş',
+    check: (s) => s.shareCount >= 1,
   },
 
   // ═══ Mini Oyunlar ═══

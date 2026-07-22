@@ -1,4 +1,5 @@
 import { DAILY_SUBS, type Difficulty, type PlaySub, type SubMode, type TopMode } from './types'
+import { rulesFor } from './difficulty'
 import { todayKey } from './rng'
 
 /** Mod başına istatistik — localStorage */
@@ -48,6 +49,8 @@ export function getStats(top: TopMode, sub: PlaySub, diff: Difficulty): ModeStat
   return { ...emptyStats, dist: Array(DIST_BUCKETS).fill(0) }
 }
 
+import { resetStreakChamps } from './achievements'
+
 export function recordGame(top: TopMode, sub: PlaySub, diff: Difficulty, won: boolean, guesses: number) {
   const s = getStats(top, sub, diff)
   s.played++
@@ -56,6 +59,18 @@ export function recordGame(top: TopMode, sub: PlaySub, diff: Difficulty, won: bo
     s.currentStreak++
     s.totalGuesses += guesses
     if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak
+
+    // Gece Kuşu: 00:00 - 05:00 saatleri arası galibiyet
+    const hr = new Date().getHours()
+    if (hr >= 0 && hr < 5) {
+      localStorage.setItem('vt:nightwin', '1')
+    }
+
+    // Son Nefes: Son tahmin hakkında (son canı kala) galibiyet
+    const maxG = rulesFor(top, diff).maxGuesses
+    if (guesses >= maxG) {
+      localStorage.setItem('vt:lastchance', '1')
+    }
 
     // Tahmin dağılımı: son kutu "6+" (uzun kuyruğu tek yerde topla)
     s.dist[Math.min(guesses, DIST_BUCKETS) - 1]++
@@ -71,6 +86,7 @@ export function recordGame(top: TopMode, sub: PlaySub, diff: Difficulty, won: bo
   } else {
     s.currentStreak = 0
     s.firstTryStreak = 0
+    resetStreakChamps()
   }
   localStorage.setItem(statsKey(top, sub, diff), JSON.stringify(s))
 }

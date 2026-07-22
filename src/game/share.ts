@@ -38,8 +38,14 @@ export function shareTimed(sub: PlaySub, score: number, isRecord: boolean): stri
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
+  const bump = () => {
+    try {
+      localStorage.setItem('vt:sharecount', String(Number(localStorage.getItem('vt:sharecount') ?? 0) + 1))
+    } catch { /* yoksay */ }
+  }
   try {
     await navigator.clipboard.writeText(text)
+    bump()
     return true
   } catch {
     // Clipboard API engelliyse (eski WebView, izin politikası) klasik yönteme düş
@@ -52,6 +58,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       ta.select()
       const ok = document.execCommand('copy')
       ta.remove()
+      if (ok) bump()
       return ok
     } catch {
       return false

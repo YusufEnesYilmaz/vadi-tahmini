@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ACHIEVEMENTS, buildSnapshot, getAchievementShowcase, type AchSnapshot } from './achievements'
 import { DAILY_SUBS, SUB_MODES } from './types'
+import { CHAMPIONS } from './data'
 
 /** Minimal snapshot — varsayılanları override et */
 function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
@@ -33,6 +34,15 @@ function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
     dailyPerfect: false,
     allTopsWon: false,
     quoteWins: 0,
+    itemWins: 0,
+    champWins: [],
+    firstTryChamps: [],
+    hasNightWin: false,
+    hasLastChanceWin: false,
+    shareCount: 0,
+    hasWindBrothersCombo: false,
+    hasJinxChaosCombo: false,
+    hasChainWardenCombo: false,
     wordleWins: 0,
     wordleBestTries: 99, // hiç kazanılmadı
     bingoBest: 0,
@@ -198,13 +208,15 @@ describe('Achievements — check functions', () => {
   })
 
   // Sosyal
-  it('challenger/rival/gladiator/champion', () => {
+  it('challenger/rival/gladiator/champion/social_butterfly', () => {
     expect(find('challenger').check(snap({ challengeWins: 0 }))).toBe(false)
     expect(find('challenger').check(snap({ challengeWins: 1 }))).toBe(true)
     expect(find('rival').check(snap({ challengeWins: 2 }))).toBe(false)
     expect(find('rival').check(snap({ challengeWins: 3 }))).toBe(true)
     expect(find('gladiator').check(snap({ challengeWins: 5 }))).toBe(true)
     expect(find('champion').check(snap({ challengeWins: 15 }))).toBe(true)
+    expect(find('social_butterfly').check(snap({ shareCount: 0 }))).toBe(false)
+    expect(find('social_butterfly').check(snap({ shareCount: 1 }))).toBe(true)
   })
 })
 
@@ -240,28 +252,71 @@ describe('Achievements — progress helpers', () => {
   })
 })
 
-describe('Mini oyun rozetleri', () => {
-  it('Kelime: ilk galibiyet / 25 galibiyet / 3 denemede', () => {
-    expect(find('word_first').check(snap())).toBe(false)
-    expect(find('word_first').check(snap({ wordleWins: 1 }))).toBe(true)
-    expect(find('word_25').check(snap({ wordleWins: 24 }))).toBe(false)
-    expect(find('word_25').check(snap({ wordleWins: 25 }))).toBe(true)
-    expect(find('word_ace').check(snap({ wordleBestTries: 4 }))).toBe(false)
-    expect(find('word_ace').check(snap({ wordleBestTries: 3 }))).toBe(true)
+describe('Gizli, Bölgesel ve Özel Rozetler', () => {
+  it('shroom_hunter ve draven_league: Teemo ve Draven tahmini', () => {
+    expect(find('shroom_hunter').check(snap({ champWins: [] }))).toBe(false)
+    expect(find('shroom_hunter').check(snap({ champWins: ['Teemo'] }))).toBe(true)
+    expect(find('draven_league').check(snap({ champWins: [] }))).toBe(false)
+    expect(find('draven_league').check(snap({ champWins: ['Draven'] }))).toBe(true)
   })
 
-  it('Bingo: 8+ kutu / tam kart', () => {
-    expect(find('bingo_win').check(snap({ bingoBest: 7 }))).toBe(false)
-    expect(find('bingo_win').check(snap({ bingoBest: 8 }))).toBe(true)
-    expect(find('bingo_perfect').check(snap({ bingoBest: 11 }))).toBe(false)
-    expect(find('bingo_perfect').check(snap({ bingoBest: 12 }))).toBe(true)
-    expect(find('bingo_perfect').check(snap({ bingoWins: 1 }))).toBe(true)
+  it('night_owl: gece galibiyeti', () => {
+    expect(find('night_owl').check(snap({ hasNightWin: false }))).toBe(false)
+    expect(find('night_owl').check(snap({ hasNightWin: true }))).toBe(true)
+  })
+
+  it('last_chance: son nefes galibiyeti', () => {
+    expect(find('last_chance').check(snap({ hasLastChanceWin: false }))).toBe(false)
+    expect(find('last_chance').check(snap({ hasLastChanceWin: true }))).toBe(true)
+  })
+
+  it('bölgesel tamamlama ve rol/koridor başarımları', () => {
+    // Eksik bölge → false, tam bölge → true
+    const demaciaIds = CHAMPIONS.filter((c) => c.region === 'Demacia').map((c) => c.id)
+    expect(find('demacia_fan').check(snap({ champWins: demaciaIds.slice(0, -1) }))).toBe(false)
+    expect(find('demacia_fan').check(snap({ champWins: demaciaIds }))).toBe(true)
+
+    const noxusIds = CHAMPIONS.filter((c) => c.region === 'Noxus').map((c) => c.id)
+    expect(find('noxus_fan').check(snap({ champWins: noxusIds }))).toBe(true)
+
+    const bilgewaterIds = CHAMPIONS.filter((c) => c.region === 'Bilgewater').map((c) => c.id)
+    expect(find('bilgewater_fan').check(snap({ champWins: bilgewaterIds }))).toBe(true)
+
+    // Rol/koridor başarımları
+    const adcIds = CHAMPIONS.filter((c) => c.lanes.includes('Alt')).map((c) => c.id).slice(0, 15)
+    expect(find('adc_main').check(snap({ champWins: adcIds }))).toBe(true)
+    expect(find('adc_main').check(snap({ champWins: adcIds.slice(0, 5) }))).toBe(false)
+
+    const topIds = CHAMPIONS.filter((c) => c.lanes.includes('Üst')).map((c) => c.id).slice(0, 20)
+    expect(find('top_main').check(snap({ champWins: topIds }))).toBe(true)
+
+    expect(find('wind_brothers').check(snap({ hasWindBrothersCombo: false }))).toBe(false)
+    expect(find('wind_brothers').check(snap({ hasWindBrothersCombo: true }))).toBe(true)
+
+    expect(find('jinx_chaos').check(snap({ hasJinxChaosCombo: false }))).toBe(false)
+    expect(find('jinx_chaos').check(snap({ hasJinxChaosCombo: true }))).toBe(true)
+
+    expect(find('chain_warden').check(snap({ hasChainWardenCombo: false }))).toBe(false)
+    expect(find('chain_warden').check(snap({ hasChainWardenCombo: true }))).toBe(true)
+
+    expect(find('nine_tails').check(snap({ firstTryChamps: ['Ahri'] }))).toBe(true)
+    expect(find('nine_tails').check(snap({ champWins: ['Ahri'] }))).toBe(false)
+
+    expect(find('blind_monk').check(snap({ firstTryChamps: ['LeeSin'] }))).toBe(true)
+    expect(find('blind_monk').check(snap({ champWins: ['LeeSin'] }))).toBe(false)
+
+    expect(find('item_master').check(snap({ itemWins: 49 }))).toBe(false)
+    expect(find('item_master').check(snap({ itemWins: 50 }))).toBe(true)
+
+    const arcaneChamps = ['Jinx', 'Vi', 'Ekko', 'Caitlyn', 'Jayce', 'Viktor', 'Heimerdinger', 'Singed', 'Warwick', 'Ambessa']
+    expect(find('arcane_legends').check(snap({ champWins: arcaneChamps.slice(0, 9) }))).toBe(false)
+    expect(find('arcane_legends').check(snap({ champWins: arcaneChamps }))).toBe(true)
   })
 })
 
 describe('ACHIEVEMENTS list integrity', () => {
-  it('56 rozet tanımli', () => {
-    expect(ACHIEVEMENTS).toHaveLength(56)
+  it('81 rozet tanımli', () => {
+    expect(ACHIEVEMENTS).toHaveLength(81)
   })
 
   it('idler benzersiz', () => {

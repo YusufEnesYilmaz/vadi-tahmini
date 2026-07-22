@@ -14,7 +14,7 @@
 League of Legends şampiyonlarını ve eşyalarını çeşitli ipuçlarıyla tahmin etmeye çalıştığın,  
 arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tabanlı tahmin oyunu.
 
-**9 farklı alt mod** · **3 oyun modu** · **4 zorluk seviyesi** · **56 başarım rozeti** · **Küresel sıralama**
+**9 farklı alt mod** · **3 oyun modu** · **4 zorluk seviyesi** · **81 başarım rozeti** · **Küresel sıralama**
 
 [🎮 **Oyna**](https://vadi-tahmini.vercel.app) · [🐛 Hata Bildir](https://github.com/YusufEnesYilmaz/vadi-tahmini/issues)
 
@@ -47,7 +47,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 | 🏆 | **Küresel Sıralama** | Supabase üzerinden canlı liderlik tablosu |
 | 🎯 | **9 Farklı Alt Mod** | Klasik, Yetenek, Görsel, Kostüm, Replik, Emoji, Eşya, Silüet, Hikâye |
 | ⚔️ | **Meydan Okuma** | Arkadaşlarına özel link ile meydan oku |
-| 🎖 | **56 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
+| 🎖 | **81 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
 | 📅 | **Günlük Bulmaca** | Her gün herkese aynı soru, takvim takibi |
 | 📊 | **Detaylı İstatistik** | Mod bazlı kazanma oranları, seriler ve grafikler |
 | 🔒 | **Güvenli** | CSP, X-Frame-Options ve modern güvenlik başlıkları |
@@ -124,19 +124,30 @@ Böylece hiçbir backend sunucusuna gerek kalmadan adil ve tekrarlanabilir bir r
 
 ## 🎖 Başarım Sistemi
 
-İstatistiklerden beslenen **36 adet benzersiz başarım rozeti** bulunur. Başarımlar 9 kategoride organize edilmiştir:
+İstatistiklerden beslenen ve oyuncunun ilerlemesini ödüllendiren **81 adet benzersiz başarım rozeti** bulunur. Başarımlar **10 farklı kategoride** organize edilmiş olup canlı ilerleme çubukları ile takip edilir:
 
 | Kategori | Rozet Örnekleri | Açıklama |
 | :--- | :--- | :--- |
-| 🏅 **Temel** | Çırak, Usta, Efsane | Toplam galibiyet sayısı basamakları |
-| 📅 **Günlük Seri** | Alışkanlık, Maraton | Üst üste gün oynama serileri |
-| 🎯 **Tahmin Ustalığı** | Keskin Nişancı, Yenilmez | İlk denemede bilme ve galibiyet serileri |
-| 🎲 **Çeşitlilik** | — | Farklı modlarda kazanma ve karışık mod rozetleri |
-| ⏱️ **Zamana Karşı** | — | Hızlı bilme ve combo rozetleri |
-| 💪 **Azim** | — | Toplam oynanan oyun sayısı basamakları |
-| 🔥 **Zorluk** | — | Zor ve Aşırı Zor modlardaki zaferler |
-| 📚 **Koleksiyon** | — | Kaç farklı şampiyonu doğru bildiğin |
-| 👥 **Sosyal** | — | Meydan okuma galibiyetleri |
+| ⭐ **Temel** | İlk Kan, Çırak, Usta, Yüzbaşı, Efsane | Toplam galibiyet sayısı basamakları (1 - 250 galibiyet) |
+| 📆 **Günlük Seri** | Alışkanlık, Sadık, İki Hafta, Maraton, Tam Günler | Üst üste gün oynama serileri ve 3 gün üst üste tam gün başarımları |
+| 🎯 **Tahmin Ustalığı** | Tek Atış, Keskin Nişancı, Durdurulamaz, Son Nefes | İlk denemede bilme, galibiyet serileri ve son can kala zaferler |
+| 🎰 **Çeşitlilik** | Tam Takım, Kusursuz Gün, Üçlü Taç, Ses Avcısı, Eşya Uzmanı | Tüm modlarda galibiyet, kusursuz gün, replik ve eşya mod zaferleri |
+| ⚡ **Zamana Karşı** | İlk Adım, Hız Ustası, Işık Hızı, Süper Sonik, Zincir Ustası | Hızlı doğru tahmin (5-20 skor), seri kombolar (8-12 pas'sız) ve 100 tur |
+| 💪 **Azim** | Azimli, Bağımlı, Veteran, Maratoncu, Gece Kuşu | Toplam oynanan oyun sayısı (100 - 2500 oyun) ve 00:00-05:00 gece zaferleri |
+| ☠️ **Zorluk** | Gözü Kara, Zor Bela, Demir İrade, Zor Ustası, Delilik Efsanesi | Zor ve Aşırı Zor zorluk seviyelerindeki toplam galibiyetler |
+| 📚 **Koleksiyon** | Kaşif, Avcı, Ansiklopedi, Arcane Efsaneleri, Demacia Adaleti | Bölge tamamlama, koridor ustalıkları ve özel şampiyon başarımları |
+| ⚔️ **Sosyal** | Meydan Okuyucu, Rakip, Gladyatör, Şampiyon, Haberci | Arkadaşlara karşı meydan okuma zaferleri ve sonuç paylaşma |
+| 🕹️ **Mini Oyunlar** | İlk Kelime, Kelime Ustası, Keskin Zeka, Bingocu, Tam Kart | Kelime ve Bingo mini oyunlarındaki ustalık rozetleri |
+
+### 🌟 Öne Çıkan Özel Başarım Mekanizmaları
+
+* 🏰 **Bölge Tamamlama (Region Mastery):** Demacia, Noxus, Ionia, Freljord, Piltover/Zaun, Bilgewater, Shurima veya Gölge Adalar/Boşluk bölgelerindeki **tüm şampiyonları** doğru bilerek bölge rozetlerini kilitlersin.
+* ⚔️ **Aynı Seri İçinde Şampiyon Komboları:** Oyuncu yanılmadan aynı galibiyet serisi / turu içindeyken:
+  * **Rüzgârın Yolu** ➔ Aynı seride *Yasuo + Yone*
+  * **Kaos ve Katliam** ➔ Aynı seride *Jinx + Vi + Ekko*
+  * **Ruh Toplayıcı** ➔ Aynı seride *Thresh + Lucian + Senna*
+* 🎬 **Arcane Efsaneleri:** Arcane dizisinde yer alan tüm 10 şampiyonu (*Jinx, Vi, Ekko, Caitlyn, Jayce, Viktor, Heimerdinger, Singed, Warwick, Ambessa*) doğru tahmin et.
+* 🎯 **Tek Atış Ustalıkları:** *Ahri* (*Dokuz Kuyruklu*) ve *Lee Sin* (*Kör Keşiş*) şampiyonlarını ilk tahminde (1. denemede) doğru bil.
 
 ---
 

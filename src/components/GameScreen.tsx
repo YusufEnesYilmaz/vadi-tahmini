@@ -307,7 +307,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
       if (correct) {
         playCorrect()
         // Koleksiyon rozetleri şampiyon sayar — Eşya modunda şampiyon yok
-        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id)
+        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id, guesses.length === 0)
         setAnnounce(`Doğru: ${answerLabel(puzzle)}. Skor ${score + 1}.`)
         
         // Puanı ve komboyu şampiyon bilindiği an hemen artırıyoruz
@@ -329,7 +329,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
       finishedAtRef.current = Date.now() // sonuç kartı Enter ile hemen atlanmasın
       if (correct) {
         setWon(true)
-        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id)
+        if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id, newGuesses.length === 1)
         if (daily && nick && nick.trim()) {
           void submitDailyScore(getPlayerId(), sub, todayKey(), nick, newGuesses.length)
         }
