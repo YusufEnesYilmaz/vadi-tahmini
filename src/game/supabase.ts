@@ -21,32 +21,12 @@ export async function submitTimedScore(playerId: string, sub: string, diff: stri
   const cleanNick = nick.trim()
 
   try {
-    const { data } = await supabase
-      .from('vt_leaderboard')
-      .select('id, score, nick')
-      .eq('player_id', playerId)
-      .eq('mode', mode)
-      .maybeSingle()
-
-    if (data) {
-      const updates: Record<string, unknown> = {}
-      if (score > Number(data.score)) {
-        updates.score = score
-      }
-      if (data.nick !== cleanNick) {
-        updates.nick = cleanNick
-      }
-      if (Object.keys(updates).length > 0) {
-        await supabase
-          .from('vt_leaderboard')
-          .update(updates)
-          .eq('id', data.id)
-      }
-    } else {
-      await supabase
-        .from('vt_leaderboard')
-        .insert({ player_id: playerId, nick: cleanNick, mode, score })
-    }
+    await supabase.rpc('submit_score', {
+      p_player_id: playerId,
+      p_nick: cleanNick,
+      p_mode: mode,
+      p_score: score,
+    })
   } catch (err) {
     console.error('Leaderboard timed submit failed:', err)
   }
@@ -59,33 +39,13 @@ export async function submitDailyScore(playerId: string, sub: string, date: stri
   const cleanNick = nick.trim()
 
   try {
-    const { data } = await supabase
-      .from('vt_leaderboard')
-      .select('id, score, nick')
-      .eq('player_id', playerId)
-      .eq('mode', mode)
-      .eq('date', date)
-      .maybeSingle()
-
-    if (data) {
-      const updates: Record<string, unknown> = {}
-      if (guesses < Number(data.score)) {
-        updates.score = guesses
-      }
-      if (data.nick !== cleanNick) {
-        updates.nick = cleanNick
-      }
-      if (Object.keys(updates).length > 0) {
-        await supabase
-          .from('vt_leaderboard')
-          .update(updates)
-          .eq('id', data.id)
-      }
-    } else {
-      await supabase
-        .from('vt_leaderboard')
-        .insert({ player_id: playerId, nick: cleanNick, mode, score: guesses, date })
-    }
+    await supabase.rpc('submit_score', {
+      p_player_id: playerId,
+      p_nick: cleanNick,
+      p_mode: mode,
+      p_score: guesses,
+      p_date: date,
+    })
   } catch (err) {
     console.error('Leaderboard daily submit failed:', err)
   }
@@ -96,10 +56,10 @@ export async function updateLeaderboardNick(playerId: string, newNick: string) {
   if (!supabase || !newNick.trim()) return
   const cleanNick = newNick.trim()
   try {
-    await supabase
-      .from('vt_leaderboard')
-      .update({ nick: cleanNick })
-      .eq('player_id', playerId)
+    await supabase.rpc('update_player_nick', {
+      p_player_id: playerId,
+      p_nick: cleanNick,
+    })
   } catch (err) {
     console.error('Update leaderboard nick failed:', err)
   }

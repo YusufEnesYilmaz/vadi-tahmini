@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
@@ -12,7 +12,6 @@ type Screen =
   | { name: 'menu' }
   | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter; challenge?: Challenge }
   | { name: 'settings' }
-  // Mini oyunlar: kendi kuralları var, alt mod yapısına oturmuyorlar
   | { name: 'wordle'; daily: boolean }
   | { name: 'bingo'; daily: boolean }
 
@@ -21,7 +20,7 @@ function initialScreen(): Screen {
   const code = new URLSearchParams(location.search).get('c')
   if (code) {
     const ch = parseChallenge(code)
-    history.replaceState(null, '', location.pathname) // linki paylaşınca tekrar tetiklenmesin
+    history.replaceState({ screen: 'game' }, '', location.pathname) // linki paylaşınca tekrar tetiklenmesin
     if (ch) {
       // Havuz filtresi de linkten gelir — iki oyuncu aynı havuzdan oynasın
       return { name: 'game', top: 'timed', sub: ch.sub, diff: ch.diff, filter: parseFilterKey(ch.filter), challenge: ch }
@@ -33,6 +32,34 @@ function initialScreen(): Screen {
 export default function App() {
   const [screen, setScreen] = useState<Screen>(initialScreen)
 
+  // Mobil / Tarayıcı Geri Tuşu (popstate) dinleyicisi
+  useEffect(() => {
+    const handlePopState = () => {
+      if (screen.name !== 'menu') {
+        setScreen({ name: 'menu' })
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [screen.name])
+
+  const navigateTo = (newScreen: Screen) => {
+    if (newScreen.name !== 'menu' && screen.name === 'menu') {
+      window.history.pushState({ screen: newScreen.name }, '')
+    }
+    setScreen(newScreen)
+  }
+
+  const navigateMenu = () => {
+    if (screen.name !== 'menu') {
+      if (window.history.state?.screen) {
+        window.history.back()
+      } else {
+        setScreen({ name: 'menu' })
+      }
+    }
+  }
+
   if (screen.name === 'game') {
     return (
       <GameScreen
@@ -42,26 +69,26 @@ export default function App() {
         diff={screen.diff}
         filter={screen.filter}
         challenge={screen.challenge}
-        // Günlük'te bir modu bitirince menüye dönmeden sıradaki moda geç (key değişince yeniden kurulur)
-        onPlaySub={(sub) => setScreen({ name: 'game', top: screen.top, sub, diff: screen.diff, filter: screen.filter })}
-        onExit={() => setScreen({ name: 'menu' })}
+        // Günlük'te bir modu bitirince menüye dönmeden sıradaki moda geç
+        onPlaySub={(sub) => navigateTo({ name: 'game', top: screen.top, sub, diff: screen.diff, filter: screen.filter })}
+        onExit={navigateMenu}
       />
     )
   }
   if (screen.name === 'wordle') {
-    return <WordleGame daily={screen.daily} onExit={() => setScreen({ name: 'menu' })} />
+    return <WordleGame daily={screen.daily} onExit={navigateMenu} />
   }
   if (screen.name === 'bingo') {
-    return <BingoGame daily={screen.daily} onExit={() => setScreen({ name: 'menu' })} />
+    return <BingoGame daily={screen.daily} onExit={navigateMenu} />
   }
   if (screen.name === 'settings') {
-    return <Settings onExit={() => setScreen({ name: 'menu' })} />
+    return <Settings onExit={navigateMenu} />
   }
   return (
     <Menu
-      onPlay={(top, sub, diff, filter) => setScreen({ name: 'game', top, sub, diff, filter })}
-      onSettings={() => setScreen({ name: 'settings' })}
-      onMiniGame={(g, d) => setScreen(g === 'wordle' ? { name: 'wordle', daily: d } : { name: 'bingo', daily: d })}
+      onPlay={(top, sub, diff, filter) => navigateTo({ name: 'game', top, sub, diff, filter })}
+      onSettings={() => navigateTo({ name: 'settings' })}
+      onMiniGame={(g, d) => navigateTo(g === 'wordle' ? { name: 'wordle', daily: d } : { name: 'bingo', daily: d })}
     />
   )
 }

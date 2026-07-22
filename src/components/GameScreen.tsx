@@ -5,7 +5,7 @@ import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '.
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
 import { challengeUrl, getNick, recordChallengeWin, setNick, getPlayerId, type Challenge } from '../game/challenge'
-import { filterKey, filterLabel, isAllFilter, type PoolFilter } from '../game/filter'
+import { filterKey, type PoolFilter } from '../game/filter'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
@@ -19,6 +19,8 @@ import ChampionInfo from './ChampionInfo'
 import ClassicBoard from './ClassicBoard'
 import HowTo from './HowTo'
 import PuzzleView from './PuzzleView'
+import WinConfetti from './game/WinConfetti'
+import GameHeader from './game/GameHeader'
 
 interface Props {
   top: TopMode
@@ -64,46 +66,6 @@ function answerLabel(puzzle: Puzzle): string {
   return puzzle.sub === 'skin' ? `${puzzle.skin?.name}` : puzzle.champion.name
 }
 
-/**
- * Kazanınca ekrana bir kez altın konfeti yağar. CSS-only (bağımlılık yok),
- * `prefers-reduced-motion`'da gizlenir. Kazanma bloğu unmount olunca kaybolur;
- * her galibiyette yeniden mount olduğu için rastgelelik tazelenir.
- */
-const CONFETTI_COLORS = ['var(--gold)', 'var(--gold-bright)', 'var(--partial)', 'var(--blue)']
-function WinConfetti() {
-  const pieces = useMemo(
-    () =>
-      Array.from({ length: 22 }, () => ({
-        left: Math.random() * 100,
-        delay: Math.random() * 0.3,
-        dur: 0.9 + Math.random() * 0.8,
-        rot: (Math.random() * 720 - 360) | 0,
-        color: CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0],
-        w: 6 + Math.random() * 5,
-        h: 9 + Math.random() * 6,
-      })),
-    [],
-  )
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[55] overflow-hidden" aria-hidden>
-      {pieces.map((p, i) => (
-        <span
-          key={i}
-          className="confetti-piece"
-          style={{
-            left: `${p.left}%`,
-            width: p.w,
-            height: p.h,
-            background: p.color,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.dur}s`,
-            ['--rot' as string]: `${p.rot}deg`,
-          } as React.CSSProperties}
-        />
-      ))}
-    </div>
-  )
-}
 
 export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySub, onExit }: Props) {
   const daily = top === 'daily'
@@ -497,56 +459,26 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
       {/* Ekran okuyucu duyurusu — görsel olarak gizli, tahmin sonucunu sesli okur */}
       <div className="sr-only" role="status" aria-live="polite">{announce}</div>
 
-      {/* Üst çubuk — altında ince altın ayraç (Wordle referansındaki gibi) */}
-      <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
-        style={{ borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2">
-          <button onClick={onExit} className="card-btn rounded-xl border px-3 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-            ← Menü
-          </button>
-          <button onClick={() => setHowTo(true)} aria-label="Nasıl oynanır"
-            className="card-btn rounded-xl border px-2.5 py-1.5 text-sm"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-            ?
-          </button>
-        </div>
-        <span className="min-w-0 truncate text-center text-sm font-semibold sm:text-base" style={{ color: 'var(--gold)' }}>
-          {topName} · {subName}
-          {/* Karışıkta o anki gerçek soru tipini göster */}
-          {isMix && puzzle && !timedOver && (
-            <span className="block text-xs font-normal" style={{ color: 'var(--gold-bright)' }}>
-              🎲 {activeMeta.icon} {activeMeta.name}
-            </span>
-          )}
-          {!daily && !isMix && (
-            <span className="block text-xs font-normal" style={{ color: 'var(--text-dim)' }}>
-              {DIFFICULTIES.find((d) => d.id === diff)!.name}
-            </span>
-          )}
-          {/* Havuz daraltılmışsa göster — oyuncu neden hep aynı bölgeden geldiğini bilsin */}
-          {!daily && !isAllFilter(filter) && (
-            <span className="block text-xs font-normal" style={{ color: 'var(--gold)' }}>
-              🎯 {filterLabel(filter)}
-            </span>
-          )}
-        </span>
-        {timed && puzzle && !timedOver ? (
-          <span className={`rounded-xl px-3 py-1.5 font-mono text-lg font-bold ${timeLeft <= 10 ? 'anim-pulse' : ''}`}
-            style={{ background: timeLeft <= 10 ? 'var(--danger)' : 'var(--bg-card)', color: '#fff' }}>
-            {timeLeft}s
-          </span>
-        ) : (
-          <span className="w-16 text-right text-sm" style={{ color: 'var(--text-dim)' }}>
-            {timed ? '⏱' : finished ? `Seri: ${stats.currentStreak}` : (
-              // Kalan hak: son 2'de kırmızıya döner
-              <span style={{ color: left <= 2 ? 'var(--danger-text)' : 'var(--text-dim)' }}>
-                {left} hak
-              </span>
-            )}
-          </span>
-        )}
-      </div>
+      {/* Üst çubuk */}
+      <GameHeader
+        topName={topName}
+        subName={subName}
+        isMix={isMix}
+        puzzle={puzzle}
+        timedOver={timedOver}
+        activeMetaIcon={activeMeta.icon}
+        activeMetaName={activeMeta.name}
+        daily={daily}
+        diff={diff}
+        filter={filter}
+        timed={timed}
+        timeLeft={timeLeft}
+        finished={finished}
+        left={left}
+        currentStreak={stats.currentStreak}
+        onExit={onExit}
+        onOpenHowTo={() => setHowTo(true)}
+      />
 
       {/* Zamana Karşı: başlangıç ekranı */}
       {timed && !puzzle && (

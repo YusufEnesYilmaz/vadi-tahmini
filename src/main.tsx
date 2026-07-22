@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { initPwaUpdate } from './game/pwaUpdate.ts'
+import './game/storage.ts'
 
 /*
  * Servis çalışanını kaydet + "yeni sürüm hazır" sinyalini dinlemeye başla.
