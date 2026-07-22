@@ -44,95 +44,171 @@ export default function HowTo({ sub, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="anim-pop my-auto w-full max-w-3xl rounded-2xl border p-5 panel"
+        className="anim-pop my-auto w-full max-w-3xl rounded-2xl border p-5 sm:p-6 panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Nasıl oynanır"
       >
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>Nasıl oynanır</h2>
-          <button onClick={onClose} className="card-btn rounded-xl border px-3 py-1 text-sm"
-            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-            Kapat
+        {/* Başlık Çubuğu */}
+        <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📖</span>
+            <h2 className="font-display text-xl font-bold tracking-wide" style={{ color: 'var(--gold-bright)' }}>
+              Nasıl Oynanır Rehberi
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="card-btn rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-transform hover:scale-105"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}
+          >
+            ✕ Kapat
           </button>
         </div>
 
-        <p className="mt-3 text-sm" style={{ color: 'var(--text)' }}>
-          Amaç tek: doğru şampiyonu bulmak. Tahmin hakkın sınırlı (zorluğa göre 5–10);
-          hak biterse cevap açıklanır ve o oyun kayıp sayılır. Zamana Karşı'da hak sınırı yoktur, orada süreyle yarışırsın.
-        </p>
-
-        {/* Geniş ekranda mod kartları yan yana — dikey liste ekranı boşuna uzatıyordu */}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {modes.map((m) => (
-            <div key={m.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{m.icon}</span>
-                <span className="font-bold" style={{ color: 'var(--gold)' }}>{m.name}</span>
-              </div>
-              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{MODE_HOWTO[m.id]}</p>
-            </div>
-          ))}
-          {/* Karışık: menüden açıldığında (tüm modlar görünürken) tanıt */}
-          {!sub && (
-            <div className="rounded-xl border p-3" style={{ borderColor: 'var(--gold)' }}>
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🎲</span>
-                <span className="font-bold" style={{ color: 'var(--gold)' }}>Karışık</span>
-              </div>
-              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
-                Her soru rastgele başka bir tipten gelir. Sınırsız'da altı tip de çıkabilir;
-                Zamana Karşı'da Klasik hariç beş tip. Sınırsız ve Zamana Karşı'da oynanır.
-              </p>
-            </div>
-          )}
+        {/* Ana Amaç Özeti Banner */}
+        <div className="mt-4 rounded-xl border p-3.5" style={{ background: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.25)' }}>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold-bright)' }}>
+            <span>🎯</span>
+            <span>Temel Amaç</span>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--text)' }}>
+            İpuçlarını kullanarak doğru şampiyonu veya eşyayı bul. Sınırsız ve Günlük modlarında tahmin hakkın sınırlıdır (zorluğa göre 5–10 hak); Zamana Karşı modunda ise hak sınırı olmadan süreye karşı yarışırsın.
+          </p>
         </div>
 
-        {/* Renk anahtarı ve mod anlatımı yan yana — anahtar yoksa tek kolon kalsın */}
+        {/* Mod Tanıtım Kartları Grid */}
+        <div className="mt-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
+            🎮 {sub ? 'Aktif Mod İpuçları' : 'Tahmin Modları'}
+          </h3>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {modes.map((m) => (
+              <div
+                key={m.id}
+                className="group rounded-xl border p-3 transition-all hover:scale-[1.01]"
+                style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl transition-transform group-hover:scale-110">{m.icon}</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>{m.name}</span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>{MODE_HOWTO[m.id]}</p>
+              </div>
+            ))}
+            {/* Karışık Mod Kartı */}
+            {!sub && (
+              <div
+                className="group rounded-xl border p-3 transition-all hover:scale-[1.01]"
+                style={{ borderColor: 'rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.04)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl transition-transform group-hover:scale-110">🎲</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--gold-bright)' }}>Karışık</span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  Her soru rastgele başka bir alt moddan gelir. Sınırsız ve Zamana Karşı modlarında sürpriz bir yarışma deneyimi sunar.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Klasik Renkler ve Oyun Türleri Grid */}
         <div className={`mt-5 grid gap-4 ${showLegend ? 'sm:grid-cols-2' : ''}`}>
           {showLegend && (
-            <section>
-              <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-                Klasik tablosundaki renkler
+            <section className="rounded-xl border p-3.5" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.01)' }}>
+              <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+                🎨 Klasik Tablosundaki Renkler
               </h3>
-              <div className="mt-2 flex flex-col gap-2">
+              <div className="mt-2.5 flex flex-col gap-2">
                 {CLASSIC_LEGEND.map((l) => (
-                  <div key={l.title} className="flex items-center gap-3">
-                    <span className="h-8 w-8 shrink-0 rounded-md" style={{ background: l.color }} />
-                    <span className="text-sm">
-                      <b>{l.title}</b>
-                      <span style={{ color: 'var(--text-dim)' }}> — {l.desc}</span>
-                    </span>
+                  <div key={l.title} className="flex items-center gap-3 rounded-lg border p-2 text-xs" style={{ borderColor: 'rgba(255, 255, 255, 0.05)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                    <span className="h-6 w-6 shrink-0 rounded-md shadow-sm" style={{ background: l.color }} />
+                    <div className="flex flex-col">
+                      <b className="text-white text-xs">{l.title}</b>
+                      <span className="text-[11px]" style={{ color: 'var(--text-dim)' }}>{l.desc}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          <section>
-            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-              Modlar
+          <section className="rounded-xl border p-3.5" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.01)' }}>
+            <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+              ⚙️ Oyun Türleri
             </h3>
-            <ul className="mt-2 flex flex-col gap-2 text-sm" style={{ color: 'var(--text)' }}>
-              <li><b style={{ color: 'var(--text)' }}>Sınırsız</b> — arka arkaya oyna. Sıran sana özel, arkadaşınla aynı şampiyon gelmez.</li>
-              <li><b style={{ color: 'var(--text)' }}>Günlük</b> — herkese aynı bulmaca, günde bir. Sonucu paylaşıp karşılaştırın.</li>
-              <li><b style={{ color: 'var(--text)' }}>Zamana Karşı</b> — süre dolmadan kaç doğru? Takıldığını "Pas" ile geç.</li>
-            </ul>
+            <div className="mt-2.5 flex flex-col gap-2 text-xs">
+              <div className="flex items-start gap-2.5 rounded-lg border p-2" style={{ borderColor: 'rgba(255, 255, 255, 0.05)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                <span className="text-base">♾️</span>
+                <div>
+                  <b className="text-white text-xs block">Sınırsız Mod</b>
+                  <span className="text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                    Arka arkaya dilediğin kadar oyna. Sıralama sana özeldir.
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5 rounded-lg border p-2" style={{ borderColor: 'rgba(255, 255, 255, 0.05)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                <span className="text-base">📅</span>
+                <div>
+                  <b className="text-white text-xs block">Günlük Mod</b>
+                  <span className="text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                    Herkese her gün aynı bulmaca verilir. Skorunu arkadaşlarınla kıyasla.
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5 rounded-lg border p-2" style={{ borderColor: 'rgba(255, 255, 255, 0.05)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                <span className="text-base">⏱️</span>
+                <div>
+                  <b className="text-white text-xs block">Zamana Karşı</b>
+                  <span className="text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                    Süre bitmeden kaç doğru yapabilirsin? Takıldığın soruyu "Pas" ile atla.
+                  </span>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
 
-        <h3 className="mt-5 text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-          Zorluk
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
-          Sınırsız ve Zamana Karşı'da <b style={{ color: 'var(--text)' }}>Kolay / Normal / Zor / Aşırı Zor</b> seçebilirsin.
-          İstatistikler ve rekorlar her seviye için ayrı tutulur. Günlük'te zorluk yoktur — herkes aynı şartlarda oynar.
-        </p>
-        <div className="mt-3">
+        {/* Mini Oyunlar */}
+        {!sub && (
+          <section className="mt-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
+              🕹️ Mini Oyunlar
+            </h3>
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border p-3.5 transition-all hover:scale-[1.01]" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🔡</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>Kelime (Wordle)</span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  Gizli şampiyon adını 6 hakkın bitmeden harf harf tahmin et. Yeşil harf doğru konumda, kehribar harf kelimede var ama yeri farklı, gri harf isimde yok demektir. 5 ve 6 harfli seçenekleri bulunur.
+                </p>
+              </div>
+              <div className="rounded-xl border p-3.5 transition-all hover:scale-[1.01]" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎲</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>Bingo</span>
+                </div>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  90 saniye içinde 12 kutuluk Bingo kartını doldur. Üstten gelen şampiyona uygun özellikteki (bölge, koridor, cinsiyet, yıl vb.) boş kutuya tıklayarak şampiyonu yerleştir. Süre dolmadan 12/12 tam kart yapmaya çalış.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Zorluk Tablosu Section */}
+        <section className="mt-5 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
+          <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-dim)' }}>
+            🎚️ Zorluk Seviyeleri Karşılaştırması
+          </h3>
           <DifficultyTable />
-        </div>
+        </section>
       </div>
     </div>
   )

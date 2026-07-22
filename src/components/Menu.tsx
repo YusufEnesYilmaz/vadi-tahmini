@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { PATCH } from '../game/data'
+import { useMemo, useState } from 'react'
+import { CHAMPIONS, PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
-import { getBestScore, getDailyState, getStats } from '../game/stats'
+import { getBestScore, getDailyHistory, getDailyState, getDailyStreak, getStats, isStreakAlive, normalizeEntry } from '../game/stats'
 import { DAILY_SUBS, DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
 import DailyPanel from './DailyPanel'
 import DifficultyTable from './DifficultyTable'
@@ -13,12 +13,32 @@ import PoolFilterPicker from './PoolFilterPicker'
 import Leaderboard from './Leaderboard'
 import CalendarModal from './CalendarModal'
 import { useUpdateAvailable } from '../game/pwaUpdate'
+import { sfxEnabled, setSfxEnabled } from '../game/sfx'
+import { getChampWins, getEarnedAchievements, ACHIEVEMENTS } from '../game/achievements'
+import { cryptoRandInt, todayKey } from '../game/rng'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
   /** Mini oyunlar ayrı ekran — alt mod yapısına oturmuyorlar */
   onMiniGame: (game: 'wordle' | 'bingo', daily: boolean) => void
+}
+
+const LOL_TIPS = [
+  '💡 Jinx, Vi ve Ekko Zaun sokaklarında beraber büyümüştür.',
+  '💡 Teemo’nun mantarları Vadide 5 dakika boyunca gizlenir.',
+  '💡 Yasuo ve Yone rüzgâr tekniğinin son ustalarıdır.',
+  '💡 Ahri, Dokuz Kuyruklu bir Vastaya büyücüsüdür.',
+  '💡 Demacia şampiyonları büyüye karşı Petrisit taşından zırhlar kullanır.',
+  '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
+]
+
+function getSummonerTitle(uniqueChamps: number): { title: string; icon: string; color: string } {
+  if (uniqueChamps >= 100) return { title: 'Runeterra Efsanesi', icon: '👑', color: 'var(--gold-bright)' }
+  if (uniqueChamps >= 50) return { title: 'Ionia Bilgesi', icon: '🔮', color: '#a855f7' }
+  if (uniqueChamps >= 25) return { title: 'Demacia Muhafızı', icon: '🛡️', color: '#38bdf8' }
+  if (uniqueChamps >= 10) return { title: 'Vadi Savaşçısı', icon: '⚔️', color: '#34d399' }
+  return { title: 'Sihirdar Çırağı', icon: '🌱', color: 'var(--text-dim)' }
 }
 
 export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
@@ -31,83 +51,310 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
   const [diffInfo, setDiffInfo] = useState(false)
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
+  const [soundOn, setSoundOn] = useState(sfxEnabled)
   const updateReady = useUpdateAvailable()
 
   function pickDifficulty(d: Difficulty) {
     setDiff(d)
-    saveDifficulty(d) // tercih hatırlansın
+    saveDifficulty(d)
   }
 
   function pickFilter(f: PoolFilter) {
     setFilterState(f)
-    saveFilter(f) // tercih hatırlansın
+    saveFilter(f)
+  }
+
+  function toggleSound() {
+    const next = !soundOn
+    setSoundOn(next)
+    setSfxEnabled(next)
+  }
+
+  // Rastgele LoL Vadi İpucu
+  const randomTip = useMemo(() => LOL_TIPS[cryptoRandInt(LOL_TIPS.length)], [])
+
+  // Kariyer ve Sihirdar Bilgileri
+  const champWins = getChampWins()
+  const uniqueChampCount = champWins.length
+  const totalChamps = CHAMPIONS.length
+  const summoner = getSummonerTitle(uniqueChampCount)
+
+  const dailyStreak = getDailyStreak()
+  const activeStreak = isStreakAlive(dailyStreak) ? dailyStreak.streak : 0
+  const earnedAchCount = getEarnedAchievements().length
+  const totalAchCount = ACHIEVEMENTS.length
+
+  const todayData = getDailyHistory()[todayKey()] ?? {}
+  const todayDoneCount = DAILY_SUBS.filter((m) => {
+    const entry = normalizeEntry(todayData[m.id])
+    return entry && entry.g > 0
+  }).length
+
+  const isDailyAllCompleted = todayDoneCount === DAILY_SUBS.length
+
+  // Dinamik Hızlı Başla Aksiyonu
+  function quickPlay() {
+    if (!isDailyAllCompleted) {
+      setTop('daily')
+    } else {
+      onPlay('endless', 'classic', diff, filter)
+    }
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-4 pb-10 pt-12">
-      <header className="anim-pop text-center">
-        <h1 className="text-shimmer font-display text-4xl font-bold tracking-tight sm:text-5xl">
+    <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center gap-3.5 sm:gap-5 px-3.5 sm:px-4 pb-8 pt-3 sm:pt-8">
+      {/* Ambient Glow Lights */}
+      <div className="pointer-events-none absolute -top-16 inset-x-0 flex justify-between opacity-30 blur-3xl" aria-hidden>
+        <div className="h-48 w-48 rounded-full" style={{ background: 'var(--gold)' }} />
+        <div className="h-48 w-48 rounded-full" style={{ background: '#38bdf8' }} />
+      </div>
+
+      {/* Üst Canlı Bar: Sihirdar Kimliği & Ses Kontrolü */}
+      <div className="z-10 flex w-full items-center justify-between gap-2 text-xs">
+        {/* Sol: Sihirdar Unvanı */}
+        <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold shadow-sm backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.03)', borderColor: 'var(--border)' }}>
+          <span>{summoner.icon}</span>
+          <span style={{ color: summoner.color }}>{summoner.title}</span>
+          <span className="opacity-40">•</span>
+          <span style={{ color: 'var(--text-dim)' }}>🔥 {activeStreak} Gün</span>
+        </div>
+
+        {/* Sağ: Ses Aç/Kapat Butonu */}
+        <button
+          onClick={toggleSound}
+          className="flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+          style={{
+            background: soundOn ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.04)',
+            borderColor: soundOn ? 'rgba(52, 211, 153, 0.3)' : 'var(--border)',
+            color: soundOn ? '#34d399' : 'var(--text-dim)',
+          }}
+          aria-label={soundOn ? 'Ses efektlerini kapat' : 'Ses efektlerini aç'}
+          title={soundOn ? 'Ses Efektleri Açık' : 'Ses Efektleri Kapalı'}
+        >
+          <span>{soundOn ? '🔊' : '🔇'}</span>
+          <span className="hidden sm:inline">{soundOn ? 'Ses Açık' : 'Sessiz'}</span>
+        </button>
+      </div>
+
+      {/* Header & Logo */}
+      <header className="anim-pop z-10 flex flex-col items-center text-center">
+        <h1
+          className="text-shimmer font-display text-3xl font-extrabold tracking-tight sm:text-5xl"
+          style={{ filter: 'drop-shadow(0 0 18px rgba(245, 158, 11, 0.35))' }}
+        >
           Vadi Tahmini
         </h1>
-        {/* Altın süsleme çizgisi: başlığı zeminden ayırır, LoL'ün süslü başlık diline gönderme */}
-        <div className="mx-auto mt-2 flex items-center justify-center gap-2" aria-hidden>
-          <span className="h-px w-10" style={{ background: 'linear-gradient(90deg, transparent, var(--gold))' }} />
+
+        {/* Altın Hextech süsleme çizgisi */}
+        <div className="mx-auto mt-1.5 sm:mt-2.5 flex items-center justify-center gap-2" aria-hidden>
+          <span className="h-px w-10 sm:w-14" style={{ background: 'linear-gradient(90deg, transparent, var(--gold))' }} />
           <span style={{ color: 'var(--gold)' }}>◆</span>
-          <span className="h-px w-10" style={{ background: 'linear-gradient(90deg, var(--gold), transparent)' }} />
+          <span className="h-px w-10 sm:w-14" style={{ background: 'linear-gradient(90deg, var(--gold), transparent)' }} />
         </div>
-        <p className="mt-2 text-sm" style={{ color: 'var(--text-dim)' }}>
-          Bil bakalım, şampiyon kim?
+
+        <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium tracking-wide" style={{ color: 'var(--text-dim)' }}>
+          ⚔️ League of Legends Tahmin Oyunu · Bil bakalım, şampiyon kim?
         </p>
       </header>
 
       {!top ? (
-        <div className="stagger flex w-full flex-col gap-3">
-          {/* Masaüstünde üç mod yan yana — tek sütun geniş kapta boşluğa yayılıyordu */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            {TOP_MODES.map((m) => (
-              <button key={m.id} onClick={() => setTop(m.id)}
-                className="card-btn flex items-center gap-4 rounded-xl border p-4 text-left sm:flex-col sm:items-start"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <span className="text-3xl">{m.icon}</span>
-                <span>
-                  <span className="block text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>{m.name}</span>
-                  <span className="block text-sm" style={{ color: 'var(--text-dim)' }}>{m.desc}</span>
+        <div className="stagger z-10 flex w-full flex-col gap-3 sm:gap-4">
+          {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
+          <button
+            onClick={quickPlay}
+            className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border px-3.5 sm:px-5 py-2.5 sm:py-3.5 shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            style={{
+              background: isDailyAllCompleted
+                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.08))'
+                : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1))',
+              borderColor: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+              boxShadow: isDailyAllCompleted
+                ? '0 0 20px rgba(52, 211, 153, 0.18)'
+                : '0 0 20px rgba(245, 158, 11, 0.22)',
+            }}
+          >
+            <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+              <span
+                className="grid h-9 sm:h-10 w-9 sm:w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-md transition-transform duration-300 group-hover:scale-110"
+                style={{
+                  background: isDailyAllCompleted ? '#10b981' : 'var(--gold)',
+                  color: 'var(--bg)',
+                }}
+              >
+                {isDailyAllCompleted ? '🏆' : '⚡'}
+              </span>
+              <div className="text-left min-w-0">
+                <span className="block text-xs sm:text-sm font-extrabold tracking-tight text-white truncate">
+                  {isDailyAllCompleted ? '🏆 Günün Tüm Bulmacaları Tamamlandı!' : '🔥 Günün Bulmacasını Çöz'}
                 </span>
-              </button>
-            ))}
+                <span className="block text-[11px] font-medium text-amber-200/90 truncate">
+                  {isDailyAllCompleted
+                    ? 'Tebrikler! Şimdi Sınırsız Klasik Modda pratik yap →'
+                    : `Bugün ${todayDoneCount}/${DAILY_SUBS.length} bitti — Kaldığın yerden devam et!`}
+                </span>
+              </div>
+            </div>
+            <span
+              className="ml-2 shrink-0 rounded-lg sm:rounded-xl border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs font-bold transition-transform duration-300 group-hover:translate-x-1"
+              style={{
+                background: isDailyAllCompleted ? '#10b981' : 'var(--gold)',
+                borderColor: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+                color: 'var(--bg)',
+              }}
+            >
+              {isDailyAllCompleted ? 'Pratik Yap →' : 'Başla →'}
+            </span>
+          </button>
+
+          {/* Ana Mod Seçim Kartları */}
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            {/* Sınırsız */}
+            <button
+              onClick={() => setTop('endless')}
+              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+              style={{ background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8' }}>
+                  ♾️
+                </span>
+                <span className="text-xs font-bold opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ color: '#38bdf8' }}>
+                  Oyna →
+                </span>
+              </div>
+              <div className="mt-3 sm:mt-4">
+                <span className="block text-base sm:text-lg font-bold tracking-tight text-white group-hover:text-sky-300">
+                  Sınırsız Mod
+                </span>
+                <span className="mt-0.5 block text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  Arka arkaya oyna, bekleme yok
+                </span>
+              </div>
+            </button>
+
+            {/* Günlük */}
+            <button
+              onClick={() => setTop('daily')}
+              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(245,158,11,0.35)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 255, 255, 0.02))',
+                borderColor: isDailyAllCompleted ? '#34d399' : 'rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(245, 158, 11, 0.2)' }}>
+                  📅
+                </span>
+                <span
+                  className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-sm"
+                  style={{
+                    background: isDailyAllCompleted ? 'rgba(52, 211, 153, 0.2)' : 'rgba(245, 158, 11, 0.25)',
+                    color: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+                  }}
+                >
+                  {isDailyAllCompleted ? '✓ BİTTİ' : `${todayDoneCount}/${DAILY_SUBS.length}`}
+                </span>
+              </div>
+              <div className="mt-3 sm:mt-4">
+                <span className="block text-base sm:text-lg font-extrabold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                  Günlük Bulmaca
+                </span>
+                <span className="mt-0.5 block text-xs font-medium leading-relaxed" style={{ color: 'var(--text)' }}>
+                  Herkese her gün aynı bulmaca
+                </span>
+              </div>
+            </button>
+
+            {/* Zamana Karşı */}
+            <button
+              onClick={() => setTop('timed')}
+              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(244,63,94,0.2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e' }}>
+                  ⏱️
+                </span>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-300" style={{ background: 'rgba(244, 63, 94, 0.18)' }}>
+                  ⚡ Tempolu
+                </span>
+              </div>
+              <div className="mt-3 sm:mt-4">
+                <span className="block text-base sm:text-lg font-bold tracking-tight text-white group-hover:text-rose-300">
+                  Zamana Karşı
+                </span>
+                <span className="mt-0.5 block text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  Süre dolmadan Vadide kaç doğru?
+                </span>
+              </div>
+            </button>
           </div>
-          {/*
-            Mini oyunlar: üst/alt mod hiyerarşisine girmiyorlar (Kelime harf harf
-            giriş, Bingo süreli ızgara). Ayrı bölüm olarak duruyorlar.
-          */}
-          <div className="mt-2">
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-              Mini oyunlar
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {([
-                { id: 'wordle' as const, icon: '🔡', name: 'Kelime', desc: 'Adı harf harf bul, 6 hak' },
-                { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutu' },
-              ]).map((g) => (
-                <div key={g.id} className="overflow-hidden rounded-xl border"
-                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                  <div className="flex items-center gap-3 p-4 pb-3">
-                    <span className="text-3xl">{g.icon}</span>
+
+          {/* Kariyer & Sihirdar İlerleme Barı */}
+          <div className="flex items-center justify-around rounded-xl border py-2.5 sm:py-3 px-3 text-center text-xs shadow-sm backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)' }}>
+            <div>
+              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold-bright)' }}>💎 {uniqueChampCount}/{totalChamps}</span>
+              <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Keşif</span>
+            </div>
+            <div className="h-5 w-px" style={{ background: 'var(--border)' }} />
+            <div>
+              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold)' }}>🏆 {earnedAchCount}/{totalAchCount}</span>
+              <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Başarım</span>
+            </div>
+            <div className="h-5 w-px" style={{ background: 'var(--border)' }} />
+            <div>
+              <span className="block font-extrabold text-sm text-sky-400">🎯 %{Math.round((earnedAchCount / totalAchCount) * 100)}</span>
+              <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Kariyer</span>
+            </div>
+          </div>
+
+          {/* Mini Oyunlar */}
+          <div>
+            <div className="mb-1.5 sm:mb-2 flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+                🕹️ Mini Oyunlar
+              </span>
+              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.3), transparent)' }} />
+            </div>
+
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {[
+                { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
+                { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
+              ].map((g) => (
+                <div
+                  key={g.id}
+                  className="group overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.12)]"
+                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
+                >
+                  <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
+                      {g.icon}
+                    </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>{g.name}</span>
-                      <span className="block text-sm" style={{ color: 'var(--text-dim)' }}>{g.desc}</span>
+                      <span className="block text-sm sm:text-base font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                        {g.name}
+                      </span>
+                      <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>
+                        {g.desc}
+                      </span>
                     </span>
                   </div>
-                  {/* İki oynanış tek şeritte — kart içinde ayrı butonlar dağınık duruyordu */}
-                  <div className="flex border-t" style={{ borderColor: 'var(--border)' }}>
-                    <button onClick={() => onMiniGame(g.id, false)}
-                      className="flex-1 py-2.5 text-sm font-bold transition-colors hover:bg-[var(--bg-input)]"
-                      style={{ color: 'var(--gold)' }}>
-                      ∞ Sınırsız
+
+                  {/* Sınırsız / Günlük Buton Şeridi */}
+                  <div className="flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
+                    <button
+                      onClick={() => onMiniGame(g.id, false)}
+                      className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300 active:scale-95"
+                      style={{ color: 'var(--gold)' }}
+                    >
+                      ♾️ Sınırsız
                     </button>
-                    <button onClick={() => onMiniGame(g.id, true)}
-                      className="flex-1 border-l py-2.5 text-sm font-bold transition-colors hover:bg-[var(--bg-input)]"
-                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                    <button
+                      onClick={() => onMiniGame(g.id, true)}
+                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300 active:scale-95"
+                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
+                    >
                       📅 Günlük
                     </button>
                   </div>
@@ -116,52 +363,85 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             </div>
           </div>
 
-          <div className="mt-2 flex flex-col gap-2 w-full">
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => setHowTo(true)} className="card-btn rounded-xl border p-3 text-sm"
-                style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-                ❓ Nasıl
+          {/* Sistem & Kariyer Butonları */}
+          <div className="flex flex-col gap-2 w-full">
+            {/* Üst Sıra: Sistem & Rehber */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+              <button
+                onClick={() => setHowTo(true)}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              >
+                <span>❓</span>
+                <span>Nasıl Oynanır</span>
               </button>
-              <button onClick={() => setStats(true)} className="card-btn rounded-xl border p-3 text-sm"
-                style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-                📊 İstatistik
+              <button
+                onClick={() => setStats(true)}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              >
+                <span>📊</span>
+                <span>İstatistikler</span>
               </button>
-              <button onClick={onSettings} className="card-btn relative rounded-xl border p-3 text-sm"
+              <button
+                onClick={onSettings}
+                className="card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
                 style={{
+                  background: 'var(--bg-card)',
                   borderColor: updateReady ? 'var(--gold)' : 'var(--border)',
-                  color: updateReady ? 'var(--gold)' : 'var(--text-dim)',
-                }}>
-                ⚙ Ayarlar
-                {/* Yeni sürüm hazırsa altın baloncuk — kullanıcı Ayarlar'a girip güncellesin */}
+                  color: updateReady ? 'var(--gold-bright)' : 'var(--text)',
+                }}
+              >
+                <span>⚙️</span>
+                <span>Ayarlar</span>
                 {updateReady && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5" aria-label="Yeni sürüm hazır" title="Yeni sürüm hazır">
+                  <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5" aria-label="Yeni sürüm hazır" title="Yeni sürüm hazır">
                     <span className="anim-ping absolute inline-flex h-full w-full rounded-full" style={{ background: 'var(--gold)' }} />
                     <span className="relative inline-flex h-3.5 w-3.5 rounded-full border" style={{ background: 'var(--gold)', borderColor: 'var(--bg)' }} />
                   </span>
                 )}
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => setAchievements(true)} className="card-btn rounded-xl border p-3 text-sm"
-                style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                🏆 Başarım
+
+            {/* Alt Sıra: Kariyer & Rekabet */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+              <button
+                onClick={() => setAchievements(true)}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+              >
+                <span>🏆</span>
+                <span>Başarımlar</span>
               </button>
-              <button onClick={() => setLeaderboard(true)} className="card-btn rounded-xl border p-3 text-sm"
-                style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                🥇 Sıralama
+              <button
+                onClick={() => setLeaderboard(true)}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+              >
+                <span>🥇</span>
+                <span>Sıralama</span>
               </button>
-              <button onClick={() => setCalendar(true)} className="card-btn rounded-xl border p-3 text-sm"
-                style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                📅 Takvim
+              <button
+                onClick={() => setCalendar(true)}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+              >
+                <span>📅</span>
+                <span>Takvim</span>
               </button>
             </div>
           </div>
+
+          {/* Vadi İpucu Banner'ı */}
+          <div className="rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)', color: 'var(--text-dim)' }}>
+            {randomTip}
+          </div>
         </div>
       ) : (
-        <div className="stagger flex w-full flex-col gap-4">
+        <div className="stagger z-10 flex w-full flex-col gap-4">
           {/* Başlık: geri + üst modun kimliği (ikon + ad + kısa açıklama), ortalı */}
           <div className="flex items-center gap-2">
-            <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm"
+            <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105 active:scale-95"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               ← Geri
             </button>
@@ -246,7 +526,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                         : ''
                 return (
                   <button key={m.id} onClick={() => onPlay(top, m.id, diff, filter)}
-                    className="card-btn flex items-center gap-3 rounded-xl border p-3 text-left"
+                    className="card-btn flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
                     style={{
                       background: 'var(--bg-card)',
                       borderColor: dailyDone ? 'var(--correct)' : 'var(--border)',
@@ -279,7 +559,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                 : mixStats.played > 0 ? `Seri: ${mixStats.currentStreak}` : ''
               return (
                 <button onClick={() => onPlay(top, 'mix', diff, filter)}
-                  className="card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left"
+                  className="card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
                   style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}>
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl"
                     style={{ background: 'var(--gold-soft)' }}>{MIX_MODE.icon}</span>
@@ -302,7 +582,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
         </div>
       )}
 
-      <footer className="mt-4 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
+      <footer className="mt-3 sm:mt-4 text-center text-xs opacity-75" style={{ color: 'var(--text-dim)' }}>
         Patch {PATCH} · Riot Games ile ilişkili değildir
       </footer>
 
