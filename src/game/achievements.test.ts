@@ -21,12 +21,16 @@ function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
     insaneWins: 0,
     hardWins: 0,
     hasTimed5: false,
+    hasTimed8: false,
     hasTimed10: false,
     hasTimed15: false,
     hasTimed20: false,
     hasCombo8: false,
     hasCombo12: false,
     allSubsWon: false,
+    allSubs5Won: false,
+    allTops10Won: false,
+    dailyFirstMap: {},
     mixWon: 0,
     timedRuns: 0,
     totalDailyDays: 0,
@@ -140,14 +144,11 @@ describe('Achievements — check functions', () => {
     expect(find('mix_master').check(snap({ mixWon: 50 }))).toBe(true)
   })
 
-  it('daily_perfect: kusursuz gün', () => {
-    expect(find('daily_perfect').check(snap({ dailyPerfect: false }))).toBe(false)
-    expect(find('daily_perfect').check(snap({ dailyPerfect: true }))).toBe(true)
-  })
-
-  it('all_tops: üçlü taç', () => {
-    expect(find('all_tops').check(snap({ allTopsWon: false }))).toBe(false)
-    expect(find('all_tops').check(snap({ allTopsWon: true }))).toBe(true)
+  it('six_shooter/all_tops: mod tamamlamaları', () => {
+    expect(find('six_shooter').check(snap({ allSubs5Won: false }))).toBe(false)
+    expect(find('six_shooter').check(snap({ allSubs5Won: true }))).toBe(true)
+    expect(find('all_tops').check(snap({ allTops10Won: false }))).toBe(false)
+    expect(find('all_tops').check(snap({ allTops10Won: true }))).toBe(true)
   })
 
   it('sound_hunter: replik 15 galibiyet', () => {
@@ -157,7 +158,7 @@ describe('Achievements — check functions', () => {
 
   // Zamana Karsi
   it('speed_start/speed_master/light_speed/supersonic', () => {
-    expect(find('speed_start').check(snap({ hasTimed5: true }))).toBe(true)
+    expect(find('speed_start').check(snap({ hasTimed8: true }))).toBe(true)
     expect(find('speed_master').check(snap({ hasTimed10: true }))).toBe(true)
     expect(find('light_speed').check(snap({ hasTimed15: true }))).toBe(true)
     expect(find('supersonic').check(snap({ hasTimed20: true }))).toBe(true)
@@ -186,7 +187,8 @@ describe('Achievements — check functions', () => {
 
   // Zorluk
   it('fearless/hard_grinder/iron_will/hard_master/insane_legend', () => {
-    expect(find('fearless').check(snap({ hasInsaneWin: true }))).toBe(true)
+    expect(find('fearless').check(snap({ insaneWins: 4 }))).toBe(false)
+    expect(find('fearless').check(snap({ insaneWins: 5 }))).toBe(true)
     expect(find('hard_grinder').check(snap({ hardWins: 9 }))).toBe(false)
     expect(find('hard_grinder').check(snap({ hardWins: 10 }))).toBe(true)
     expect(find('iron_will').check(snap({ insaneWins: 10 }))).toBe(true)
@@ -215,8 +217,8 @@ describe('Achievements — check functions', () => {
     expect(find('rival').check(snap({ challengeWins: 3 }))).toBe(true)
     expect(find('gladiator').check(snap({ challengeWins: 5 }))).toBe(true)
     expect(find('champion').check(snap({ challengeWins: 15 }))).toBe(true)
-    expect(find('social_butterfly').check(snap({ shareCount: 0 }))).toBe(false)
-    expect(find('social_butterfly').check(snap({ shareCount: 1 }))).toBe(true)
+    expect(find('social_butterfly').check(snap({ shareCount: 2 }))).toBe(false)
+    expect(find('social_butterfly').check(snap({ shareCount: 3 }))).toBe(true)
   })
 })
 
@@ -311,12 +313,15 @@ describe('Gizli, Bölgesel ve Özel Rozetler', () => {
     const arcaneChamps = ['Jinx', 'Vi', 'Ekko', 'Caitlyn', 'Jayce', 'Viktor', 'Heimerdinger', 'Singed', 'Warwick', 'Ambessa']
     expect(find('arcane_legends').check(snap({ champWins: arcaneChamps.slice(0, 9) }))).toBe(false)
     expect(find('arcane_legends').check(snap({ champWins: arcaneChamps }))).toBe(true)
+
+    expect(find('daily_first_classic').check(snap({ dailyFirstMap: { classic: true } }))).toBe(true)
+    expect(find('daily_first_classic').check(snap({ dailyFirstMap: { classic: false } }))).toBe(false)
   })
 })
 
 describe('ACHIEVEMENTS list integrity', () => {
-  it('81 rozet tanımli', () => {
-    expect(ACHIEVEMENTS).toHaveLength(81)
+  it('91 rozet tanımli', () => {
+    expect(ACHIEVEMENTS).toHaveLength(91)
   })
 
   it('idler benzersiz', () => {

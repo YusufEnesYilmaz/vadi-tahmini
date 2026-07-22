@@ -172,10 +172,10 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 │            Statik hosting + CSP Headers          │
 ├──────────────────────────────────────────────────┤
 │                                                  │
-│   ┌──────────┐  ┌───────────┐  ┌─────────────┐  │
-│   │  React   │  │ TypeScript│  │ Tailwind v4 │  │
-│   │   v19    │  │   v6.0    │  │ + Vanilla   │  │
-│   └────┬─────┘  └─────┬─────┘  └──────┬──────┘  │
+│   ┌──────────┐  ┌───────────┐  ┌─────────────┐   │
+│   │  React   │  │ TypeScript│  │ Tailwind v4 │   │
+│   │   v19    │  │   v6.0    │  │ + Vanilla   │   │
+│   └────┬─────┘  └─────┬─────┘  └──────┬──────┘   │
 │        │              │               │          │
 │        └──────────┬───┘───────────────┘          │
 │                   │                              │
@@ -189,18 +189,18 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 │   ┌───────────────┴────────────────┐             │
 │   │        Veri Kaynakları         │             │
 │   ├────────────────────────────────┤             │
-│   │  DDragon   → Şampiyon/Eşya    │             │
-│   │  CDragon   → Türkçe Replikler │             │
-│   │  Meraki    → Detaylı Bilgi    │             │
-│   │  Supabase  → Küresel Sıralama │             │
+│   │  DDragon   → Şampiyon/Eşya     │             │
+│   │  CDragon   → Türkçe Replikler  │             │
+│   │  Meraki    → Detaylı Bilgi     │             │
+│   │  Supabase  → Küresel Sıralama  │             │
 │   └────────────────────────────────┘             │
 │                                                  │
 │   ┌────────────────────────────────┐             │
 │   │      İstemci Depolama          │             │
 │   ├────────────────────────────────┤             │
-│   │  localStorage → İstatistik,   │             │
+│   │  localStorage → İstatistik,    │             │
 │   │    Rozetler, Ayarlar           │             │
-│   │  Service Worker → Önbellek    │             │
+│   │  Service Worker → Önbellek     │             │
 │   └────────────────────────────────┘             │
 │                                                  │
 └──────────────────────────────────────────────────┘

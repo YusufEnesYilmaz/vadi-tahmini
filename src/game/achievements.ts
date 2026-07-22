@@ -117,6 +117,8 @@ export interface AchSnapshot {
   insaneWins: number
   /** Zor'da toplam kazanılan oyun */
   hardWins: number
+  /** Herhangi bir Zamana Karşı turunda 8+ skor var mı? */
+  hasTimed8: boolean
   /** Herhangi bir Zamana Karşı turunda 10+ skor var mı? */
   hasTimed10: boolean
   /** Herhangi bir Zamana Karşı turunda 15+ skor var mı? */
@@ -127,8 +129,14 @@ export interface AchSnapshot {
   hasCombo8: boolean
   /** Herhangi bir combo 12+ var mı? */
   hasCombo12: boolean
-  /** 6 alt modun tümünde en az bir galibiyet var mı? */
+  /** 6 alt modun tümünde en az 1 galibiyet var mı? */
   allSubsWon: boolean
+  /** 9 alt modun her birinde en az 5 galibiyet var mı? */
+  allSubs5Won: boolean
+  /** 3 üst modun her birinde en az 10 galibiyet var mı? */
+  allTops10Won: boolean
+  /** Günlük modların 1. denemede bilinme haritası */
+  dailyFirstMap: Record<string, boolean>
   /** Karışık modda toplam kazanılan oyun */
   mixWon: number
   /** Toplam Zamana Karşı tur sayısı */
@@ -189,6 +197,7 @@ export function buildSnapshot(): AchSnapshot {
   let insaneWins = 0
   let hardWins = 0
   let hasTimed5 = false
+  let hasTimed8 = false
   let hasTimed10 = false
   let hasTimed15 = false
   let hasTimed20 = false
@@ -231,6 +240,7 @@ export function buildSnapshot(): AchSnapshot {
     for (const diff of diffs) {
       const best = Number(localStorage.getItem(`vt:best:${sub}:${diff}`) ?? 0)
       if (best >= 5) hasTimed5 = true
+      if (best >= 8) hasTimed8 = true
       if (best >= 10) hasTimed10 = true
       if (best >= 15) hasTimed15 = true
       if (best >= 20) hasTimed20 = true
@@ -245,13 +255,31 @@ export function buildSnapshot(): AchSnapshot {
   // ve Günlük'ün tek-tur kuralı burada da otomatik geçerli olur.
   const subWins = new Set<string>()
   const topWins = new Set<string>()
+  const subWinCounts = new Map<string, number>()
+  const topWinCounts = new Map<TopMode, number>()
+
   for (const { top, sub, s } of allStats) {
-    if (s.won > 0) { subWins.add(sub); topWins.add(top) }
+    if (s.won > 0) {
+      subWins.add(sub)
+      topWins.add(top)
+      subWinCounts.set(sub, (subWinCounts.get(sub) ?? 0) + s.won)
+      topWinCounts.set(top, (topWinCounts.get(top) ?? 0) + s.won)
+    }
   }
 
   const streak = getDailyStreak()
   const dailyHistory = getDailyHistory()
   const fds = getFullDayStreak()
+
+  // Günlük modların 1. denemede kazanılma durumları
+  const dailyFirstMap: Record<string, boolean> = {}
+  for (const m of DAILY_SUBS) dailyFirstMap[m.id] = false
+  for (const day of Object.values(dailyHistory)) {
+    for (const m of DAILY_SUBS) {
+      const entry = normalizeEntry(day[m.id])
+      if (entry && entry.g === 1) dailyFirstMap[m.id] = true
+    }
+  }
 
   // Kusursuz gün: tüm günlük modlar ilk tahminde bilinmiş mi?
   let dailyPerfect = false
@@ -276,12 +304,16 @@ export function buildSnapshot(): AchSnapshot {
     insaneWins,
     hardWins,
     hasTimed5,
+    hasTimed8,
     hasTimed10,
     hasTimed15,
     hasTimed20,
     hasCombo8,
     hasCombo12,
     allSubsWon: SUB_MODES.every((m) => subWins.has(m.id)),
+    allSubs5Won: SUB_MODES.every((m) => (subWinCounts.get(m.id) ?? 0) >= 5),
+    allTops10Won: (['endless', 'daily', 'timed'] as TopMode[]).every((t) => (topWinCounts.get(t) ?? 0) >= 10),
+    dailyFirstMap,
     mixWon,
     timedRuns,
     totalDailyDays: Object.keys(dailyHistory).length,
@@ -459,8 +491,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     // id DEĞİŞMEZ (kazanılmış rozetler `vt:ach`'ta id ile duruyor); ad/açıklama
     // mod sayısından türetiliyor ki yeni mod eklenince metin yalan olmasın.
     id: 'six_shooter', icon: '🎰', name: 'Tam Takım', cat: 'cesitlilik',
-    desc: `${SUB_MODES.length} alt modun tümünde en az 1 galibiyet`,
-    check: (s) => s.allSubsWon,
+    desc: `${SUB_MODES.length} alt modun her birinde en az 5 galibiyet`,
+    check: (s) => s.allSubs5Won,
   },
   {
     id: 'full_day', icon: '📅', name: 'Tam Gün', cat: 'cesitlilik',
@@ -493,8 +525,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'all_tops', icon: '🎪', name: 'Üçlü Taç', cat: 'cesitlilik',
-    desc: 'Sınırsız, Günlük ve Zamana Karşı modlarında en az 1 galibiyet',
-    check: (s) => s.allTopsWon,
+    desc: 'Sınırsız, Günlük ve Zamana Karşı modlarının her birinde en az 10 galibiyet',
+    check: (s) => s.allTops10Won,
   },
   {
     id: 'sound_hunter', icon: '🎧', name: 'Ses Avcısı', cat: 'cesitlilik',
@@ -512,8 +544,8 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ═══ Zamana Karşı ═══
   {
     id: 'speed_start', icon: '🏃', name: 'İlk Adım', cat: 'hiz',
-    desc: 'Zamana Karşı bir turda 5+ doğru',
-    check: (s) => s.hasTimed5,
+    desc: 'Zamana Karşı bir turda 8+ doğru',
+    check: (s) => s.hasTimed8,
   },
   {
     id: 'speed_master', icon: '⚡', name: 'Hız Ustası', cat: 'hiz',
@@ -587,8 +619,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   // ═══ Zorluk ═══
   {
     id: 'fearless', icon: '☠️', name: 'Gözü Kara', cat: 'zorluk',
-    desc: 'Aşırı Zor zorlukta bir oyun kazan',
-    check: (s) => s.hasInsaneWin,
+    desc: 'Aşırı Zor zorlukta toplam 5 oyun kazan',
+    check: (s) => s.insaneWins >= 5,
+    progress: (s) => ({ current: Math.min(s.insaneWins, 5), target: 5 }),
   },
   {
     id: 'hard_grinder', icon: '🗡️', name: 'Zor Bela', cat: 'zorluk',
@@ -788,11 +821,23 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'shadow_void_fan', icon: '👻', name: 'Karanlık Taraf', cat: 'koleksiyon',
-    desc: 'Gölge Adaları veya Boşluk bölgesinden en az 3 farklı şampiyonu doğru bil',
-    check: (s) => CHAMPIONS.filter((c) => (c.region === 'Gölge Adaları' || c.region === 'Boşluk') && s.champWins.includes(c.id)).length >= 3,
+    desc: 'Gölge Adaları ve Boşluk bölgelerindeki tüm şampiyonları doğru bil',
+    check: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Gölge Adaları' || c.region === 'Boşluk')
+      return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+    },
+    progress: (s) => {
+      const list = CHAMPIONS.filter((c) => c.region === 'Gölge Adaları' || c.region === 'Boşluk')
+      return { current: list.filter((c) => s.champWins.includes(c.id)).length, target: list.length }
+    },
+  },
+  {
+    id: 'runeterra_conqueror', icon: '👑', name: 'Runeterra Fatihi', cat: 'koleksiyon',
+    desc: 'Oyundaki tüm 8 bölge başarımını %100 tamamla',
+    check: (s) => isRuneterraConqueror(s),
     progress: (s) => ({
-      current: Math.min(CHAMPIONS.filter((c) => (c.region === 'Gölge Adaları' || c.region === 'Boşluk') && s.champWins.includes(c.id)).length, 3),
-      target: 3,
+      current: REGION_ACH_IDS.filter((id) => isRegionComplete(id, s)).length,
+      target: REGION_ACH_IDS.length,
     }),
   },
   {
@@ -856,8 +901,56 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'social_butterfly', icon: '📣', name: 'Haberci', cat: 'sosyal',
-    desc: 'Oyun sonucunu arkadaşlarınla paylaş',
-    check: (s) => s.shareCount >= 1,
+    desc: 'Oyun sonucunu arkadaşlarınla 3 kez paylaş',
+    check: (s) => s.shareCount >= 3,
+    progress: (s) => ({ current: Math.min(s.shareCount, 3), target: 3 }),
+  },
+
+  // ═══ Günlük Dahi Başarımları ═══
+  {
+    id: 'daily_first_classic', icon: '🎯', name: 'Günlük Dahi: Klasik', cat: 'cesitlilik',
+    desc: 'Günlük Klasik bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['classic'] ?? false,
+  },
+  {
+    id: 'daily_first_ability', icon: '✨', name: 'Günlük Dahi: Yetenek', cat: 'cesitlilik',
+    desc: 'Günlük Yetenek bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['ability'] ?? false,
+  },
+  {
+    id: 'daily_first_art', icon: '🖼️', name: 'Günlük Dahi: Görsel', cat: 'cesitlilik',
+    desc: 'Günlük Görsel bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['art'] ?? false,
+  },
+  {
+    id: 'daily_first_skin', icon: '🎭', name: 'Günlük Dahi: Kostüm', cat: 'cesitlilik',
+    desc: 'Günlük Kostüm bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['skin'] ?? false,
+  },
+  {
+    id: 'daily_first_quote', icon: '🔊', name: 'Günlük Dahi: Replik', cat: 'cesitlilik',
+    desc: 'Günlük Replik bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['quote'] ?? false,
+  },
+  {
+    id: 'daily_first_emoji', icon: '😀', name: 'Günlük Dahi: Emoji', cat: 'cesitlilik',
+    desc: 'Günlük Emoji bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['emoji'] ?? false,
+  },
+  {
+    id: 'daily_first_silhouette', icon: '👤', name: 'Günlük Dahi: Silüet', cat: 'cesitlilik',
+    desc: 'Günlük Silüet bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['silhouette'] ?? false,
+  },
+  {
+    id: 'daily_first_story', icon: '📜', name: 'Günlük Dahi: Hikâye', cat: 'cesitlilik',
+    desc: 'Günlük Hikâye bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['story'] ?? false,
+  },
+  {
+    id: 'daily_first_item', icon: '🗡️', name: 'Günlük Dahi: Eşya', cat: 'cesitlilik',
+    desc: 'Günlük Eşya bulmacasını ilk tahminde bil',
+    check: (s) => s.dailyFirstMap['item'] ?? false,
   },
 
   // ═══ Mini Oyunlar ═══
