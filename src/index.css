@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+:root {
+  /* LoL temalı koyu tema — tek kaynak */
+  --bg: #0a0e1a;
+  --bg-card: #111827;
+  --bg-input: #1a2332;
+  --border: #2a3648;
+  --gold: #c8aa6e;
+  --gold-bright: #f0e6d2;
+  --blue: #0ac8b9;
+  --text: #e5e7eb;
+  --text-dim: #9ca3af;
+  --correct: #16a34a;
+  --partial: #b8912f; /* altın temayla uyumlu kehribar */
+  /* "Yanlış" nötr gri-mavi: kırmızı her hücrede alarm veriyordu, tablo okunmuyordu */
+  --wrong: #3b4455;
+  --danger: #b91c1c; /* gerçek uyarı (süre bitmek üzere) */
+  --danger-text: #f87171; /* koyu zeminde okunur kırmızı yazı */
+  --overlay: rgba(4, 7, 15, 0.78); /* pencere arkası karartma */
+  --gold-soft: rgba(200, 170, 110, 0.22); /* ilerleme dolgusu, takvim gölgesi */
+  --on-gold: #0a0e1a; /* altın zemin üstündeki yazı */
+
+  /* Derinlik: kartlara/pencerelere yumuşak gölge + üst kenar ışığı (premium his) */
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--gold-soft), 0 0 26px -6px rgba(200, 170, 110, 0.4);
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 28px 70px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 4px 14px rgba(200, 170, 110, 0.3);
+
+  /*
+   * Başlık fontu: dışarıdan font ÇEKMİYORUZ (PWA çevrimdışı çalışmalı, CDN yok).
+   * Sistemde hazır bulunan serifler LoL'ün başlık dilini (Beaufort) andırıyor,
+   * maliyeti sıfır. Gövde metni sistem sans-serif olarak kalıyor.
+   */
+  --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+/* Başlıklar ve rakamlar — gövdeden ayrışsın */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+html {
+  /* Katmanlı zemin: üstten mavi aydınlanma + sağ üstte hafif altın hâle + alt vinyet → düz zemin yerine atmosfer */
+  background:
+    radial-gradient(1100px 520px at 50% -12%, #141c33 0%, transparent 60%),
+    radial-gradient(760px 560px at 100% -5%, rgba(200, 170, 110, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.28) 100%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100%;
+  color: var(--text);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* iPhone çentik/gesture çubuğu altında kalmasın */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mobil dokunma hedefleri için */
+button { touch-action: manipulation; }
+
+/* Klavye ile gezenler için görünür odak — fare kullanıcısını rahatsız etmez */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/*
+ * Menü/mod kartları: masaüstünde hover, dokunmada bastırma hissi.
+ * Gölge/kalkma CSS'te — bileşenler background/border'ı inline veriyor ama
+ * box-shadow/transform'a dokunmuyor, o yüzden bu sınıf her kartta çalışıyor.
+ */
+.card-btn {
+  transition: border-color 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+  box-shadow: var(--shadow-card);
+}
+@media (hover: hover) {
+  .card-btn:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+.card-btn:active { transform: scale(0.985); box-shadow: var(--shadow-card); }
+
+/*
+ * Birincil altın buton — düz altın yerine hafif gradyan + gölge (opt-in sınıf).
+ * Yüksek görünürlüklü CTA'larda kullanılır (Başla, Sonraki, Sıradaki...).
+ */
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--gold-bright) -40%, var(--gold) 65%);
+  color: var(--on-gold);
+  box-shadow: var(--shadow-gold);
+  transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+/* Hover'da soldan sağa ışık süpürmesi — dokunmatikte tetiklenmez, temiz kalır */
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .btn-gold:hover { filter: brightness(1.05); box-shadow: 0 8px 24px rgba(200, 170, 110, 0.45); transform: translateY(-1px); }
+  .btn-gold:hover::after { animation: shimmerSweep 0.7s ease; }
+}
+.btn-gold:active { transform: scale(0.98); box-shadow: var(--shadow-gold); }
+
+/* Açılır pencereler için derin gölge (opt-in) */
+.panel { box-shadow: var(--shadow-panel); }
+
+/* Pencere arkası: karartma + buzlu cam (arka içerik hafifçe bulanır → odak öne gelir) */
+.ovl { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+
+/* Metin seçimi ve kaydırma çubuğu — küçük ama her yerde görünen dokunuşlar */
+::selection { background: var(--gold-soft); color: var(--gold-bright); }
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #3a495f; }
+
+/* --- Animasyonlar --- */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.96); }
+  60% { transform: scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes shake {
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+@keyframes softPulse { 50% { opacity: 0.5; } }
+@keyframes ping { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes shimmerSweep { to { transform: translateX(130%); } }
+/* Klasik tablo: hücrenin çevrilerek rengini açması (türün imza hareketi) */
+@keyframes cellFlip {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  55% { transform: rotateX(12deg); opacity: 1; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+/* Kazanma konfetisi: yukarıdan aşağı düşen parça */
+@keyframes confettiFall {
+  0% { transform: translateY(-10px) rotate(0); opacity: 1; }
+  100% { transform: translateY(92vh) rotate(var(--rot, 360deg)); opacity: 0; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes shine { to { background-position: 200% center; } }
+
+.anim-row { animation: rowIn 0.18s ease-out; }
+.anim-pop { animation: pop 0.22s ease-out; }
+.anim-shake { animation: shake 0.3s ease-in-out; }
+.anim-pulse { animation: softPulse 1s ease-in-out infinite; }
+/* Bildirim baloncuğunun dışa doğru genişleyen halkası (yeni sürüm uyarısı) */
+.anim-ping { animation: ping 1.3s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* Klasik hücre açılışı — satır eklendiğinde soldan sağa gecikmeli çevrilir (delay inline) */
+.cell-reveal { animation: cellFlip 0.5s ease both; transform-origin: center; backface-visibility: hidden; }
+
+/* Konfeti parçası — konum/renk/süre inline verilir */
+.confetti-piece {
+  position: absolute;
+  top: -16px;
+  border-radius: 2px;
+  opacity: 0;
+  animation-name: confettiFall;
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  animation-fill-mode: forwards;
+}
+
+/*
+ * Sahneye sıralı giriş: bir kabın doğrudan çocukları hafif gecikmelerle yükselir.
+ * Menü açılışına ritim katar; içerik "yerine oturuyormuş" hissi verir.
+ */
+.stagger > * { animation: rise 0.4s ease-out both; }
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.17s; }
+.stagger > *:nth-child(5) { animation-delay: 0.22s; }
+.stagger > *:nth-child(6) { animation-delay: 0.27s; }
+
+/*
+ * Canlı altın başlık: metnin içinden yavaşça geçen parıltı. background-clip:text
+ * ile boyanır, ek dosya yok. Uygulayan öğede inline `color` VERME (text-fill'i ezer).
+ */
+.text-shimmer {
+  background: linear-gradient(100deg, var(--gold) 18%, var(--gold-bright) 42%, #fff8ec 50%, var(--gold-bright) 58%, var(--gold) 82%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shine 7s linear infinite;
+}
+
+/* Hareket hassasiyeti olan kullanıcılar için hepsini kapat */
+@media (prefers-reduced-motion: reduce) {
+  .anim-row, .anim-pop, .anim-shake, .anim-pulse, .anim-ping,
+  .cell-reveal, .confetti-piece,
+  .stagger > *, .text-shimmer, .btn-gold::after { animation: none; }
+  .cell-reveal { opacity: 1; }
+  .confetti-piece { display: none; }
+  .stagger > * { opacity: 1; transform: none; }
+  .text-shimmer {
+    -webkit-text-fill-color: var(--gold-bright);
+    color: var(--gold-bright);
+  }
+  .card-btn { transition: none; }
+}

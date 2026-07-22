@@ -1,0 +1,34 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Üretilen araç (node scripts/emoji-review.mjs ile yeniden oluşur)
+tools/emoji-review.html
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+tools/species-review.html
+
+# Yerel / AI çalışma dosyaları — public repoda görünmesin.
+# NOT: .env BİLEREK burada YOK — Vercel build'i VITE_SUPABASE_* değerlerini ondan
+# okuyor; çıkarılırsa küresel sıralama bozulur (anon anahtar zaten publishable).
+CLAUDE.md
+.claude/
