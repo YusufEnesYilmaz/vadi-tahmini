@@ -125,7 +125,7 @@ describe('Achievements — check functions', () => {
 
   // Cesitlilik
   it('six_shooter + full_day', () => {
-    expect(find('six_shooter').check(snap({ allSubsWon: true }))).toBe(true)
+    expect(find('six_shooter').check(snap({ allSubs5Won: true }))).toBe(true)
 
     // Gün kaydını mod listesinden üret: yeni alt mod eklenince test kendiliğinden uyar
     // Günlük geçmişi yalnız Günlük'te oynanabilen modları içerir

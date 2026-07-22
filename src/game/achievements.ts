@@ -342,6 +342,32 @@ function num(key: string, fallback = 0): number {
   return Number(localStorage.getItem(key) ?? fallback)
 }
 
+const REGION_ACH_IDS = [
+  'demacia_fan', 'noxus_fan', 'ionia_master', 'freljord_fan',
+  'piltover_zaun_fan', 'bilgewater_fan', 'shurima_fan', 'shadow_void_fan'
+]
+
+function regionAllCheck(s: AchSnapshot, region: string | string[]): boolean {
+  const list = CHAMPIONS.filter((c) => Array.isArray(region) ? region.includes(c.region) : c.region === region)
+  return list.length > 0 && list.every((c) => s.champWins.includes(c.id))
+}
+
+function isRegionComplete(id: string, s: AchSnapshot): boolean {
+  if (id === 'demacia_fan') return regionAllCheck(s, 'Demacia')
+  if (id === 'noxus_fan') return regionAllCheck(s, 'Noxus')
+  if (id === 'ionia_master') return regionAllCheck(s, 'Ionia')
+  if (id === 'freljord_fan') return regionAllCheck(s, 'Freljord')
+  if (id === 'piltover_zaun_fan') return regionAllCheck(s, ['Piltover', 'Zaun'])
+  if (id === 'bilgewater_fan') return regionAllCheck(s, 'Bilgewater')
+  if (id === 'shurima_fan') return regionAllCheck(s, 'Shurima')
+  if (id === 'shadow_void_fan') return regionAllCheck(s, ['Gölge Adaları', 'Boşluk'])
+  return false
+}
+
+function isRuneterraConqueror(s: AchSnapshot): boolean {
+  return REGION_ACH_IDS.every((id) => isRegionComplete(id, s))
+}
+
 // ---- Rozet tanımları ----
 
 export interface Achievement {
