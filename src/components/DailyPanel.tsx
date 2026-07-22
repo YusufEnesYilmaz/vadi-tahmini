@@ -57,35 +57,36 @@ export default function DailyPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border p-3"
+    <div className="flex flex-col gap-3.5 rounded-2xl border p-4 shadow-md backdrop-blur-md"
       style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm" style={{ color: 'var(--text-dim)' }}>
-          Bugün: <b style={{ color: 'var(--gold)' }}>{doneCount}/{DAILY_SUBS.length}</b> mod tamam
+        <span className="text-sm font-semibold" style={{ color: 'var(--text-dim)' }}>
+          Bugün: <b style={{ color: 'var(--gold-bright)' }}>{doneCount}/{DAILY_SUBS.length}</b> mod tamamlandı
         </span>
-        {/* İki seri: gevşek (en az 1 mod) + prestij (6/6 tam gün) */}
+        {/* İki seri: gevşek (en az 1 mod) + prestij (8/8 tam gün) */}
         <div className="flex flex-col items-end gap-0.5">
-          <span className="text-sm" title="Üst üste günlük oynanan gün — en az 1 modu tamamlamak yeter (kazanmak şart değil)"
-            style={{ color: alive && streak.streak > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
-            🔥 {alive ? streak.streak : 0} gün{streak.best > 0 && ` · en iyi ${streak.best}`}
+          <span className="text-sm font-bold" title="Üst üste günlük oynanan gün — en az 1 modu tamamlamak yeter"
+            style={{ color: alive && streak.streak > 0 ? 'var(--gold-bright)' : 'var(--text-dim)' }}>
+            🔥 {alive ? streak.streak : 0} Gün Seri{streak.best > 0 && ` · Rekor: ${streak.best}`}
           </span>
-          <span className="text-xs" title="Üst üste 6 modun da tamamlandığı gün — sonuç önemsiz"
+          <span className="text-xs font-semibold" title={`Üst üste ${DAILY_SUBS.length} modun da tamamlandığı gün`}
             style={{ color: fullAlive && fullStreak.streak > 0 ? 'var(--gold)' : 'var(--text-dim)' }}>
-            ⭐ {fullAlive ? fullStreak.streak : 0} tam gün{fullStreak.best > 0 && ` · en iyi ${fullStreak.best}`}
+            ⭐ {fullAlive ? fullStreak.streak : 0} Tam Gün{fullStreak.best > 0 && ` · Rekor: ${fullStreak.best}`}
           </span>
         </div>
       </div>
 
       {/* Hangi modlar bitti — tek bakışta: ✓ kazanıldı, ✗ kaybedildi, ○ oynanmadı */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         {DAILY_SUBS.map((m) => {
           const st = getDailyState(m.id)
           const state = st.won ? 'won' : st.done ? 'lost' : 'none'
           return (
-            <span key={m.id} className="rounded-md border px-2 py-1 text-xs"
+            <span key={m.id} className="rounded-lg border px-2.5 py-1 text-xs font-bold transition-all"
               style={{
-                borderColor: state === 'won' ? 'var(--correct)' : state === 'lost' ? 'var(--danger-text)' : 'var(--border)',
-                color: state === 'won' ? 'var(--correct)' : state === 'lost' ? 'var(--danger-text)' : 'var(--text-dim)',
+                background: state === 'won' ? 'rgba(16, 185, 129, 0.12)' : state === 'lost' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                borderColor: state === 'won' ? '#10b981' : state === 'lost' ? '#ef4444' : 'var(--border)',
+                color: state === 'won' ? '#34d399' : state === 'lost' ? '#f87171' : 'var(--text-dim)',
               }}>
               {state === 'won' ? '✓' : state === 'lost' ? '✗' : '○'} {m.name}
             </span>
@@ -93,14 +94,15 @@ export default function DailyPanel() {
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-          Yeni bulmacalar: <b className="tabular-nums" style={{ color: 'var(--text)' }}>{hhmmss(left)}</b>
+      <div className="flex items-center justify-between gap-2 pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
+        <span className="text-xs font-medium flex items-center gap-1.5" style={{ color: 'var(--text-dim)' }}>
+          <span>⏱️ Yenilenmeye:</span>
+          <b className="tabular-nums font-bold" style={{ color: 'var(--text)' }}>{hhmmss(left)}</b>
         </span>
         {doneCount > 0 && (
-          <button onClick={shareDay} className="card-btn rounded-xl border px-3 py-1.5 text-xs font-semibold"
-            style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
-            {copied ? '✓ Kopyalandı' : allDone ? '🏆 Günü paylaş' : 'Günü paylaş'}
+          <button onClick={shareDay} className="card-btn rounded-xl border px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-105"
+            style={{ borderColor: 'var(--gold)', color: 'var(--gold-bright)' }}>
+            {copied ? '✓ Kopyalandı' : allDone ? '🏆 Günü Paylaş' : 'Günü Paylaş'}
           </button>
         )}
       </div>

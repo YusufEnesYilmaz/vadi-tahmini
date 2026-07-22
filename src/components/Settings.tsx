@@ -2,13 +2,14 @@ import { useRef, useState } from 'react'
 import { applyBackup, clearProgress, downloadBackup } from '../game/backup'
 import { getNick, setNick, getPlayerId } from '../game/challenge'
 import { PATCH } from '../game/data'
-import { playCorrect, setSfxEnabled, sfxEnabled } from '../game/sfx'
+import { getVolume, playGarenUltSound, setSfxEnabled, setVolume, sfxEnabled, updateActiveGarenVolume } from '../game/sfx'
 import { updateLeaderboardNick } from '../game/supabase'
 import { applyUpdate, useUpdateAvailable } from '../game/pwaUpdate'
 import { godMode, godModeAvailable, setGodMode } from '../game/dev'
 
 export default function Settings({ onExit }: { onExit: () => void }) {
   const [sfx, setSfx] = useState(sfxEnabled)
+  const [vol, setVolState] = useState(() => Math.round(getVolume() * 100))
   const [nick, setNickState] = useState(getNick)
   const [nickSaved, setNickSaved] = useState(false)
   const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -16,6 +17,14 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const updateReady = useUpdateAvailable()
   const [god, setGod] = useState(godMode)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  function changeVolume(newVolPct: number) {
+    const v = newVolPct / 100
+    setVolState(newVolPct)
+    setVolume(v)
+    updateActiveGarenVolume(v)
+    if (sfx) playGarenUltSound()
+  }
 
   async function forceUpdateApp() {
     setUpdating(true)
@@ -94,15 +103,36 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
       {/* Ses */}
       <section className="rounded-xl border p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-        <h2 className="mb-1 font-bold" style={{ color: 'var(--gold-bright)' }}>Ses</h2>
+        <h2 className="mb-1 font-bold" style={{ color: 'var(--gold-bright)' }}>Ses & Efektler</h2>
         <p className="mb-3 text-sm" style={{ color: 'var(--text-dim)' }}>
-          Doğru/yanlış tahminlerde kısa efektler çalar. Replik modundaki seslendirme bundan bağımsızdır.
+          Doğru/yanlış tahminlerde ve ayarlarda ses efektleri çalar.
         </p>
-        <button onClick={() => { const on = !sfx; setSfx(on); setSfxEnabled(on); if (on) playCorrect() }}
-          className="card-btn rounded-xl border px-4 py-2 text-sm font-semibold"
-          style={{ borderColor: sfx ? 'var(--gold)' : 'var(--border)', color: sfx ? 'var(--gold)' : 'var(--text-dim)' }}>
-          {sfx ? '🔊 Ses efektleri açık' : '🔇 Ses efektleri kapalı'}
-        </button>
+
+        <div className="flex flex-col gap-3">
+          <button onClick={() => { const on = !sfx; setSfx(on); setSfxEnabled(on); if (on) playGarenUltSound() }}
+            className="card-btn rounded-xl border px-4 py-2 text-sm font-semibold transition-all"
+            style={{ borderColor: sfx ? 'var(--gold)' : 'var(--border)', color: sfx ? 'var(--gold)' : 'var(--text-dim)' }}>
+            {sfx ? '🔊 Ses Efektleri Açık' : '🔇 Ses Efektleri Kapalı'}
+          </button>
+
+          {sfx && (
+            <div className="flex flex-col gap-2 rounded-lg border p-3" style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between text-xs font-bold" style={{ color: 'var(--text)' }}>
+                <span>🔉 Ses Seviyesi</span>
+                <span style={{ color: 'var(--gold-bright)' }}>%{vol}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={vol}
+                onPointerDown={() => { if (sfx) playGarenUltSound() }}
+                onChange={(e) => changeVolume(Number(e.target.value))}
+                className="w-full cursor-pointer accent-amber-400"
+              />
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Güncelleme */}
