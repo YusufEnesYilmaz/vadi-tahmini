@@ -199,7 +199,7 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 │   │      İstemci Depolama          │             │
 │   ├────────────────────────────────┤             │
 │   │  localStorage → İstatistik,    │             │
-│   │    Rozetler, Ayarlar           │             │
+│   │    Rozetler (v1 Migrasyonlu)   │             │
 │   │  Service Worker → Önbellek     │             │
 │   └────────────────────────────────┘             │
 │                                                  │
@@ -215,7 +215,7 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 | **Bundler** | Vite 8 | HMR ile hızlı geliştirme |
 | **Stil** | Tailwind CSS v4 + Vanilla CSS | Utility-first + özel animasyonlar |
 | **PWA** | vite-plugin-pwa | Çevrimdışı destek, yüklenebilirlik |
-| **Backend** | Supabase | Küresel sıralama tablosu (anon key) |
+| **Backend** | Supabase | Küresel sıralama tablosu (RLS & SECURITY DEFINER RPC ile doğrulanmış) |
 | **Lint** | oxlint | Hızlı ve modern linting |
 | **Test** | Vitest | Unit testler |
 | **Hosting** | Vercel | Otomatik dağıtım, CDN, güvenlik başlıkları |
@@ -223,6 +223,7 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 ### Güvenlik
 
 - **Content Security Policy (CSP)** — Yalnızca güvenilir kaynaklardan içerik yüklenir
+- **Veritabanı Güvenliği (RLS & RPC)** — Tabloya doğrudan yazma/güncelleme kapalıdır; skor gönderimleri `SECURITY DEFINER` PostgreSQL Stored Procedure (RPC) fonksiyonları ile doğrulanır
 - **X-Frame-Options: DENY** — Clickjacking koruması
 - **X-Content-Type-Options: nosniff** — MIME sniffing koruması
 - **Strict Referrer Policy** — Referrer bilgisi koruması
