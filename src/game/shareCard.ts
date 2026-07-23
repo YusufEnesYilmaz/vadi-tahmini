@@ -9,6 +9,12 @@
 const W = 900
 const PAD = 56
 
+/**
+ * Canvas 2D bağlamı CSS değişkeni ANLAMIYOR (`var(--gold)` geçersiz renk sayılır),
+ * bu yüzden tema renkleri burada mecburen ham hex. Uygulamadaki tek meşru kopya bu.
+ * `index.css`'teki `:root` değerleri değişirse BURASI DA elle güncellenmeli —
+ * yoksa paylaşım kartı oyunun geri kalanından farklı renkte çıkar.
+ */
 const COLORS = {
   bg: '#0a0e1a',
   card: '#111827',

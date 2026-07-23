@@ -21,6 +21,38 @@
   --gold-soft: rgba(200, 170, 110, 0.22); /* ilerleme dolgusu, takvim gölgesi */
   --on-gold: #0a0e1a; /* altın zemin üstündeki yazı */
 
+  /*
+   * Vurgu renkleri — üst modların kimliği (menü kartları) ve durum renkleri.
+   * `--gold-glow` `--gold` DEĞİLDİR ve ona eşitlenmemelidir: --gold (#c8aa6e) mürekkep
+   * rengi (yazı/kenarlık), --gold-glow (#f59e0b) ise ışıma/yıkama rengi — düşük alfada
+   * sıcak parlaklık veriyor, --gold aynı işi yapmıyor. İkisi ayrı iş, ikisi de token.
+   *
+   * Neden ayrıca `-rgb` üçlüsü: alfa'lı kullanım `rgba(var(--x-rgb), .12)` ile yazılıyor;
+   * hex token'dan alfa türetilemiyor. Değerler Tailwind paletiyle bilerek aynı
+   * (amber-500 / sky-400 / rose-400 / emerald-400) — bileşenlerdeki `text-amber-300`
+   * gibi yardımcı sınıflar bu ailelerin tonları, yani token'larla çelişmiyorlar.
+   */
+  --gold-glow: #f59e0b;
+  --gold-glow-rgb: 245, 158, 11;
+  --gold-glow-deep-rgb: 217, 119, 6; /* hero gradyanının koyu ucu */
+  --gold-rgb: 200, 170, 110; /* --gold'un alfa'lı kullanımı için */
+  --accent-endless: #38bdf8; /* Sınırsız */
+  --accent-endless-rgb: 56, 189, 248;
+  --accent-timed: #f43f5e; /* Zamana Karşı */
+  --accent-timed-rgb: 244, 63, 94;
+  --accent-done: #34d399; /* tamamlandı/kazanıldı */
+  --accent-done-rgb: 52, 211, 153;
+  --accent-done-deep: #10b981;
+  --accent-done-deep-rgb: 16, 185, 129;
+  --accent-mystic: #a855f7; /* "Ionia Bilgesi" unvanı — tek mor kullanım */
+  --danger-glow: #ef4444; /* kayıp durumunun kenarlığı */
+  --danger-glow-rgb: 239, 68, 68;
+  --diff-hard: #fb923c; /* Zor zorluğun turuncusu (diğer üç seviye mevcut token'ları kullanıyor) */
+  --diff-hard-rgb: 251, 146, 60;
+  /* Mevcut renklerin alfa'lı kullanımı için üçlüler */
+  --correct-rgb: 22, 163, 74;
+  --danger-text-rgb: 248, 113, 113;
+
   /* Derinlik: kartlara/pencerelere yumuşak gölge + üst kenar ışığı (premium his) */
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.28);
   --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--gold-soft), 0 0 26px -6px rgba(200, 170, 110, 0.4);
@@ -65,11 +97,17 @@ body {
 /* Mobil dokunma hedefleri için */
 button { touch-action: manipulation; }
 
-/* Klavye ile gezenler için görünür odak — fare kullanıcısını rahatsız etmez */
+/*
+ * Klavye ile gezenler için görünür odak — fare kullanıcısını rahatsız etmez.
+ * TEK odak sistemi budur: bileşenler `focus-visible:outline-none` + kendi `ring-*`ini
+ * EKLEMEMELİ (iki sistem, iki renk olur; bir kez oldu ve temizlendi).
+ * Burada `border-radius` VERİLMEZ: outline'ın değil ELEMANIN yarıçapını değiştirirdi
+ * (rounded-2xl kart odaklanınca köşe atlıyordu). Modern tarayıcıda outline zaten
+ * elemanın kendi yarıçapını takip ediyor.
+ */
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
-  border-radius: 10px;
 }
 
 /*
@@ -89,6 +127,18 @@ button { touch-action: manipulation; }
   }
 }
 .card-btn:active { transform: scale(0.985); box-shadow: var(--shadow-card); }
+
+/*
+ * Büyük "hero" kartlar (menüdeki 3 üst mod) için daha belirgin kalkma.
+ * DİKKAT — Tailwind'in `hover:-translate-y-*` / `active:scale-*` yardımcılarıyla
+ * BİRLİKTE KULLANILMAZ: Tailwind v4 `translate`/`scale` ÖZELLİKLERİNİ yazıyor,
+ * buradaki kural ise `transform` — ikisi ezmiyor, BİRLEŞİYOR (kart -2px değil
+ * -6px kalkıyordu). Hareketin tek sahibi bu sınıf.
+ */
+@media (hover: hover) {
+  .card-btn-lg:hover { transform: translateY(-5px); }
+}
+.card-btn-lg:active { transform: scale(0.975); }
 
 /*
  * Birincil altın buton — düz altın yerine hafif gradyan + gölge (opt-in sınıf).

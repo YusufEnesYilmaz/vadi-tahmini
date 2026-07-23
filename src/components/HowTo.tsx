@@ -69,7 +69,7 @@ export default function HowTo({ sub, onClose }: Props) {
         </div>
 
         {/* Ana Amaç Özeti Banner */}
-        <div className="mt-4 rounded-xl border p-3.5" style={{ background: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.25)' }}>
+        <div className="mt-4 rounded-xl border p-3.5" style={{ background: 'rgba(var(--gold-glow-rgb), 0.06)', borderColor: 'rgba(var(--gold-glow-rgb), 0.25)' }}>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold-bright)' }}>
             <span>🎯</span>
             <span>Temel Amaç</span>
@@ -102,7 +102,7 @@ export default function HowTo({ sub, onClose }: Props) {
             {!sub && (
               <div
                 className="group rounded-xl border p-3 transition-all hover:scale-[1.01]"
-                style={{ borderColor: 'rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.04)' }}
+                style={{ borderColor: 'rgba(var(--gold-glow-rgb), 0.4)', background: 'rgba(var(--gold-glow-rgb), 0.04)' }}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-xl transition-transform group-hover:scale-110">🎲</span>

@@ -252,7 +252,7 @@ export default function BingoGame({ daily, onExit }: Props) {
                   className="card-btn relative flex aspect-[4/3] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center"
                   style={{
                     borderColor: f ? 'var(--correct)' : 'var(--border)',
-                    background: f ? 'rgba(22,163,74,0.12)' : 'var(--bg-card)',
+                    background: f ? 'rgba(var(--correct-rgb), 0.12)' : 'var(--bg-card)',
                   }}>
                   {/* Kutu numarası — konuşurken "3. kutu" demek kolaylaşsın */}
                   <span className="absolute left-1.5 top-1 text-xs tabular-nums" style={{ color: 'var(--text-dim)', opacity: 0.5 }}>

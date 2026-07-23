@@ -125,7 +125,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
             </div>
             <div className="flex items-center justify-center gap-2 rounded-lg border py-1.5 text-xs"
               style={{ borderColor: 'var(--border)' }}
-              title="Üst üste 6 modun da tamamlandığı gün — sonuç önemsiz">
+              title={`Üst üste ${DAILY_SUBS.length} modun da tamamlandığı gün — sonuç önemsiz`}>
               <span style={{ color: 'var(--text-dim)' }}>Tam gün serisi</span>
               <b style={{ color: 'var(--gold)' }}>⭐ {isStreakAlive(fullStreak) ? fullStreak.streak : 0}</b>
               <span style={{ color: 'var(--text-dim)' }}>· en iyi {fullStreak.best}</span>

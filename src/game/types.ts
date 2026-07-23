@@ -43,9 +43,19 @@ export interface Item {
   from: string[] // bileşen id'leri — ipucu (ikonları gösterilir)
 }
 
+/**
+ * Bileşen (ara eşya) — yalnız ipucu ikonu çizmek için. Tahmin havuzunda YER ALMAZ,
+ * o yüzden `Item` değil: fiyatı/etiketi/`from`'u oyunda kullanılmıyor.
+ */
+export interface ItemPart {
+  name: string
+  img: string
+}
+
 export interface ItemData {
   version: string
   items: Item[]
+  parts: Record<string, ItemPart>
 }
 
 /** Üst mod: nasıl oynanıyor */
@@ -101,7 +111,9 @@ export const SUB_MODES: { id: SubMode; name: string; desc: string; icon: string;
   { id: 'skin', name: 'Kostüm', desc: 'Görselden kostümün adını bul', icon: '🎭' },
   { id: 'emoji', name: 'Emoji', desc: 'Emoji ipuçlarından şampiyonu bul', icon: '😀' },
   { id: 'quote', name: 'Replik', desc: 'Sesinden şampiyonu bul', icon: '🔊' },
-  { id: 'item', name: 'Eşya', desc: 'İkonundan eşyayı bul', icon: '🗡' },
+  // Açıklama "ikonundan bul" DEĞİL: mod 2026-07-21'de ters çevrildi — ikon artık
+  // soru değil, en son açılan ipucu. Soru altın değeriyle başlıyor.
+  { id: 'item', name: 'Eşya', desc: 'Altın ve statlardan eşyayı bul', icon: '🗡' },
   { id: 'silhouette', name: 'Silüet', desc: 'Karartılmış görselden şampiyonu bul', icon: '👤', daily: false },
   { id: 'lore', name: 'Hikâye', desc: 'Şampiyonun hikâyesinden bul', icon: '📜', daily: false },
 ]

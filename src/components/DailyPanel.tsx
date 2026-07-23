@@ -84,9 +84,9 @@ export default function DailyPanel() {
           return (
             <span key={m.id} className="rounded-lg border px-2.5 py-1 text-xs font-bold transition-all"
               style={{
-                background: state === 'won' ? 'rgba(16, 185, 129, 0.12)' : state === 'lost' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(255, 255, 255, 0.02)',
-                borderColor: state === 'won' ? '#10b981' : state === 'lost' ? '#ef4444' : 'var(--border)',
-                color: state === 'won' ? '#34d399' : state === 'lost' ? '#f87171' : 'var(--text-dim)',
+                background: state === 'won' ? 'rgba(var(--accent-done-deep-rgb), 0.12)' : state === 'lost' ? 'rgba(var(--danger-glow-rgb), 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                borderColor: state === 'won' ? 'var(--accent-done-deep)' : state === 'lost' ? 'var(--danger-glow)' : 'var(--border)',
+                color: state === 'won' ? 'var(--accent-done)' : state === 'lost' ? 'var(--danger-text)' : 'var(--text-dim)',
               }}>
               {state === 'won' ? '✓' : state === 'lost' ? '✗' : '○'} {m.name}
             </span>

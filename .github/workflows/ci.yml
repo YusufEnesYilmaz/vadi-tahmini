@@ -1,0 +1,41 @@
+name: CI
+
+# Her push ve PR'da aynı kapılar: tip → lint → test → build.
+# Neden: bu kontroller şimdiye kadar YALNIZ elle çalıştırıldı. Vercel push'ta
+# deploy ettiği için bozuk bir değişiklik doğrudan canlıya gidebiliyordu.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  dogrula:
+    name: Tip · lint · test · build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` (install değil): lockfile'a birebir uyar, sürüm kayması olmaz
+      - run: npm ci
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx oxlint
+
+      - name: Testler
+        run: npm test
+
+      # Build en sonda: öncekiler geçmeden buraya gelmenin anlamı yok.
+      # NOT: Vercel'deki build ortam değişkenlerini (VITE_SUPABASE_*) kullanır;
+      # burada onlar yok, bu yüzden derleme başarılı olsa da Supabase'siz çıktı
+      # üretir — amaç zaten derlemenin BOZULMADIĞINI doğrulamak.
+      - name: Build
+        run: npm run build

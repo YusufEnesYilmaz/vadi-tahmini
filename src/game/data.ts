@@ -1,7 +1,7 @@
 import bundled from '../data/champions.json'
 import emojiData from '../data/emoji.json'
 import itemData from '../data/items.json'
-import type { ChampionData, Champion, Item, ItemData } from './types'
+import type { ChampionData, Champion, Item, ItemData, ItemPart } from './types'
 
 /**
  * Veri kaynağı: yalnız uygulamayla gelen gömülü JSON (`champions.json`,
@@ -78,13 +78,26 @@ export function loadingUrl(id: string, num: number): string {
  */
 /**
  * Fiyatlar Summoner's Rift fiyatlarıdır (ddragon `gold.total`).
- * Tam Gaz / ARAM gibi özel modlarda oyun içi fiyatlar farklı ölçeklenir —
- * o modlardaki rakamla karşılaştırıp "veri yanlış" sanma (2026-07-21'de bir kez yaşandı).
+ * Tam Gaz / Arena gibi özel modların AYRI eşya kayıtları vardır (aynı ad, farklı
+ * fiyat) — bunlar `build-data.mjs`'te 4 haneli id kuralıyla havuz dışında tutulur.
+ * Sızarlarsa otomatik tamamlamada aynı ad iki kez çıkar ve oyuncu doğru adı
+ * yazdığı hâlde kaybeder (2026-07-23'te bir kez yaşandı).
  */
 export const ITEMS: Item[] = (itemData as ItemData).items
 
 export function itemById(id: string): Item | undefined {
   return ITEMS.find((i) => i.id === id)
+}
+
+/**
+ * Bileşen sözlüğü — yalnız ipucu ÇİZİMİ için, tahmin havuzu DEĞİL.
+ * Bileşenler ucuz ara eşyalar olduğu için `ITEMS`'te yoklar; `itemById` ile
+ * aranınca bulunamıyor ve bileşen ipucu 143 eşyanın 128'inde boş çıkıyordu.
+ */
+export const PARTS: Record<string, ItemPart> = (itemData as ItemData).parts
+
+export function partById(id: string): ItemPart | undefined {
+  return PARTS[id]
 }
 
 export function itemIconUrl(img: string): string {

@@ -1,5 +1,10 @@
 -- Vadi Tahmini · Küresel Sıralama tablosu + güvenlik kuralları
 -- Supabase panelinde: SQL Editor → New query → bunu yapıştır → Run
+--
+-- TEKRAR ÇALIŞTIRILABİLİR: tablo/indeks/politika `if not exists`/`drop if exists`,
+-- fonksiyonlar `create or replace`. Mevcut skorlar SİLİNMEZ.
+-- 2026-07-23 güncellemesi: fonksiyonlara `set search_path = ''` + skor akla
+-- yatkınlık tavanı eklendi → bu dosyanın YENİDEN çalıştırılması gerekir.
 
 -- 1) Tablo
 create table if not exists public.vt_leaderboard (
@@ -43,6 +48,10 @@ create or replace function public.submit_score(
 returns void
 language plpgsql
 security definer
+-- search_path BOŞ: SECURITY DEFINER fonksiyon tablo sahibinin yetkisiyle çalışır;
+-- arama yolu boşaltılmazsa çağıranın yoluna konmuş sahte bir tablo/fonksiyon adı
+-- çözülebilir. Bu yüzden aşağıdaki tüm adlar tam nitelikli (public.…) yazılmıştır.
+set search_path = ''
 as $$
 declare
   v_clean_nick text;
@@ -51,6 +60,18 @@ begin
   -- Temizlik ve temel doğrulamalar
   v_clean_nick := trim(p_nick);
   if v_clean_nick = '' or p_score <= 0 or p_player_id is null or trim(p_player_id) = '' then
+    return;
+  end if;
+
+  -- Akla yatkınlık tavanı: istemci skoru kendi üretiyor, sunucu oyunu simüle etmiyor.
+  -- Bu yüzden en azından FİZİKSEL OLARAK imkânsız değerler reddedilir.
+  -- Zamana Karşı: en uzun tur 90 sn (Kolay). Saniyede bir doğru bile insanüstüyken
+  -- 60'ın üstü mümkün değil. Günlük: en fazla 10 hak var, 20 üstü anlamsız.
+  -- (Kararlı bir hile bunu aşamaz ama "konsoldan 9999 yaz" seviyesini keser.)
+  if p_mode like 'timed:%' and p_score > 60 then
+    return;
+  end if;
+  if p_mode like 'daily:%' and p_score > 20 then
     return;
   end if;
 
@@ -107,6 +128,7 @@ create or replace function public.update_player_nick(
 returns void
 language plpgsql
 security definer
+set search_path = '' -- gerekçesi submit_score'da yazılı
 as $$
 declare
   v_clean_nick text;

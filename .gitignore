@@ -31,4 +31,6 @@ tools/species-review.html
 # NOT: .env BİLEREK burada YOK — Vercel build'i VITE_SUPABASE_* değerlerini ondan
 # okuyor; çıkarılırsa küresel sıralama bozulur (anon anahtar zaten publishable).
 CLAUDE.md
+AGENTS.md
 .claude/
+.codex/

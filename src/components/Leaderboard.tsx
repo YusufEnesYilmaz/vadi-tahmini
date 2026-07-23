@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getDailyLeaderboard, getTimedLeaderboard, type LeaderboardEntry } from '../game/supabase'
 import { DAILY_SUBS, DIFFICULTIES, SUB_MODES, MIX_MODE, type Difficulty, type PlaySub } from '../game/types'
 import { todayKey } from '../game/rng'
-import { getNick } from '../game/challenge'
+import { getPlayerId } from '../game/challenge'
 
 interface Props {
   onClose: () => void
@@ -16,7 +16,9 @@ export default function Leaderboard({ onClose }: Props) {
   const [diff, setDiff] = useState<Difficulty>('normal')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const myNick = getNick()
+  // Kimlik = player_id. Takma adla karşılaştırmak HATALIYDI: aynı adı yazan iki
+  // kişinin satırı da "(Sen)" oluyordu. Ad değişebilir, kimlik değişmez.
+  const myId = getPlayerId()
 
   // ESC ile kapatma
   useEffect(() => {
@@ -155,7 +157,7 @@ export default function Leaderboard({ onClose }: Props) {
             {entries.length >= 3 && (
               <div className="mt-4 grid grid-cols-3 items-end gap-2">
                 {[{ e: entries[1], rank: 2 }, { e: entries[0], rank: 1 }, { e: entries[2], rank: 3 }].map(({ e, rank }) => {
-                  const isMe = myNick && e.nick.toLowerCase() === myNick.toLowerCase()
+                  const isMe = e.playerId === myId
                   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'
                   const barH = rank === 1 ? 'h-16' : rank === 2 ? 'h-12' : 'h-10'
                   const val = String(e.score)
@@ -171,7 +173,7 @@ export default function Leaderboard({ onClose }: Props) {
                         style={{
                           borderColor: rank === 1 ? 'var(--gold)' : 'var(--border)',
                           background: rank === 1 ? 'var(--gold-soft)' : 'var(--bg-input)',
-                          boxShadow: rank === 1 ? '0 0 22px -6px rgba(200,170,110,0.5)' : 'none',
+                          boxShadow: rank === 1 ? '0 0 22px -6px rgba(var(--gold-rgb), 0.5)' : 'none',
                         }}>
                         <span className="font-display text-lg font-bold" style={{ color: rank === 1 ? 'var(--gold-bright)' : 'var(--text-dim)' }}>{rank}</span>
                       </div>
@@ -194,7 +196,7 @@ export default function Leaderboard({ onClose }: Props) {
                 <tbody>
                   {(entries.length >= 3 ? entries.slice(3) : entries).map((entry, index) => {
                     const rank = (entries.length >= 3 ? 4 : 1) + index
-                    const isMe = myNick && entry.nick.toLowerCase() === myNick.toLowerCase()
+                    const isMe = entry.playerId === myId
                     const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`
 
                     return (

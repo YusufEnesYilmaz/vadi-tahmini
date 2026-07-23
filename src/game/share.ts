@@ -31,10 +31,14 @@ export function shareDailySimple(sub: PlaySub, guessCount: number, won: boolean,
   return `Vadi Tahmini — Günlük ${subName(sub)} ${todayKey()}\n${head}\n${grid}${bonus}`
 }
 
-/** Zamana Karşı skoru */
-export function shareTimed(sub: PlaySub, score: number, isRecord: boolean): string {
+/**
+ * Zamana Karşı skoru.
+ * `seconds` PARAMETRE — süre zorluğa göre değişiyor (90/60/45/30, `RULES[diff].timedSeconds`);
+ * burada sabit yazılırsa metin sessizce yalan söyler (bir kez yaşandı: hep "60 saniyede" diyordu).
+ */
+export function shareTimed(sub: PlaySub, score: number, isRecord: boolean, seconds: number): string {
   const rekor = isRecord ? ' 🏆 YENİ REKOR!' : ''
-  return `Vadi Tahmini — Zamana Karşı ${subName(sub)}\n⏱ 60 saniyede ${score} doğru!${rekor}`
+  return `Vadi Tahmini — Zamana Karşı ${subName(sub)}\n⏱ ${seconds} saniyede ${score} doğru!${rekor}`
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {

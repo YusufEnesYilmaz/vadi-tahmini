@@ -1,5 +1,5 @@
 import type { Puzzle } from '../game/puzzle'
-import { EMOJI, itemById, itemIconUrl, loadingUrl, passiveUrl, spellUrl, splashUrl } from '../game/data'
+import { EMOJI, itemIconUrl, loadingUrl, partById, passiveUrl, spellUrl, splashUrl } from '../game/data'
 import type { DiffRules } from '../game/difficulty'
 import LoreView from './LoreView'
 import QuoteView from './QuoteView'
@@ -81,7 +81,9 @@ export default function PuzzleView({ puzzle, wrongCount, revealed, rules, hideSl
             <span className="flex items-center gap-1">
               Bileşenler:
               {item.from.map((id, i) => {
-                const part = itemById(id)
+                // partById — bileşenler havuzda YOK (ucuz ara eşyalar); itemById ile
+                // aranınca hepsi null dönüyor ve ipucu boş çıkıyordu
+                const part = partById(id)
                 return part
                   ? <img key={`${id}-${i}`} src={itemIconUrl(part.img)} alt={part.name} title={part.name}
                       className="h-7 w-7 rounded border" style={{ borderColor: 'var(--border)' }} />

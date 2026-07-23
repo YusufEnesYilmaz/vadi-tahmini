@@ -80,7 +80,7 @@ export default function DailyCalendar() {
               style={{
                 borderColor: isSelected ? 'var(--gold-bright)' : isToday ? 'var(--gold)' : 'var(--border)',
                 borderWidth: isSelected ? 2 : 1,
-                background: done ? `rgba(200, 170, 110, ${alpha})` : 'transparent',
+                background: done ? `rgba(var(--gold-rgb), ${alpha})` : 'transparent',
                 color: done >= total / 2 ? 'var(--on-gold)' : 'var(--text-dim)',
                 fontWeight: isToday || isSelected ? 700 : 400,
               }}>
@@ -130,7 +130,7 @@ export default function DailyCalendar() {
           az
           {[0.2, 0.45, 0.7, 1].map((a) => (
             <span key={a} className="h-2.5 w-2.5 rounded-md border"
-              style={{ background: `rgba(200, 170, 110, ${a})`, borderColor: 'var(--border)' }} />
+              style={{ background: `rgba(var(--gold-rgb), ${a})`, borderColor: 'var(--border)' }} />
           ))}
           çok
         </span>

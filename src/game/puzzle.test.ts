@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CHAMPIONS, EMOJI, EMOJI_IDS } from './data'
 import { DAILY_OVERRIDES, nextPuzzle } from './puzzle'
+import { resetDecks } from './deck'
 import { todayKey } from './rng'
 import { asChamp, champOf } from '../test/helpers'
 import { SUB_MODES } from './types'
@@ -92,6 +93,12 @@ describe('bulmaca üretimi', () => {
   })
 
   it('Eşya modu geçerli bir eşya verir ve tekrar etmez', () => {
+    // Taze deste ŞART: bu dosyadaki Karışık testleri (300 + 200 + 60 çekiliş)
+    // eşya destesinin bir kısmını tüketiyor. Havuz 143'ken kalan pay 40 çekilişe
+    // yetiyordu, 109'a inince marj ~4'e düştü ve test rastgele kırmızı yanmaya
+    // başladı. Testin ölçtüğü şey "bir tur içinde tekrar yok" — komşu testlerin
+    // ne kadar çektiği değil.
+    resetDecks()
     const seen = new Set<string>()
     for (let i = 0; i < 40; i++) {
       const p = nextPuzzle('endless', 'item')

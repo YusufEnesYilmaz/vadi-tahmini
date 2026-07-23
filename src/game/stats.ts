@@ -1,6 +1,7 @@
 import { DAILY_SUBS, type Difficulty, type PlaySub, type SubMode, type TopMode } from './types'
 import { rulesFor } from './difficulty'
 import { todayKey } from './rng'
+import { PATCH } from './data'
 
 /** Mod başına istatistik — localStorage */
 /** Tahmin dağılımı kutuları: 1, 2, 3, 4, 5, 6+ */
@@ -216,6 +217,14 @@ export interface DailyEntry {
   g: number
   /** Cevabın görünen adı (kostüm modunda kostüm adı) — eski kayıtlarda yok */
   a?: string
+  /**
+   * Kaydın yazıldığı VERİ sürümü (ddragon patch'i, ör. "16.14.1").
+   * Neden: günlük cevap havuz uzunluğundan türüyor; havuz değişince aynı tarihin
+   * cevabı kayar. 2026-07-23'te yaşandı (eşya havuzu 143→109). Cevabın kendisi
+   * zaten `a`'da saklı; bu alan geçmişe bakarken "bu kayıt hangi veriyle üretildi"
+   * sorusunu cevaplar. **Eski kayıtlarda YOK — opsiyonel kalmalı.**
+   */
+  v?: string
 }
 
 export type DailyHistory = Record<string, Partial<Record<SubMode, DailyEntry | number>>>
@@ -238,7 +247,7 @@ export function getDailyHistory(): DailyHistory {
 
 function recordDailyWin(sub: SubMode, date: string, guesses: number, answer?: string) {
   const h = getDailyHistory()
-  h[date] = { ...h[date], [sub]: { g: guesses, a: answer } }
+  h[date] = { ...h[date], [sub]: { g: guesses, a: answer, v: PATCH } }
   localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 
@@ -247,7 +256,7 @@ function recordDailyLoss(sub: SubMode, date: string, answer?: string) {
   const h = getDailyHistory()
   // Kazanılmış bir kaydın üzerine yazma (aynı gün aynı mod iki kez bitemez ama garanti olsun)
   if ((normalizeEntry(h[date]?.[sub])?.g ?? 0) > 0) return
-  h[date] = { ...h[date], [sub]: { g: 0, a: answer } }
+  h[date] = { ...h[date], [sub]: { g: 0, a: answer, v: PATCH } }
   localStorage.setItem(DHIST_KEY, JSON.stringify(h))
 }
 

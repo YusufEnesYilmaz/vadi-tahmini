@@ -109,3 +109,23 @@ export function getDeck(deckId: string, items: string[], avoid?: AvoidPair): Dec
   }
   return d
 }
+
+/**
+ * TÜM desteleri sıfırlar — hem bellekteki örnekleri hem kayıtlı sıraları.
+ * **Testler için:** deste durumu kalıcı olduğu için aynı dosyadaki bir test
+ * öncekinin bıraktığı yerden devam ediyordu. Bu, "tur içinde tekrar yok"
+ * testini komşu testlerin ne kadar çektiğine bağımlı ve KIRILGAN yapıyordu
+ * (2026-07-23'te eşya havuzu 143→109 olunca marj daralıp kırmızı yandı).
+ * Üretimde çağrılmaz; kalıcılık oyunun istediği davranıştır.
+ */
+export function resetDecks() {
+  cache.clear()
+  try {
+    const sil: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith('vt:deck:')) sil.push(k)
+    }
+    for (const k of sil) localStorage.removeItem(k)
+  } catch { /* localStorage yoksa zaten bellek temizlendi */ }
+}

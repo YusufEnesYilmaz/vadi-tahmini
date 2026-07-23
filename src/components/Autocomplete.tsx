@@ -60,12 +60,32 @@ export default function Autocomplete({ options, placeholder, disabledKeys, onPic
     inputRef.current?.focus()
   }
 
+  /*
+   * Erişilebilirlik: bu bir combobox. Görsel olarak çalışıyordu ama ekran okuyucuya
+   * hiçbir şey söylemiyordu — kaç sonuç var, hangisi seçili, liste açık mı bilinmiyordu.
+   * ARIA kalıbı: input[role=combobox] + aria-activedescendant → listbox → option'lar.
+   * Odak input'ta KALIR; seçili seçenek `aria-activedescendant` ile bildirilir
+   * (klavye mantığı bu yüzden hiç değişmedi).
+   */
+  const listOpen = open && matches.length > 0
+  const listId = 'ac-list'
+  const optionId = (i: number) => `ac-opt-${i}`
+
   return (
     <div className="relative w-full">
+      {/* Sonuç sayısını duyur — görsel kullanıcı listeyi görüyor, ekran okuyucu duymalı */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {listOpen ? `${matches.length} sonuç bulundu` : ''}
+      </span>
       <input
         ref={inputRef}
         value={query}
         autoFocus={autoFocus}
+        role="combobox"
+        aria-expanded={listOpen}
+        aria-controls={listId}
+        aria-activedescendant={listOpen ? optionId(hi) : undefined}
+        aria-autocomplete="list"
         onChange={(e) => {
           setQuery(e.target.value)
           setOpen(true)
@@ -86,15 +106,23 @@ export default function Autocomplete({ options, placeholder, disabledKeys, onPic
         autoCorrect="off"
         spellCheck={false}
       />
-      {open && matches.length > 0 && (
+      {listOpen && (
         <div
           ref={listRef}
+          id={listId}
+          role="listbox"
+          aria-label="Tahmin önerileri"
           className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border shadow-xl"
           style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         >
           {matches.map((o, i) => (
             <button
               key={o.key}
+              id={optionId(i)}
+              role="option"
+              aria-selected={i === hi}
+              // Odak input'tan KAÇMASIN: mousedown'ı engellemek blur'u da engeller,
+              // böylece tıklama seçimi kaybolmuyor (aşağıdaki 150 ms yedek koruma).
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => pick(o.key)}
               onMouseEnter={() => setHi(i)}

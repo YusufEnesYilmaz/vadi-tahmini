@@ -35,9 +35,9 @@ const LOL_TIPS = [
 
 function getSummonerTitle(uniqueChamps: number): { title: string; icon: string; color: string } {
   if (uniqueChamps >= 100) return { title: 'Runeterra Efsanesi', icon: '👑', color: 'var(--gold-bright)' }
-  if (uniqueChamps >= 50) return { title: 'Ionia Bilgesi', icon: '🔮', color: '#a855f7' }
-  if (uniqueChamps >= 25) return { title: 'Demacia Muhafızı', icon: '🛡️', color: '#38bdf8' }
-  if (uniqueChamps >= 10) return { title: 'Vadi Savaşçısı', icon: '⚔️', color: '#34d399' }
+  if (uniqueChamps >= 50) return { title: 'Ionia Bilgesi', icon: '🔮', color: 'var(--accent-mystic)' }
+  if (uniqueChamps >= 25) return { title: 'Demacia Muhafızı', icon: '🛡️', color: 'var(--accent-endless)' }
+  if (uniqueChamps >= 10) return { title: 'Vadi Savaşçısı', icon: '⚔️', color: 'var(--accent-done)' }
   return { title: 'Sihirdar Çırağı', icon: '🌱', color: 'var(--text-dim)' }
 }
 
@@ -106,7 +106,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
       {/* Ambient Glow Lights */}
       <div className="pointer-events-none absolute -top-16 inset-x-0 flex justify-between opacity-30 blur-3xl" aria-hidden>
         <div className="h-48 w-48 rounded-full" style={{ background: 'var(--gold)' }} />
-        <div className="h-48 w-48 rounded-full" style={{ background: '#38bdf8' }} />
+        <div className="h-48 w-48 rounded-full" style={{ background: 'var(--accent-endless)' }} />
       </div>
 
       {/* Üst Canlı Bar: Sihirdar Kimliği & Ses Kontrolü */}
@@ -122,11 +122,11 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
         {/* Sağ: Ses Aç/Kapat Butonu */}
         <button
           onClick={toggleSound}
-          className="flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+          className="flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold transition-all duration-200 hover:scale-105"
           style={{
-            background: soundOn ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.04)',
-            borderColor: soundOn ? 'rgba(52, 211, 153, 0.3)' : 'var(--border)',
-            color: soundOn ? '#34d399' : 'var(--text-dim)',
+            background: soundOn ? 'rgba(var(--accent-done-rgb), 0.1)' : 'rgba(255, 255, 255, 0.04)',
+            borderColor: soundOn ? 'rgba(var(--accent-done-rgb), 0.3)' : 'var(--border)',
+            color: soundOn ? 'var(--accent-done)' : 'var(--text-dim)',
           }}
           aria-label={soundOn ? 'Ses efektlerini kapat' : 'Ses efektlerini aç'}
           title={soundOn ? 'Ses Efektleri Açık' : 'Ses Efektleri Kapalı'}
@@ -140,7 +140,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
       <header className="anim-pop z-10 flex flex-col items-center text-center">
         <h1
           className="text-shimmer font-display text-3xl font-extrabold tracking-tight sm:text-5xl"
-          style={{ filter: 'drop-shadow(0 0 18px rgba(245, 158, 11, 0.35))' }}
+          style={{ filter: 'drop-shadow(0 0 18px rgba(var(--gold-glow-rgb), 0.35))' }}
         >
           Vadi Tahmini
         </h1>
@@ -162,22 +162,22 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
           {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
           <button
             onClick={quickPlay}
-            className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border px-3.5 sm:px-5 py-2.5 sm:py-3.5 shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border px-3.5 sm:px-5 py-2.5 sm:py-3.5 shadow-lg transition-all duration-300 active:scale-[0.99]"
             style={{
               background: isDailyAllCompleted
-                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.08))'
-                : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1))',
-              borderColor: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+                ? 'linear-gradient(135deg, rgba(var(--accent-done-deep-rgb), 0.15), rgba(var(--accent-endless-rgb), 0.08))'
+                : 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.2), rgba(var(--gold-glow-deep-rgb), 0.1))',
+              borderColor: isDailyAllCompleted ? 'var(--accent-done)' : 'var(--gold-bright)',
               boxShadow: isDailyAllCompleted
-                ? '0 0 20px rgba(52, 211, 153, 0.18)'
-                : '0 0 20px rgba(245, 158, 11, 0.22)',
+                ? '0 0 20px rgba(var(--accent-done-rgb), 0.18)'
+                : '0 0 20px rgba(var(--gold-glow-rgb), 0.22)',
             }}
           >
             <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
               <span
                 className="grid h-9 sm:h-10 w-9 sm:w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-md transition-transform duration-300 group-hover:scale-110"
                 style={{
-                  background: isDailyAllCompleted ? '#10b981' : 'var(--gold)',
+                  background: isDailyAllCompleted ? 'var(--accent-done-deep)' : 'var(--gold)',
                   color: 'var(--bg)',
                 }}
               >
@@ -197,8 +197,8 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             <span
               className="ml-2 shrink-0 rounded-lg sm:rounded-xl border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs font-bold transition-transform duration-300 group-hover:translate-x-1"
               style={{
-                background: isDailyAllCompleted ? '#10b981' : 'var(--gold)',
-                borderColor: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+                background: isDailyAllCompleted ? 'var(--accent-done-deep)' : 'var(--gold)',
+                borderColor: isDailyAllCompleted ? 'var(--accent-done)' : 'var(--gold-bright)',
                 color: 'var(--bg)',
               }}
             >
@@ -211,14 +211,14 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             {/* Sınırsız */}
             <button
               onClick={() => setTop('endless')}
-              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(56,189,248,0.2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-              style={{ background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
+              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(var(--accent-endless-rgb),0.2)]"
+              style={{ background: 'linear-gradient(135deg, rgba(var(--accent-endless-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
               <div className="flex w-full items-center justify-between">
-                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8' }}>
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--accent-endless-rgb), 0.12)', color: 'var(--accent-endless)' }}>
                   ♾️
                 </span>
-                <span className="text-xs font-bold opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ color: '#38bdf8' }}>
+                <span className="text-xs font-bold opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ color: 'var(--accent-endless)' }}>
                   Oyna →
                 </span>
               </div>
@@ -235,21 +235,21 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             {/* Günlük */}
             <button
               onClick={() => setTop('daily')}
-              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(245,158,11,0.35)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(var(--gold-glow-rgb),0.35)]"
               style={{
-                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 255, 255, 0.02))',
-                borderColor: isDailyAllCompleted ? '#34d399' : 'rgba(245, 158, 11, 0.4)',
+                background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.12), rgba(255, 255, 255, 0.02))',
+                borderColor: isDailyAllCompleted ? 'var(--accent-done)' : 'rgba(var(--gold-glow-rgb), 0.4)',
               }}
             >
               <div className="flex w-full items-center justify-between">
-                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(245, 158, 11, 0.2)' }}>
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--gold-glow-rgb), 0.2)' }}>
                   📅
                 </span>
                 <span
                   className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-sm"
                   style={{
-                    background: isDailyAllCompleted ? 'rgba(52, 211, 153, 0.2)' : 'rgba(245, 158, 11, 0.25)',
-                    color: isDailyAllCompleted ? '#34d399' : 'var(--gold-bright)',
+                    background: isDailyAllCompleted ? 'rgba(var(--accent-done-rgb), 0.2)' : 'rgba(var(--gold-glow-rgb), 0.25)',
+                    color: isDailyAllCompleted ? 'var(--accent-done)' : 'var(--gold-bright)',
                   }}
                 >
                   {isDailyAllCompleted ? '✓ BİTTİ' : `${todayDoneCount}/${DAILY_SUBS.length}`}
@@ -268,14 +268,14 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             {/* Zamana Karşı */}
             <button
               onClick={() => setTop('timed')}
-              className="group card-btn relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:-translate-y-1 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(244,63,94,0.2)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
-              style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
+              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(var(--accent-timed-rgb),0.2)]"
+              style={{ background: 'linear-gradient(135deg, rgba(var(--accent-timed-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
               <div className="flex w-full items-center justify-between">
-                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e' }}>
+                <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--accent-timed-rgb), 0.12)', color: 'var(--accent-timed)' }}>
                   ⏱️
                 </span>
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-300" style={{ background: 'rgba(244, 63, 94, 0.18)' }}>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-300" style={{ background: 'rgba(var(--accent-timed-rgb), 0.18)' }}>
                   ⚡ Tempolu
                 </span>
               </div>
@@ -314,7 +314,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
                 🕹️ Mini Oyunlar
               </span>
-              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.3), transparent)' }} />
+              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.3), transparent)' }} />
             </div>
 
             <div className="grid gap-2.5 sm:grid-cols-2">
@@ -324,7 +324,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               ].map((g) => (
                 <div
                   key={g.id}
-                  className="group overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.12)]"
+                  className="group overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
                   style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
                 >
                   <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
@@ -345,14 +345,14 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                   <div className="flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
                     <button
                       onClick={() => onMiniGame(g.id, false)}
-                      className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300 active:scale-95"
+                      className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
                       style={{ color: 'var(--gold)' }}
                     >
                       ♾️ Sınırsız
                     </button>
                     <button
                       onClick={() => onMiniGame(g.id, true)}
-                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300 active:scale-95"
+                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
                       style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
                     >
                       📅 Günlük
@@ -369,7 +369,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 onClick={() => setHowTo(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
               >
                 <span>❓</span>
@@ -377,7 +377,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               </button>
               <button
                 onClick={() => setStats(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
               >
                 <span>📊</span>
@@ -385,7 +385,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               </button>
               <button
                 onClick={onSettings}
-                className="card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                className="card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{
                   background: 'var(--bg-card)',
                   borderColor: updateReady ? 'var(--gold)' : 'var(--border)',
@@ -407,24 +407,24 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 onClick={() => setAchievements(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
                 <span>🏆</span>
                 <span>Başarımlar</span>
               </button>
               <button
                 onClick={() => setLeaderboard(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
                 <span>🥇</span>
                 <span>Sıralama</span>
               </button>
               <button
                 onClick={() => setCalendar(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400/50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
                 <span>📅</span>
                 <span>Takvim</span>
@@ -433,7 +433,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
           </div>
 
           {/* Vadi İpucu Banner'ı */}
-          <div className="rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)', color: 'var(--text-dim)' }}>
+          <div className="rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(var(--gold-glow-rgb), 0.03)', borderColor: 'rgba(var(--gold-glow-rgb), 0.15)', color: 'var(--text-dim)' }}>
             {randomTip}
           </div>
         </div>
@@ -441,7 +441,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
         <div className="stagger z-10 flex w-full flex-col gap-4">
           {/* Başlık: geri + üst modun kimliği (ikon + ad + kısa açıklama), ortalı */}
           <div className="flex items-center gap-2">
-            <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+            <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105"
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               ← Geri
             </button>

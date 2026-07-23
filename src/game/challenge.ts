@@ -1,4 +1,5 @@
 import { DIFFICULTIES, MIX_MODE, SUB_MODES, type Difficulty, type PlaySub } from './types'
+import { PATCH } from './data'
 
 /**
  * Meydan okuma — backend'siz. Zamana Karşı turunun seed'i + skoru URL'e gömülür;
@@ -14,6 +15,12 @@ export interface Challenge {
   nick: string
   /** Havuz filtresi anahtarı ("all" / "region:Noxus") — iki oyuncu aynı havuzdan oynasın */
   filter: string
+  /**
+   * Linkin üretildiği VERİ sürümü (ddragon patch'i). Eski linklerde yok (undefined).
+   * Uyuşmazlık linki geçersiz KILMAZ — yalnız "aynı seed farklı soru üretmiş olabilir"
+   * uyarısı gösterilir.
+   */
+  dataVersion?: string
 }
 
 const VERSION = 1
@@ -43,8 +50,12 @@ function fromBase64Url(s: string): Uint8Array {
 }
 
 export function encodeChallenge(c: Challenge): string {
-  // Kısa anahtarlar: link kısa kalsın
-  const payload = { v: VERSION, s: c.seed >>> 0, m: c.sub, d: c.diff, sc: c.score, cb: c.combo, n: c.nick, f: c.filter }
+  // Kısa anahtarlar: link kısa kalsın.
+  // `dv` = VERİ sürümü (ddragon patch'i). `v`'den farklı: `v` payload BİÇİMİNİN
+  // sürümü, `dv` soruların üretildiği HAVUZUN sürümü. Aynı seed farklı havuzla
+  // farklı sorular üretir (2026-07-23'te eşya havuzu 143→109 olunca yaşandı),
+  // o yüzden karşı taraf uyuşmazlığı görebilsin diye taşınıyor.
+  const payload = { v: VERSION, dv: PATCH, s: c.seed >>> 0, m: c.sub, d: c.diff, sc: c.score, cb: c.combo, n: c.nick, f: c.filter }
   return toBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
 }
 
@@ -66,6 +77,9 @@ export function parseChallenge(code: string): Challenge | null {
       nick: String(p.n ?? '').slice(0, 20),
       // Eski linklerde alan yok → "all" (filtre özelliğinden önceki linkler çalışmaya devam eder)
       filter: typeof p.f === 'string' ? p.f : 'all',
+      // Eski linklerde `dv` yok → undefined. Link REDDEDİLMEZ; yalnız uyuşmazlık
+      // bilinsin diye taşınır (havuz değiştiyse iki taraf farklı soru görebilir).
+      dataVersion: typeof p.dv === 'string' ? p.dv : undefined,
     }
   } catch {
     return null

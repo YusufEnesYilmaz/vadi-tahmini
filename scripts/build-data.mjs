@@ -242,8 +242,16 @@ const itemRaw = await getJson(
 
 // Havuz: Summoner's Rift'te satılan, 1600+ altınlık, şampiyona özel olmayan
 // tam eşyalar. Bileşenler/iksirler/mücevherler tahmin oyununu sulandırırdı.
+//
+// `/^\d{4}$/` ŞART: ddragon aynı eşyanın mod-özel sürümlerini AYRI kayıt olarak
+// veriyor ve hepsi `maps['11']: true` diyor — yani harita alanı bunları ayıramaz.
+// Kanonik SR eşyaları 4 haneli id taşıyor; 6 haneli olanlar `32xxxx` = Tam Gaz
+// (fiyat/stat farklı, ör. Kefaret 2300 yerine 2800) ve `66xxxx` = Arena'ya özel.
+// Bunlar havuza girdiğinde otomatik tamamlamada aynı ad İKİ KEZ çıkıyor ve
+// oyuncu yanlış satırı seçince doğru adı yazdığı hâlde kaybediyordu.
 const items = Object.entries(itemRaw.data)
-  .filter(([, i]) =>
+  .filter(([id, i]) =>
+    /^\d{4}$/.test(id) &&
     i.maps?.['11'] &&
     i.gold?.purchasable &&
     i.gold.total >= 1600 &&
@@ -262,8 +270,25 @@ const items = Object.entries(itemRaw.data)
   }))
   .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 
+// Bileşen sözlüğü: ipucu olarak ikonları gösterilen ara eşyalar (Şeytani Kodeks,
+// Yasak Totem…). Havuz filtrelerinden BAĞIMSIZ ham veriden alınır — bunlar ucuz
+// olduğu için havuzda yoklar; `itemById` ile aranınca bulunamıyor ve bileşen
+// ipucu 143 eşyanın 128'inde BOŞ çıkıyordu. Tahmin havuzuna girmez, yalnız çizim için.
+const partIds = [...new Set(items.flatMap((i) => i.from))]
+const parts = Object.fromEntries(
+  partIds
+    .filter((id) => itemRaw.data[id])
+    .map((id) => [id, { name: itemRaw.data[id].name.trim(), img: itemRaw.data[id].image.full }]),
+)
+const partsMissing = partIds.filter((id) => !itemRaw.data[id])
+
+// Aynı ad iki kez kalırsa oyuncu doğru adı yazıp kaybedebilir — sessizce geçmesin
+const itemDupes = Object.entries(
+  items.reduce((acc, i) => ((acc[i.name] = (acc[i.name] ?? 0) + 1), acc), {}),
+).filter(([, n]) => n > 1)
+
 const itemsPath = join(ROOT, 'src', 'data', 'items.json')
-writeFileSync(itemsPath, JSON.stringify({ version, items }, null, 1), 'utf8')
+writeFileSync(itemsPath, JSON.stringify({ version, items, parts }, null, 1), 'utf8')
 
 // ---- Rapor --------------------------------------------------------------
 
@@ -274,11 +299,15 @@ const noLane = champions.filter((c) => !c.lanes.length).map((c) => c.id)
 console.log('\n===== RAPOR =====')
 console.log(`Şampiyon: ${champions.length}`)
 console.log(`Skin (base hariç): ${totalSkins}`)
-console.log(`Eşya (SR, 1600+ altın): ${items.length}`)
+console.log(`Eşya (SR, 1600+ altın): ${items.length} · bileşen sözlüğü: ${Object.keys(parts).length}`)
 console.log(`Çıktı: ${outPath}`)
 console.log(`Çıktı: ${itemsPath}`)
 console.log(`Çıktı: ${infoPath} (${Math.round(JSON.stringify(info).length / 1024)} KB, tembel yüklenir)`)
 if (itemsNoTag.length) console.log(`⚠ Etiketsiz eşya (ipucu zayıf olur): ${itemsNoTag.join(', ')}`)
+// Aynı ad iki kez = oyuncu doğru adı yazıp kaybedebilir (bir kez yaşandı, mod-özel
+// sürümler havuza sızmıştı). Filtre delinirse burada görülsün.
+if (itemDupes.length) console.log(`⚠ AYNI ADLI EŞYA (tahmin bozulur!): ${itemDupes.map(([n, c]) => `${n} ×${c}`).join(', ')}`)
+if (partsMissing.length) console.log(`⚠ Bileşen ham veride bulunamadı (ipucu eksik çizilir): ${partsMissing.join(', ')}`)
 if (warn.meraki.length) console.log(`⚠ Meraki verisi yok (bölge/yıl eksik): ${warn.meraki.join(', ')}`)
 if (warn.gender.length) console.log(`⚠ Cinsiyet tablosunda YOK (script'e ekle): ${warn.gender.join(', ')}`)
 if (warn.species.length) console.log(`⚠ Tür tablosunda YOK (scripts/species.mjs'e ekle): ${warn.species.join(', ')}`)

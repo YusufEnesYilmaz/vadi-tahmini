@@ -10,6 +10,13 @@ export const supabase = isLeaderboardEnabled
   : null
 
 export interface LeaderboardEntry {
+  /**
+   * Oyuncunun DEĞİŞMEZ kimliği. "Bu satır ben miyim?" sorusu YALNIZ bununla
+   * cevaplanır — takma ad kimlik değildir, iki kişi aynı adı yazabilir
+   * (yazıyordu da: ikisi de "(Sen)" görüyordu).
+   */
+  playerId: string
+  /** Yalnız görüntü adı — değişebilir, tekil değildir */
   nick: string
   score: number
 }
@@ -73,13 +80,13 @@ export async function getTimedLeaderboard(sub: string, diff: string): Promise<Le
   try {
     const { data, error } = await supabase
       .from('vt_leaderboard')
-      .select('nick, score')
+      .select('player_id, nick, score')
       .eq('mode', mode)
       .order('score', { ascending: false })
       .limit(50)
 
     if (error) throw error
-    return (data || []).map((d) => ({ nick: d.nick, score: Number(d.score) }))
+    return (data || []).map((d) => ({ playerId: d.player_id, nick: d.nick, score: Number(d.score) }))
   } catch (err) {
     console.error('Get timed leaderboard failed:', err)
     return []
@@ -94,14 +101,14 @@ export async function getDailyLeaderboard(sub: string, date: string): Promise<Le
   try {
     const { data, error } = await supabase
       .from('vt_leaderboard')
-      .select('nick, score')
+      .select('player_id, nick, score')
       .eq('mode', mode)
       .eq('date', date)
       .order('score', { ascending: true })
       .limit(50)
 
     if (error) throw error
-    return (data || []).map((d) => ({ nick: d.nick, score: Number(d.score) }))
+    return (data || []).map((d) => ({ playerId: d.player_id, nick: d.nick, score: Number(d.score) }))
   } catch (err) {
     console.error('Get daily leaderboard failed:', err)
     return []

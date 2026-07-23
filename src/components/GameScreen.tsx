@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
-import { byId, CHAMPIONS, ITEMS, itemIconUrl, splashUrl, squareUrl } from '../game/data'
+import { byId, CHAMPIONS, ITEMS, itemIconUrl, PATCH, splashUrl, squareUrl } from '../game/data'
 import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
@@ -374,7 +374,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
 
   async function share() {
     let text: string
-    if (timed) text = shareTimed(sub, score, wasRecord)
+    if (timed) text = shareTimed(sub, score, wasRecord, TIMED_SECONDS)
     else if (sub === 'classic') text = shareDailyClassic([...rows].reverse(), won)
     else text = shareDailySimple(sub, guesses.length, won, slotOk)
     if (await copyToClipboard(text)) {
@@ -497,7 +497,21 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
                   {challenge.combo > 0 && <> · seri 🔥{challenge.combo}</>}
                 </p>
               </div>
-              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Aynı sorular sana da gelecek — hazırsan başla.</p>
+              {/*
+                Veri sürümü uyuşmuyorsa "aynı sorular" garantisi bozulur: sorular
+                seed'den TÜRÜYOR ama havuzdan ÇEKİLİYOR; havuz değiştiyse (yeni
+                şampiyon/eşya) aynı seed başka soru verebilir. Link geçersiz
+                sayılmaz — oyuncu neden farklı gördüğünü anlasın diye uyarılır.
+                Eski linklerde alan yok (undefined) → uyarı çıkmaz.
+              */}
+              {challenge.dataVersion && challenge.dataVersion !== PATCH ? (
+                <p className="text-sm" style={{ color: 'var(--partial)' }}>
+                  ⚠ Bu link {challenge.dataVersion} sürümünde üretilmiş, sende {PATCH} var —
+                  sorular birebir aynı olmayabilir.
+                </p>
+              ) : (
+                <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Aynı sorular sana da gelecek — hazırsan başla.</p>
+              )}
             </>
           ) : (
             <>
@@ -684,7 +698,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
                   <div className="text-sm" style={{ color: 'var(--text-dim)' }}>🪙 {puzzle.item.gold} altın</div>
                 )}
                 <div className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                  {won ? `${guesses.length} denemede bildin` : `${guesses.length} tahmin hakkın da bitti`}
+                  {won ? `${guesses.length} denemede bildin` : `${guesses.length} tahminde bulamadın`}
                 </div>
               </div>
 
@@ -692,7 +706,7 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
               {slotOk !== undefined && (
                 <span className="text-sm font-semibold" style={{ color: slotOk ? 'var(--correct)' : 'var(--danger-text)' }}>
                   {slotOk
-                    ? `Tuş de doğru: ${SLOT_LABELS[spellIndex]}${timed ? ' (+1)' : ''}`
+                    ? `Tuş da doğru: ${SLOT_LABELS[spellIndex]}${timed ? ' (+1)' : ''}`
                     : `Tuş yanlış — doğrusu ${SLOT_LABELS[spellIndex]}`}
                 </span>
               )}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { encodeChallenge, parseChallenge, type Challenge } from './challenge'
 import { createTimedStream } from './puzzle'
+import { PATCH } from './data'
 import { champOf } from '../test/helpers'
 import { DIFFICULTIES, SUB_MODES, type PlaySub } from './types'
 
@@ -10,7 +11,19 @@ describe('meydan okuma payload', () => {
   it('encode → parse gidiş-dönüş korunur (Türkçe ad dahil)', () => {
     const c = parseChallenge(encodeChallenge(sample))
     expect(c).not.toBeNull()
-    expect(c).toEqual(sample)
+    // `dataVersion` linke ÜRETİM anında damgalanır (girdide yok, çıktıda var):
+    // aynı seed farklı havuzla farklı soru üretebiliyor, karşı taraf uyarılabilsin.
+    expect(c).toEqual({ ...sample, dataVersion: PATCH })
+  })
+
+  it('veri sürümü olmayan ESKİ linkler hâlâ çalışır (yalnız uyarı gösterilmez)', () => {
+    // `dv` alanı eklenmeden önce paylaşılmış linkler reddedilmemeli
+    const eski = btoa(JSON.stringify({ v: 1, s: 42, m: 'classic', d: 'normal', sc: 5, cb: 2, n: 'Ali', f: 'all' }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const c = parseChallenge(eski)
+    expect(c).not.toBeNull()
+    expect(c!.dataVersion).toBeUndefined()
+    expect(c!.seed).toBe(42)
   })
 
   it('çoklu seçim filtre anahtarı link içinde bozulmadan taşınır (+ ve ; dahil)', () => {

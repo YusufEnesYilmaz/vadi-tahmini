@@ -1,6 +1,6 @@
 import React from 'react'
 import { RULES, type DiffRules } from '../game/difficulty'
-import type { Difficulty } from '../game/types'
+import { DIFFICULTIES, type Difficulty } from '../game/types'
 
 interface DifficultyMeta {
   id: Difficulty
@@ -10,7 +10,37 @@ interface DifficultyMeta {
   color: string
   bgColor: string
   borderColor: string
-  badgeText: string
+  /** Yalnız GÖRSEL kimlik: ad, ikon, renk. Sayılar burada TUTULMAZ — aşağıya bak. */
+}
+
+/**
+ * Rozet metni `RULES`'tan TÜRETİLİR, elle yazılmaz.
+ * Önceden `badgeText: '10 Hak · 90s · Bol İpucu'` diye sabit string'di: `RULES`
+ * değişince tablo satırları güncelleniyor ama bu rozet eski sayıyı söylemeye
+ * devam ediyordu — aynı ekranda iki farklı gerçek. Tek kaynak `difficulty.ts`.
+ */
+/**
+ * "İpucu cimriliği" puanı — küçük = cömert. Yalnız `RULES`'tan okunur.
+ * İlk denemem "kaç ipucu HİÇ açılmıyor" saymaktı; yanlıştı: Normal ve Zor'da hiçbiri
+ * kapalı değil, ikisi de "Bol İpucu" çıkıyordu. Belirleyici olan kapalı olması değil,
+ * ipuçlarının NE KADAR GEÇ açıldığı.
+ */
+function hintStinginess(r: DiffRules): number {
+  const gecikmeler = [r.abilityNameAt, r.skinChampionAt, r.quoteSecondAt, r.quoteThirdAt, r.itemIconAt, r.itemTagsAt, r.itemPartsAt]
+  // null = hiç açılmaz → en ağır ceza (en geç açılandan da beter)
+  const toplam = gecikmeler.reduce<number>((a, v) => a + (v === null ? 12 : v), 0)
+  // Silüet geç aydınlanıyorsa cimri; baştan açık emoji/cümle cömert
+  return toplam + r.silhouetteReveals - r.emojiStart - r.loreStart
+}
+
+/** Cimrilik sırasına göre etiket — sıralama değişirse etiketler kendiliğinden yer değiştirir */
+const YOGUNLUK_ETIKETLERI = ['Bol İpucu', 'Standart', 'Az İpucu', 'Minimum']
+
+function badgeText(id: Difficulty): string {
+  const r = RULES[id]
+  const sirali = DIFFICULTIES.map((d) => d.id).sort((a, b) => hintStinginess(RULES[a]) - hintStinginess(RULES[b]))
+  const yogunluk = YOGUNLUK_ETIKETLERI[sirali.indexOf(id)] ?? YOGUNLUK_ETIKETLERI[YOGUNLUK_ETIKETLERI.length - 1]
+  return `${r.maxGuesses} Hak · ${r.timedSeconds}s · ${yogunluk}`
 }
 
 const DIFF_META: DifficultyMeta[] = [
@@ -19,10 +49,9 @@ const DIFF_META: DifficultyMeta[] = [
     name: 'Kolay',
     shortName: 'Kolay',
     icon: '🟢',
-    color: '#34d399',
-    bgColor: 'rgba(52, 211, 153, 0.12)',
-    borderColor: 'rgba(52, 211, 153, 0.3)',
-    badgeText: '10 Hak · 90s · Bol İpucu',
+    color: 'var(--accent-done)',
+    bgColor: 'rgba(var(--accent-done-rgb), 0.12)',
+    borderColor: 'rgba(var(--accent-done-rgb), 0.3)',
   },
   {
     id: 'normal',
@@ -30,29 +59,26 @@ const DIFF_META: DifficultyMeta[] = [
     shortName: 'Normal',
     icon: '🟡',
     color: 'var(--gold-bright)',
-    bgColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-    badgeText: '8 Hak · 60s · Standart',
+    bgColor: 'rgba(var(--gold-glow-rgb), 0.12)',
+    borderColor: 'rgba(var(--gold-glow-rgb), 0.3)',
   },
   {
     id: 'hard',
     name: 'Zor',
     shortName: 'Zor',
     icon: '🟠',
-    color: '#fb923c',
-    bgColor: 'rgba(251, 146, 60, 0.12)',
-    borderColor: 'rgba(251, 146, 60, 0.3)',
-    badgeText: '6 Hak · 45s · Az İpucu',
+    color: 'var(--diff-hard)',
+    bgColor: 'rgba(var(--diff-hard-rgb), 0.12)',
+    borderColor: 'rgba(var(--diff-hard-rgb), 0.3)',
   },
   {
     id: 'insane',
     name: 'Aşırı Zor',
     shortName: 'Aşırı',
     icon: '🔴',
-    color: '#f87171',
-    bgColor: 'rgba(248, 113, 113, 0.12)',
-    borderColor: 'rgba(248, 113, 113, 0.3)',
-    badgeText: '5 Hak · 30s · Minimum',
+    color: 'var(--danger-text)',
+    bgColor: 'rgba(var(--danger-text-rgb), 0.12)',
+    borderColor: 'rgba(var(--danger-text-rgb), 0.3)',
   },
 ]
 
@@ -86,7 +112,7 @@ const SECTIONS: SectionDef[] = [
         label: 'Yıl İpucu Okları (↑ ↓)',
         render: (r) =>
           r.yearArrow ? (
-            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold text-emerald-400" style={{ background: 'rgba(52, 211, 153, 0.15)' }}>
+            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold text-emerald-400" style={{ background: 'rgba(var(--accent-done-rgb), 0.15)' }}>
               ✓ Var
             </span>
           ) : (
@@ -100,7 +126,7 @@ const SECTIONS: SectionDef[] = [
         label: 'Kısmi Eşleşme (Sarı Hücre)',
         render: (r) =>
           r.showPartial ? (
-            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold text-amber-400" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
+            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold text-amber-400" style={{ background: 'rgba(var(--gold-glow-rgb), 0.15)' }}>
               ✓ Var
             </span>
           ) : (
@@ -235,7 +261,7 @@ export default function DifficultyTable() {
               <span>{m.name}</span>
             </div>
             <span className="mt-1 text-[11px] font-medium opacity-90" style={{ color: 'var(--text)' }}>
-              {m.badgeText}
+              {badgeText(m.id)}
             </span>
           </div>
         ))}
