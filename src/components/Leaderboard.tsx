@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getDailyLeaderboard, getTimedLeaderboard, type LeaderboardEntry } from '../game/supabase'
+import { clearSubmitFailure, getDailyLeaderboard, getSubmitFailure, getTimedLeaderboard, type LeaderboardEntry, type SubmitFailure } from '../game/supabase'
 import { DAILY_SUBS, DIFFICULTIES, SUB_MODES, MIX_MODE, type Difficulty, type PlaySub } from '../game/types'
 import { todayKey } from '../game/rng'
 import { getPlayerId } from '../game/challenge'
@@ -16,6 +16,8 @@ export default function Leaderboard({ onClose }: Props) {
   const [diff, setDiff] = useState<Difficulty>('normal')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  // Panel açılışında son gönderim hatasını oku (varsa uyarı satırı çıkar)
+  const [fail, setFail] = useState<SubmitFailure | null>(getSubmitFailure)
   // Kimlik = player_id. Takma adla karşılaştırmak HATALIYDI: aynı adı yazan iki
   // kişinin satırı da "(Sen)" oluyordu. Ad değişebilir, kimlik değişmez.
   const myId = getPlayerId()
@@ -80,6 +82,34 @@ export default function Leaderboard({ onClose }: Props) {
             Kapat
           </button>
         </div>
+
+        {/*
+          Gönderim başarısızlığı uyarısı. Bu satırın var olma sebebi: skor gönderimi
+          2026-07-23'e kadar sessizce başarısız oluyordu ve hiçbir yerde iz yoktu —
+          sıralama "boş" görünüyor, kimse sebebini bilmiyordu. Alarm tonu DEĞİL:
+          sıralama görünmeye devam eder, bu yalnız durumu bildirir.
+          Otomatik yeniden deneme YOK — tutulamayacak söz verilmiyor.
+        */}
+        {fail && (
+          <div className="mt-3 flex items-start gap-2 rounded-xl border p-2.5 text-xs"
+            style={{ borderColor: 'rgba(var(--gold-glow-rgb),0.35)', background: 'rgba(var(--gold-glow-rgb),0.06)' }}>
+            <span aria-hidden>⚠</span>
+            <span className="min-w-0">
+              <b style={{ color: 'var(--partial)' }}>Son skorun sıralamaya yazılamadı.</b>
+              <span className="block" style={{ color: 'var(--text-dim)' }}>
+                {new Date(fail.at).toLocaleString('tr-TR')} · {fail.mode}
+                {fail.msg && <span className="block opacity-70">{fail.msg}</span>}
+                <span className="block">Yeni bir tur bitirdiğinde tekrar denenir.</span>
+              </span>
+            </span>
+            <button
+              onClick={() => { clearSubmitFailure(); setFail(null) }}
+              className="ml-auto shrink-0 rounded-lg border px-2 py-0.5"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+              Gizle
+            </button>
+          </div>
+        )}
 
         {/* Üst Mod Sekmeleri */}
         <div className="mt-4 flex rounded-xl border p-1" style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
