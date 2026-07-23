@@ -50,8 +50,18 @@ export function getSubmitFailure(): SubmitFailure | null {
   }
 }
 
-export function clearSubmitFailure() {
-  try { localStorage.removeItem(FAIL_KEY) } catch { /* önemsiz */ }
+/**
+ * Uyarı kaydını siler.
+ * - Argümansız: koşulsuz siler ("Gizle" butonu).
+ * - `onlyMode` ile: **yalnız kayıtlı hata o moda aitse** siler. Başarılı bir Günlük
+ *   gönderimi, yazılamamış bir Zamana Karşı skorunun uyarısını kaldırmamalı —
+ *   bu uyarı zaten "sessizce kaybolan arıza" sorununu çözmek için var.
+ */
+export function clearSubmitFailure(onlyMode?: string) {
+  try {
+    if (onlyMode !== undefined && getSubmitFailure()?.mode !== onlyMode) return
+    localStorage.removeItem(FAIL_KEY)
+  } catch { /* önemsiz */ }
 }
 
 function markSubmitFailure(mode: string, msg: string) {
@@ -75,7 +85,7 @@ async function callSubmit(mode: string, params: Record<string, unknown>): Promis
       markSubmitFailure(mode, error.message)
       return false
     }
-    clearSubmitFailure() // başarılı gönderim eski uyarıyı kaldırır
+    clearSubmitFailure(mode) // yalnız AYNI modun eski uyarısını kaldırır
     return true
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'bağlantı hatası'

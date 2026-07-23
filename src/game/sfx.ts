@@ -26,8 +26,19 @@ function audio(): AudioContext | null {
   return ctx
 }
 
+/**
+ * Ses seviyesi (0–1). Replik modundaki kaydırıcıyla ORTAK anahtar.
+ *
+ * "Anahtar YOK" ile "0 YAZILMIŞ" ayrılmak ZORUNDA: `getItem` anahtar yokken `null`
+ * döner ve `Number(null)` **0**'dır. Tek bir `Number(...) >= 0` kontrolü ikisini
+ * aynı sayar → hiç ses ayarı yapmamış oyuncuda seviye 0 çıkar ve TÜM efektler
+ * sessizleşir (bir kez yaşandı, kimse sebebini anlamadı). Ham değere önce bakılıyor.
+ */
 export function getVolume(): number {
-  const v = Number(localStorage.getItem(VOLUME_KEY))
+  const raw = localStorage.getItem(VOLUME_KEY)
+  if (raw === null || raw.trim() === '') return 0.8 // hiç ayarlanmamış
+  const v = Number(raw)
+  // 0 GEÇERLİ: kullanıcı bilerek sessize almış olabilir, varsayılana döndürme.
   return Number.isFinite(v) && v >= 0 ? Math.min(v, 1) : 0.8
 }
 
@@ -89,29 +100,49 @@ export function playAchievement() {
   tone(1318.51, 0.2, 0.28, 'sine', 0.14)
 }
 
-let garenAudioBuffer: AudioBuffer | null = null
 let currentGarenSource: AudioBufferSourceNode | null = null
 let garenGainNode: GainNode | null = null
 
-/** Garen MP3 dosyasını belleğe önceden dekode eder (0ms anlık tetikleme için) */
-async function preloadGarenAudio(): Promise<AudioBuffer | null> {
-  if (garenAudioBuffer) return garenAudioBuffer
-  try {
-    const res = await fetch('/sounds/garen_adalet.mp3')
-    const arrayBuf = await res.arrayBuffer()
-    const ctx = audio()
-    if (ctx) {
-      garenAudioBuffer = await ctx.decodeAudioData(arrayBuf)
+/**
+ * Garen MP3'ünü indirip dekode eder (çalarken 0 ms gecikme olsun diye).
+ *
+ * **Önbelleklenen şey SÖZ (promise), tamponun kendisi değil:** eskiden yalnız
+ * bitmiş tampon tutuluyordu, o da ancak `await` bitince yazılıyordu → aynı anda
+ * gelen iki çağrı (React StrictMode'un çift efekti, ya da ısıtmayla aynı ana denk
+ * gelen bir tıklama) korumayı birlikte geçip dosyayı İKİ KEZ indiriyordu
+ * (tarayıcıda ölçüldü: iki 200 yanıtı). Söz paylaşılınca ikinci çağrı bekleyene katılır.
+ */
+let garenLoad: Promise<AudioBuffer | null> | null = null
+
+function preloadGarenAudio(): Promise<AudioBuffer | null> {
+  garenLoad ??= (async () => {
+    try {
+      const res = await fetch('/sounds/garen_adalet.mp3')
+      const arrayBuf = await res.arrayBuffer()
+      const ctx = audio()
+      if (!ctx) throw new Error('AudioContext yok')
+      return await ctx.decodeAudioData(arrayBuf)
+    } catch {
+      // Başarısız denemeyi ÖNBELLEKLEME: çevrimdışıyken bir kez patlarsa
+      // ağ geri geldiğinde tekrar denenebilsin (dosya henüz SW önbeleğinde değil).
+      garenLoad = null
+      return null
     }
-  } catch {
-    /* yoksay */
-  }
-  return garenAudioBuffer
+  })()
+  return garenLoad
 }
 
-// Açılışta belleğe önceden yükle
-if (typeof window !== 'undefined') {
-  setTimeout(() => void preloadGarenAudio(), 100)
+/**
+ * Klibi ısıt (indir + dekode) — **kullanıcı jestinden SONRA çağrılmalı.**
+ * Eskiden bu, modül düzeyinde `setTimeout` ile sayfa açılışında yapılıyordu;
+ * o hem yukarıdaki "AudioContext ilk seste kurulur" kuralını deliyor (tarayıcı
+ * otomatik oynatma politikası) hem de sesi KAPALI olan oyuncuya bile dosyayı
+ * indiriyordu. Şimdi yalnız sesin kullanıldığı ekran (Ayarlar) açılınca çağrılıyor —
+ * oraya gelmek zaten bir tıklama gerektirdiği için politika sorunu kalmıyor.
+ */
+export function warmupGarenAudio() {
+  if (!sfxEnabled()) return
+  void preloadGarenAudio()
 }
 
 /** Garen "ADALET!" sesini WebAudio ile 0ms GECİKMESİZ anında çalar */

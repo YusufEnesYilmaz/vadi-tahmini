@@ -23,6 +23,17 @@ describe('sıralama gönderim hatası izi', () => {
     expect(getSubmitFailure()).toBeNull()
   })
 
+  it('kapsamlı temizlik: yalnız AYNI modun kaydını siler', () => {
+    // Başarılı bir Günlük gönderimi, yazılamamış bir Zamana Karşı skorunun
+    // uyarısını KALDIRMAMALI — yoksa arıza yine sessizce kaybolur.
+    localStorage.setItem(FAIL_KEY, JSON.stringify({ at: 1, mode: 'timed:classic:normal', msg: 'x' }))
+    clearSubmitFailure('daily:emoji')
+    expect(getSubmitFailure()?.mode).toBe('timed:classic:normal')
+
+    clearSubmitFailure('timed:classic:normal')
+    expect(getSubmitFailure()).toBeNull()
+  })
+
   it('bozuk kayıt uyarı ÜRETMEZ (panel patlamamalı)', () => {
     // Elle bozulmuş ya da eski biçim veri yüzünden Sıralama paneli çökmemeli
     localStorage.setItem(FAIL_KEY, 'bu json değil')

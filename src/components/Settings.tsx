@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { applyBackup, clearProgress, downloadBackup } from '../game/backup'
 import { getNick, setNick, getPlayerId } from '../game/challenge'
 import { PATCH } from '../game/data'
-import { getVolume, playGarenUltSound, setSfxEnabled, setVolume, sfxEnabled, updateActiveGarenVolume } from '../game/sfx'
+import { getVolume, playGarenUltSound, setSfxEnabled, setVolume, sfxEnabled, updateActiveGarenVolume, warmupGarenAudio } from '../game/sfx'
 import { updateLeaderboardNick } from '../game/supabase'
 import { applyUpdate, useUpdateAvailable } from '../game/pwaUpdate'
 import { godMode, godModeAvailable, setGodMode } from '../game/dev'
@@ -17,6 +17,11 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const updateReady = useUpdateAvailable()
   const [god, setGod] = useState(godMode)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Ses klibi burada (ve yalnız burada) çalıyor — ekran açılınca ısıt ki kaydırıcıya
+  // dokunulduğunda gecikme olmasın. Açılışta değil BURADA: bu ekrana gelmek için
+  // zaten tıklandı, yani tarayıcının otomatik oynatma politikası aşılmış oluyor.
+  useEffect(() => { warmupGarenAudio() }, [])
 
   function changeVolume(newVolPct: number) {
     const v = newVolPct / 100

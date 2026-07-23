@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { voiceUrl } from '../game/data'
+// Ses seviyesi tek kaynaktan (`sfx.ts`). Buradaki kopya okuma/yazma SİLİNDİ:
+// iki dosya aynı anahtarı farklı kurallarla yorumluyordu ("0" burada geçersiz
+// sayılıp 0.8'e geri yazılıyordu) → Ayarlar'dan sessize alan oyuncunun tercihi
+// Replik moduna girince sessizce bozuluyordu.
+import { getVolume, setVolume as saveVolume } from '../game/sfx'
 import type { DiffRules } from '../game/difficulty'
 import type { Champion } from '../game/types'
 
@@ -8,13 +13,6 @@ interface Props {
   wrongCount: number
   revealed: boolean
   rules: DiffRules
-}
-
-const VOLUME_KEY = 'vt:volume'
-
-function loadVolume(): number {
-  const v = Number(localStorage.getItem(VOLUME_KEY))
-  return Number.isFinite(v) && v > 0 ? Math.min(v, 1) : 0.8
 }
 
 type Clip = 'ban' | 'choose' | 'sfx'
@@ -27,7 +25,7 @@ export default function QuoteView({ champion, wrongCount, revealed, rules }: Pro
   const audioRef = useRef<HTMLAudioElement>(null)
   const [active, setActive] = useState<Clip | null>(null) // yüklü olan klip
   const [playing, setPlaying] = useState(false)
-  const [volume, setVolume] = useState(loadVolume)
+  const [volume, setVolume] = useState(getVolume)
   const [failed, setFailed] = useState(false)
   const [time, setTime] = useState({ at: 0, total: 0 }) // çalan klibin ilerlemesi
 
@@ -88,7 +86,7 @@ export default function QuoteView({ champion, wrongCount, revealed, rules }: Pro
   // Ses seviyesi anında uygulansın ve bir dahaki sefere hatırlansın
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume
-    localStorage.setItem(VOLUME_KEY, String(volume))
+    saveVolume(volume)
   }, [volume])
 
   // Yeni bulmacada ilk klibi kendiliğinden çal.
