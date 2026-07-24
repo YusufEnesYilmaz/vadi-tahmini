@@ -18,7 +18,9 @@ export interface Criterion {
   test: (c: Champion) => boolean
 }
 
-const YEAR_SPLIT = 2016
+/** Nesil (dönem) sınırları — İlk ≤2011 · Orta 2012–2016 · Yeni ≥2017 */
+const ERA_EARLY_MAX = 2011
+const ERA_MID_MAX = 2016
 
 /** Havuzdaki tüm olası ölçütler — veriden türer */
 export function allCriteria(): Criterion[] {
@@ -44,10 +46,18 @@ export function allCriteria(): Criterion[] {
   out.push(
     { id: 'kay:mana', label: 'Mana kullanır', test: (c) => c.resource === 'Mana' },
     { id: 'kay:yok', label: 'Kaynaksız', test: (c) => c.resource === 'Kaynaksız' },
+    // Küçük ama tematik kaynak havuzları (Enerji=6 ninja/enerji, Öfke=4). Bingo'ya
+    // girmezler (≥8 filtresi eler) ama Bağlantılar (≥4) ve Kaç Tane? ([4,30]) besler.
+    { id: 'kay:enerji', label: 'Enerji kullanır', test: (c) => c.resource === 'Enerji' },
+    { id: 'kay:ofke', label: 'Öfke kullanır', test: (c) => c.resource === 'Öfke' },
     { id: 'men:yakin', label: 'Yakın dövüş', test: (c) => c.rangeType === 'Yakın Dövüş' },
     { id: 'men:uzak', label: 'Menzilli', test: (c) => c.rangeType === 'Menzilli' },
-    { id: 'yil:eski', label: `${YEAR_SPLIT} öncesi`, test: (c) => (c.year ?? 9999) < YEAR_SPLIT },
-    { id: 'yil:yeni', label: `${YEAR_SPLIT} ve sonrası`, test: (c) => (c.year ?? 0) >= YEAR_SPLIT },
+    // Nesil (dönem) — 3 kriterli TEK boyut → Dokuz Kare'de EKSEN olabilir (2 kovalı
+    // yıl olamıyordu). Eski 2016-öncesi/sonrası ikilisinin yerini aldı; 3 dönem hem
+    // Bingo kutusunda daha çok bilgi hem Grid'e "Nesil × Bölge/Rol" ızgarası açar.
+    { id: 'nesil:ilk', label: `İlk Nesil (2009–${ERA_EARLY_MAX})`, test: (c) => (c.year ?? 9999) <= ERA_EARLY_MAX },
+    { id: 'nesil:orta', label: `Orta Nesil (${ERA_EARLY_MAX + 1}–${ERA_MID_MAX})`, test: (c) => { const y = c.year ?? 0; return y > ERA_EARLY_MAX && y <= ERA_MID_MAX } },
+    { id: 'nesil:yeni', label: `Yeni Nesil (${ERA_MID_MAX + 1}+)`, test: (c) => (c.year ?? 0) > ERA_MID_MAX },
   )
   return out
 }

@@ -47,6 +47,9 @@ export function connCriteria(): Criterion[] {
     { id: 'ad:kisa', label: 'Kısa ad (4 harf ve altı)', test: (c) => toLetters(c.name).length <= 4 },
     { id: 'ad:uzun', label: 'Uzun ad (9 harf ve üstü)', test: (c) => toLetters(c.name).length >= 9 },
     { id: 'ad:cift', label: 'İki kelimeli ad', test: (c) => c.name.trim().includes(' ') },
+    // Cinsiyet YALNIZ Bağlantılar'a özel (allCriteria'da değil) — Bingo/Grid/Counter
+    // allCriteria kullanır; cinsiyet oraya girse zayıf/az-bilgili kutu üretirdi.
+    { id: 'g:kadin', label: 'Kadın şampiyon', test: (c) => c.gender === 'Kadın' },
   ]
   return [...allCriteria(), ...extra].filter(
     (k) => CHAMPIONS.filter(k.test).length >= CONN_GROUP_SIZE,

@@ -107,13 +107,21 @@ describe('hunt — üretim + günlük', () => {
     expect(HUNT_MAX_ATTEMPTS).toBe(8)
   })
 
-  it('istek üzerine ipucu kademeleri: 0=yok, 1=bölge, 2=+tür', () => {
+  it('istek üzerine ipucu kademeleri: 0=yok, 1=bölge, 2=+rol, 3=+tür', () => {
     const c = byId('Darius')!
     expect(huntHintText(c, 0)).toBeNull()
+    // 1: yalnız bölge
     expect(huntHintText(c, 1)).toContain(c.region)
+    expect(huntHintText(c, 1)).not.toContain(c.roles[0])
     expect(huntHintText(c, 1)).not.toContain(c.species)
+    // 2: bölge + rol, henüz tür yok
     expect(huntHintText(c, 2)).toContain(c.region)
-    expect(huntHintText(c, 2)).toContain(c.species)
-    expect(HUNT_HINT_TIERS).toBe(2)
+    expect(huntHintText(c, 2)).toContain(c.roles[0])
+    expect(huntHintText(c, 2)).not.toContain(c.species)
+    // 3: üçü de
+    expect(huntHintText(c, 3)).toContain(c.region)
+    expect(huntHintText(c, 3)).toContain(c.roles[0])
+    expect(huntHintText(c, 3)).toContain(c.species)
+    expect(HUNT_HINT_TIERS).toBe(3)
   })
 })

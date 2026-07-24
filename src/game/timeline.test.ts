@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  MIN_YEAR_GAP,
   dailyTimeline,
   evaluateOrder,
   randomTimeline,
@@ -58,5 +59,20 @@ describe('timeline.ts', () => {
     const puzzle = randomTimeline()
     expect(puzzle.target).toHaveLength(5)
     expect(validateTimelineYears(puzzle.target)).toBe(true)
+  })
+
+  /*
+   * Adalet (2026-07-24 içerik turu): komşu yıllar (2009 vs 2010) fiilen yazı-tura,
+   * kimse tam çıkış yılını bilmez. Seçilen yıllar arasında en az MIN_YEAR_GAP
+   * aralık olması bulmacayı "dönem bilgisi"yle çözülebilir kılıyor. 18 farklı yıl
+   * havuzunda bu her zaman sağlanabiliyor; sağlanamazsa üretici esner (oyun durmaz).
+   */
+  it('seçilen yıllar arasında en az MIN_YEAR_GAP aralık var', () => {
+    for (const puzzle of [dailyTimeline(), ...Array.from({ length: 20 }, () => randomTimeline())]) {
+      const years = puzzle.target.map((c) => c.year!)
+      for (let i = 1; i < years.length; i++) {
+        expect(years[i] - years[i - 1], `${years.join(',')}`).toBeGreaterThanOrEqual(MIN_YEAR_GAP)
+      }
+    }
   })
 })

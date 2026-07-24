@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   GRID_SIZE,
+  MIN_AXIS_POOL,
   MIN_CELL_POOL,
   cellPool,
   checkCell,
@@ -11,6 +12,7 @@ import {
   saveDailyGrid,
   solveGrid,
 } from './grid'
+import { CHAMPIONS } from './data'
 import { GRID_DAILY_KEY, miniDailyDone } from './miniDaily'
 import { todayKey } from './rng'
 
@@ -62,6 +64,22 @@ describe('grid — üretim kalite kapıları', () => {
     if (outsider) expect(checkCell(p.rows[0], p.cols[0], outsider)).toBe(false)
     expect(checkCell(p.rows[0], p.cols[0], pool[0].id)).toBe(true)
     expect(checkCell(p.rows[0], p.cols[0], 'olmayan-sampiyon')).toBe(false)
+  })
+
+  /*
+   * Eksen kriterinin havuzu GRID_SIZE'dan küçükse o satır 3 FARKLI şampiyonla
+   * doldurulamaz → bulmaca çözümsüz. Filtre olmadan "Makine" (2 şampiyon) gibi
+   * minik türler eksen adayı oluyor, üretici de onları eleye eleye kolay
+   * boyutlara kayıyordu (ölçüm: Tür ekseni %1'e düşmüştü).
+   */
+  it('eksen kriterleri çözümsüz satır üretemeyecek kadar geniş', () => {
+    expect(MIN_AXIS_POOL).toBeGreaterThanOrEqual(GRID_SIZE)
+    for (let n = 0; n < 10; n++) {
+      const p = randomGrid()
+      for (const k of [...p.rows, ...p.cols]) {
+        expect(CHAMPIONS.filter(k.test).length, k.label).toBeGreaterThanOrEqual(MIN_AXIS_POOL)
+      }
+    }
   })
 
   it('günlük ızgara deterministik', () => {

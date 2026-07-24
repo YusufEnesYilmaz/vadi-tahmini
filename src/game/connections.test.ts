@@ -10,6 +10,7 @@ import {
   randomConnections,
   saveDailyConnections,
 } from './connections'
+import { allCriteria } from './bingo'
 import { CHAMPIONS } from './data'
 import { CONN_DAILY_KEY, miniDailyDone } from './miniDaily'
 import { todayKey } from './rng'
@@ -59,6 +60,22 @@ describe('connections — üretim kalite kapıları', () => {
     const always = { id: 'x:1', label: 'x', test: () => true }
     const always2 = { id: 'x:2', label: 'x', test: () => true }
     expect(countPartitions([always, always2], anyChamps)).toBe(2) // erken kesildi (gerçekte çok daha fazla)
+  })
+
+  /*
+   * İçerik turu (2026-07-24): tematik kaynak grupları (Enerji/Öfke) allCriteria'dan,
+   * cinsiyet ise YALNIZ Bağlantılar'a özel ekstradan gelir (Bingo/Grid/Counter
+   * allCriteria kullanır — cinsiyet oraya girse az bilgili kutu üretirdi).
+   */
+  it('yeni tematik kriterler havuzda ve grup kurmaya yetiyor', () => {
+    const crits = connCriteria()
+    for (const id of ['kay:enerji', 'kay:ofke', 'g:kadin']) {
+      const k = crits.find((x) => x.id === id)
+      expect(k, id).toBeTruthy()
+      expect(CHAMPIONS.filter(k!.test).length, id).toBeGreaterThanOrEqual(CONN_GROUP_SIZE)
+    }
+    // Cinsiyet Bağlantılar'a ÖZEL kalmalı — ortak kaynağa sızmamış olmalı
+    expect(allCriteria().some((k) => k.id.startsWith('g:'))).toBe(false)
   })
 
   it('günlük bulmaca deterministik', () => {

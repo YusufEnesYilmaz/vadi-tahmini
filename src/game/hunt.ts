@@ -23,16 +23,19 @@ export const HUNT_MAX_ATTEMPTS = 8
 /**
  * İSTEK ÜZERİNE ipucu (2026-07-24): ön seçmeli zorluk şeridi kaldırıldı. Oyun
  * ipucusuz başlar; oyuncu "İpucu aç" ile kademe kademe açar, HER kademe 1 HAK yakar.
- * Kademeler sırayla: Bölge → Tür. Böylece ipucu bir hamle maliyeti olan gerçek bir
- * karar; ön seçilen ama işe yaramayan bir "zorluk" değil.
+ * Kademeler sırayla: Bölge → Rol → Tür (3 kademe, 2026-07-24 içerik turu). Rol çok
+ * ayırt edici (havuzu ≥17) → ipucu gerçekten "kim" sorusunu daraltıyor. 3 ipucu + 5
+ * tahmin, 173 havuzda ikili arama için hâlâ yeterli (log2 173 ≈ 7.4).
  */
-export const HUNT_HINT_TIERS = 2
+export const HUNT_HINT_TIERS = 3
 
-/** Açılan ipucu kademesine göre metin (0=hiç, 1=bölge, 2=+tür) */
+/** Açılan ipucu kademesine göre metin (0=hiç, 1=bölge, 2=+rol, 3=+tür) */
 export function huntHintText(c: Champion, tier: number): string | null {
   if (tier <= 0) return null
-  if (tier === 1) return `Bölge: ${c.region}`
-  return `Bölge: ${c.region} · Tür: ${c.species}`
+  const parts = [`Bölge: ${c.region}`]
+  if (tier >= 2) parts.push(`Rol: ${c.roles[0]}`)
+  if (tier >= 3) parts.push(`Tür: ${c.species}`)
+  return parts.join(' · ')
 }
 
 let orderCache: Champion[] | null = null

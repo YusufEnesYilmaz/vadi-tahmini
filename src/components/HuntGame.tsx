@@ -188,7 +188,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
             className="card-btn rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-40"
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}
             title={remaining <= 1 ? 'Son hakkını ipucuna harcayamazsın' : 'İpucu 1 hak yakar'}>
-            🔎 {hints === 0 ? 'İpucu aç' : 'Türü de aç'} · 1 hak
+            🔎 {hints === 0 ? 'İpucu aç' : 'Bir ipucu daha'} · 1 hak
           </button>
         )}
       </div>
@@ -302,7 +302,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
             <div className="mt-3 space-y-2 text-sm" style={{ color: 'var(--text-dim)' }}>
               <p>1. Gizli hedef şampiyonu bul — toplam {HUNT_MAX_ATTEMPTS} hakkın var.</p>
               <p>2. Her tahmin iki şey söyler: hedefe <b style={{ color: 'var(--text)' }}>alfabetik sırada kaç şampiyon uzakta</b> olduğu ve <b style={{ color: 'var(--text)' }}>önce mi sonra mı</b> geldiği (↑/↓).</p>
-              <p>3. Takılırsan <b style={{ color: 'var(--gold)' }}>🔎 İpucu aç</b> ile önce bölgeyi sonra türü öğrenebilirsin — ama <b style={{ color: 'var(--text)' }}>her ipucu 1 hak yakar</b>.</p>
+              <p>3. Takılırsan <b style={{ color: 'var(--gold)' }}>🔎 İpucu aç</b> ile sırayla bölgeyi, rolü ve türü öğrenebilirsin — ama <b style={{ color: 'var(--text)' }}>her ipucu 1 hak yakar</b>.</p>
               <p>4. A–Z şeridi mümkün aralığı gösterir; sönen harfler elenmiştir.</p>
               <p>5. Adlar özel işaretler atılarak sıralanır (Kai'Sa → KAISA).</p>
             </div>

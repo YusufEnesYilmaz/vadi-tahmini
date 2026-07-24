@@ -81,6 +81,31 @@ describe('Bingo modu', () => {
     for (const kr of k) expect(CHAMPIONS.some(kr.test), kr.label).toBe(true)
   })
 
+  /*
+   * İçerik turu (2026-07-24): kaynak kriterleri Enerji/Öfke ile genişledi ve
+   * 2 kovalı yıl (2016 öncesi/sonrası) 3 kovalı NESİL boyutuna çevrildi.
+   * Nesil'in 3 kriterli olması Dokuz Kare için kritik: eksen olabilmesi
+   * GRID_SIZE (3) kriter ister — 2'ye düşerse Grid o ekseni sessizce kaybeder.
+   */
+  it('kaynak kriterleri Enerji/Öfke dahil, dolu havuzlu', () => {
+    const k = allCriteria()
+    for (const id of ['kay:mana', 'kay:yok', 'kay:enerji', 'kay:ofke']) {
+      const kr = k.find((x) => x.id === id)
+      expect(kr, id).toBeTruthy()
+      expect(CHAMPIONS.filter(kr!.test).length, id).toBeGreaterThanOrEqual(4)
+    }
+  })
+
+  it('Nesil boyutu 3 kriterli ve dönemler örtüşmeden tüm şampiyonları kapsıyor', () => {
+    const nesil = allCriteria().filter((k) => k.id.startsWith('nesil:'))
+    expect(nesil).toHaveLength(3) // <3 olursa Dokuz Kare ekseni kaybolur
+    expect(allCriteria().some((k) => k.id.startsWith('yil:'))).toBe(false) // eski 2 kova gitti
+    // Her şampiyon TAM BİR döneme düşer (boşluk da yok, çakışma da)
+    for (const c of CHAMPIONS) {
+      expect(nesil.filter((k) => k.test(c)).length, c.name).toBe(1)
+    }
+  })
+
   it('kart 12 kutu ve her kutunun yeterli havuzu var', () => {
     const card = buildCard(seededRng(1))
     expect(card).toHaveLength(BOX_COUNT)

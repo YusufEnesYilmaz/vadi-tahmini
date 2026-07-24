@@ -30,6 +30,18 @@ export interface ChangelogEntry {
 /** En yeni EN ÜSTTE */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: 'mini-oyun-icerik-zenginlestirme',
+    date: '2026-07-24',
+    title: 'Mini oyunlara yeni içerik',
+    items: [
+      { icon: '🕰️', text: 'Ölçütlere "Nesil" geldi: İlk Nesil (2009–2011), Orta Nesil (2012–2016), Yeni Nesil (2017+). Eski "2016 öncesi/sonrası" ikilisinin yerini aldı.' },
+      { icon: '🔲', text: 'Dokuz Kare artık çok daha çeşitli: "Nesil × Rol", "Nesil × Koridor" gibi yepyeni ızgaralar açıldı ve Tür ekseni (Yordle, Canavar, Semavi…) neredeyse hiç çıkmazken artık düzenli geliyor.' },
+      { icon: '⚡', text: 'Bağlantılar ve Kaç Tane?\'ye tematik gruplar: "Enerji kullanır" ve "Öfke kullanır". Bağlantılar\'a ayrıca "Kadın şampiyon" grubu eklendi.' },
+      { icon: '🏹', text: 'Şampiyon Avı\'nda ipucu artık 3 kademeli: önce bölge, sonra ROL, sonra tür. Her kademe yine 1 hak yakıyor.' },
+      { icon: '⚖️', text: 'Zaman Tüneli daha adil: seçilen yıllar arasında en az 2 yıl fark oluyor — "2009 mu 2010 mu" gibi yazı-tura tahminler bitti.' },
+    ],
+  },
+  {
     id: 'mini-oyun-rozetleri',
     date: '2026-07-24',
     title: 'Yeni mini oyunlara 8 rozet',

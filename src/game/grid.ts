@@ -20,12 +20,22 @@ import type { Champion } from './types'
 export const GRID_SIZE = 3
 export const MIN_CELL_POOL = 3
 
+/**
+ * Bir kriterin EKSEN olabilmesi için gereken en küçük şampiyon havuzu.
+ * Alt sınır aslında GRID_SIZE (3 hücre = 3 FARKLI şampiyon; "Makine" 2 kişiyle
+ * satır matematiksel olarak çözümsüz); 8 ise kesişimlere pay bırakan kalite marjı.
+ * Bu filtre olmadan Tür ekseni fiilen ölüydü: 17 tür kriterinin çoğu minik olduğu
+ * için rastgele 3'lü seçim neredeyse hep çözümsüz çıkıyor, üretici de kolay
+ * boyutlara kayıyordu (ölçüm: Tür %1, Nesil %82).
+ */
+export const MIN_AXIS_POOL = 8
+
 export interface GridPuzzle {
   rows: Criterion[]
   cols: Criterion[]
 }
 
-/** Kriterin boyutu id önekinden: b:bölge r:rol k:koridor t:tür kay:kaynak men:menzil yil:yıl */
+/** Kriterin boyutu id önekinden: b:bölge r:rol k:koridor t:tür kay:kaynak men:menzil nesil:dönem */
 function dimOf(c: Criterion): string {
   return c.id.split(':')[0]
 }
@@ -80,7 +90,8 @@ export function solveGrid(puzzle: GridPuzzle, fixed: (string | null)[] = Array(9
 
 /** İki farklı boyuttan 3+3 kriter seçip geçerli ızgara üretir */
 function buildGridFromRng(rand: () => number): GridPuzzle {
-  const crits = allCriteria()
+  // Yalnız eksen olmaya yetecek havuzu olan kriterler — çözümsüz satır üretmesin
+  const crits = allCriteria().filter((k) => CHAMPIONS.filter(k.test).length >= MIN_AXIS_POOL)
   const byDim = new Map<string, Criterion[]>()
   for (const c of crits) {
     const d = dimOf(c)
@@ -100,25 +111,39 @@ function buildGridFromRng(rand: () => number): GridPuzzle {
     return a
   }
 
-  for (let attempt = 0; attempt < 500; attempt++) {
+  for (let attempt = 0; attempt < 200; attempt++) {
     const [dRow, dCol] = shuffled(dims)
     if (!dRow || !dCol || dRow === dCol) continue
-    const rows = shuffled(byDim.get(dRow)!).slice(0, GRID_SIZE)
-    const cols = shuffled(byDim.get(dCol)!).slice(0, GRID_SIZE)
 
-    let ok = true
-    for (const r of rows) {
-      for (const c of cols) {
-        if (cellPool(r, c).length < MIN_CELL_POOL) { ok = false; break }
+    /*
+     * Seçilen eksen ÇİFTİ için birkaç kriter örneklemesi denenir — tek örnekleme
+     * deneyip hemen yeni çifte geçmek "kolay" boyutları haksız kayırıyor: geniş
+     * havuzlu bir boyut (nesil 90/44/39) kalite kapılarını neredeyse hep ilk
+     * geçtiği için ızgaraların %98'ini kapıyordu (ölçüldü). Her çifte gerçek bir
+     * şans verilince dağılım boyutlar arasında dengeleniyor.
+     */
+    for (let sample = 0; sample < 12; sample++) {
+      const rows = shuffled(byDim.get(dRow)!).slice(0, GRID_SIZE)
+
+      /*
+       * Sütunlar rastgele DEĞİL, seçili satırların HEPSİYLE uyumlu (kesişimi
+       * ≥ MIN_CELL_POOL) adaylardan seçilir. Sütunu da körlemesine seçmek 9 hücrenin
+       * birden tutmasını düşük olasılık yapıyor ve zor çiftler (Bölge×Tür, Rol×Tür)
+       * hiç üretilemiyordu; böyle seçilince hücre kapısı YAPISAL olarak sağlanıyor,
+       * geriye yalnız "9 farklı şampiyon" kapısı (solveGrid) kalıyor.
+       */
+      const cols: Criterion[] = []
+      for (const c of shuffled(byDim.get(dCol)!)) {
+        if (rows.every((r) => cellPool(r, c).length >= MIN_CELL_POOL)) cols.push(c)
+        if (cols.length === GRID_SIZE) break
       }
-      if (!ok) break
-    }
-    if (!ok) continue
+      if (cols.length < GRID_SIZE) continue
 
-    const puzzle: GridPuzzle = { rows, cols }
-    if (solveGrid(puzzle)) return puzzle
+      const puzzle: GridPuzzle = { rows, cols }
+      if (solveGrid(puzzle)) return puzzle
+    }
   }
-  // 500 denemede çıkmadıysa veri ciddi değişmiş demektir — test bunu kırmızı yakar.
+  // 200 eksen çifti × 12 örnekleme boşa çıktıysa veri ciddi değişmiş demektir — test kırmızı yakar.
   throw new Error('Dokuz Kare: geçerli ızgara üretilemedi')
 }
 

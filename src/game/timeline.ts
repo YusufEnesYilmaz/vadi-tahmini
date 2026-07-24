@@ -6,6 +6,21 @@ import type { Champion } from './types'
 export const TIMELINE_CARDS = 5
 export const TIMELINE_MAX_ATTEMPTS = 3
 
+/**
+ * Adalet: seçilen 5 yıl arasında ardışık fark en az bu kadar olmalı. "2009 vs 2010"
+ * gibi komşu-yıl çiftleri fiilen yazı-tura (kimse tam çıkış yılını bilmez); ≥2 aralık
+ * bulmacayı "dönem bilgisi"yle çözülebilir kılar. Sağlanamazsa (nadiren) esner.
+ */
+export const MIN_YEAR_GAP = 2
+
+/** Sıralı yıllarda tüm ardışık farklar ≥ MIN_YEAR_GAP mi? */
+function hasFairSpread(sortedYears: number[]): boolean {
+  for (let i = 1; i < sortedYears.length; i++) {
+    if (sortedYears[i] - sortedYears[i - 1] < MIN_YEAR_GAP) return false
+  }
+  return true
+}
+
 export interface TimelinePuzzle {
   /** Çıkış yılına göre ESKİDEN YENİYE doğru sıralı hedef 5 şampiyon */
   target: Champion[]
@@ -63,10 +78,9 @@ function buildPuzzleFromRng(rand: () => number): TimelinePuzzle {
   const allYears = Array.from(yearMap.keys()).sort((a, b) => a - b)
   
   let pickedChamps: Champion[] = []
-  let attempts = 0
+  let fallback: Champion[] | null = null
 
-  while (attempts < 100) {
-    attempts++
+  for (let attempt = 0; attempt < 100; attempt++) {
     // 5 farklı yıl seç
     const yearsCopy = [...allYears]
     const selectedYears: number[] = []
@@ -78,13 +92,17 @@ function buildPuzzleFromRng(rand: () => number): TimelinePuzzle {
     selectedYears.sort((a, b) => a - b)
 
     // Her yıldan rastgele bir şampiyon seç
-    pickedChamps = selectedYears.map((y) => {
+    const champs = selectedYears.map((y) => {
       const pool = yearMap.get(y)!
       return pool[Math.floor(rand() * pool.length)]
     })
 
-    if (validateTimelineYears(pickedChamps)) break
+    if (!validateTimelineYears(champs)) continue
+    if (!fallback) fallback = champs // ilk geçerli aday — adil aralık bulunamazsa buna dönülür
+    if (hasFairSpread(selectedYears)) { pickedChamps = champs; break }
   }
+  // Adil aralık çıkmadıysa (nadiren) ilk geçerli adaya düş — oyun durmaz
+  if (pickedChamps.length === 0) pickedChamps = fallback ?? []
 
   const target = [...pickedChamps].sort((a, b) => a.year! - b.year!)
 
