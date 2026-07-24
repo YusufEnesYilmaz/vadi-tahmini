@@ -30,6 +30,15 @@ export interface ChangelogEntry {
 /** En yeni EN ÜSTTE */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: 'sampiyon-rehberi-menu-gorseli',
+    date: '2026-07-24',
+    title: 'Şampiyon Rehberi + menü yenilendi',
+    items: [
+      { icon: '📖', text: 'Menüye "Şampiyonlar" sekmesi geldi: tüm şampiyonlara göz at, ada göre ara ya da bölge/rol/koridora göre süz. Bir şampiyona dokun → hikâyesi, yetenekleri ve künyesi (bölge, rol, tür, cinsiyet…) açılır. Karakterleri yeni tanıyanlar için birebir.' },
+      { icon: '🖼️', text: 'Ana menü LoL atmosferine büründü: kenarlarda karanlık şampiyon splash kolajı + altın Hextech çerçeve ve dokunuşlar.' },
+    ],
+  },
+  {
     id: 'mini-oyun-icerik-zenginlestirme',
     date: '2026-07-24',
     title: 'Mini oyunlara yeni içerik',

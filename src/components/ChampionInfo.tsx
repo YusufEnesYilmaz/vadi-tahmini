@@ -78,7 +78,7 @@ export default function ChampionInfo({ champion, splashNum = 0, onClose }: Props
         <div className="p-5">
           {/* Künye — Klasik modun kolonlarıyla aynı bilgiler */}
           <div className="flex flex-wrap gap-1.5">
-            {[champion.region, ...champion.roles, ...champion.lanes, champion.resource, champion.rangeType,
+            {[champion.region, ...champion.roles, ...champion.lanes, champion.resource, champion.rangeType, champion.species, champion.gender,
               champion.year ? String(champion.year) : null].filter(Boolean).map((t, i) => (
               <span key={`${t}-${i}`} className="rounded-md px-2 py-0.5 text-xs font-semibold"
                 style={{ background: 'var(--bg-input)', color: 'var(--text)' }}>{t}</span>

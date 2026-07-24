@@ -3,7 +3,9 @@
 :root {
   /* LoL temalı koyu tema — tek kaynak */
   --bg: #0a0e1a;
+  --bg-rgb: 10, 14, 26;
   --bg-card: #111827;
+  --bg-card-rgb: 17, 24, 39;
   --bg-input: #1a2332;
   --border: #2a3648;
   --gold: #c8aa6e;
@@ -180,7 +182,73 @@ button { touch-action: manipulation; }
 /* Açılır pencereler için derin gölge (opt-in) */
 .panel { box-shadow: var(--shadow-panel); }
 
+/* LoL/Hextech yüzeyleri — köşe filigranı ve hafif zemin dokusu seçili noktalarda kullanılır */
+:where(.menu-hero, .panel, .hextech-frame, .hextech-card) {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(.menu-hero, .panel, .hextech-frame, .hextech-card) > * {
+  position: relative;
+  z-index: 1;
+}
+
+:where(.menu-hero, .panel)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(var(--gold-glow-rgb), 0.12), transparent 24%),
+    radial-gradient(circle at 82% 14%, rgba(var(--gold-rgb), 0.08), transparent 18%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='104' viewBox='0 0 180 104'%3E%3Cg fill='none' stroke='%23c8aa6e' stroke-opacity='0.18' stroke-width='1'%3E%3Cpath d='M30 1L58 17v32L30 65 2 49V17L30 1Z'/%3E%3Cpath d='M90 1l28 16v32L90 65 62 49V17L90 1Z'/%3E%3Cpath d='M150 1l28 16v32l-28 16-28-16V17l28-16Z'/%3E%3Cpath d='M60 39l28 16v32L60 103 32 87V55l28-16Z'/%3E%3Cpath d='M120 39l28 16v32l-28 16-28-16V55l28-16Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-position: left top, right top, center;
+  background-size: auto, auto, 200px 116px;
+  mix-blend-mode: screen;
+  opacity: 0.1;
+}
+
+.menu-hero {
+  background: linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.92));
+  border-color: rgba(var(--gold-rgb), 0.26);
+  box-shadow: var(--shadow-panel);
+}
+
 /* Pencere arkası: karartma + buzlu cam (arka içerik hafifçe bulanır → odak öne gelir) */
+.menu-collage-splash {
+  filter: brightness(0.72) saturate(0.94) blur(0.8px);
+  -webkit-mask-image:
+    radial-gradient(ellipse at center, #000 34%, rgba(0, 0, 0, 0.9) 68%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 10%, #000 90%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(ellipse at center, #000 38%, rgba(0, 0, 0, 0.86) 60%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-composite: intersect;
+}
+
+.menu-collage-vignette {
+  background: radial-gradient(
+    ellipse 74% 60% at 50% 38%,
+    rgba(var(--bg-rgb), 0.92) 0%,
+    rgba(var(--bg-rgb), 0.84) 18%,
+    rgba(var(--bg-rgb), 0.66) 34%,
+    rgba(var(--bg-rgb), 0.38) 50%,
+    rgba(var(--bg-rgb), 0.12) 64%,
+    transparent 78%
+  );
+}
+
 .ovl { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 
 /* Metin seçimi ve kaydırma çubuğu — küçük ama her yerde görünen dokunuşlar */
@@ -272,6 +340,19 @@ button { touch-action: manipulation; }
   color: var(--text-dim);
 }
 
+.hextech-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.hextech-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--gold-rgb), 0.4), rgba(var(--gold-rgb), 0.1) 68%, transparent);
+}
+
 /*
  * Canlı altın başlık: metnin içinden yavaşça geçen parıltı. background-clip:text
  * ile boyanır, ek dosya yok. Uygulayan öğede inline `color` VERME (text-fill'i ezer).
@@ -298,5 +379,15 @@ button { touch-action: manipulation; }
     -webkit-text-fill-color: var(--gold-bright);
     color: var(--gold-bright);
   }
-  .card-btn { transition: none; }
+  .card-btn,
+  .btn-gold { transition: none; }
+  .card-btn:hover,
+  .card-btn:active,
+  .card-btn-lg:hover,
+  .card-btn-lg:active,
+  .btn-gold:hover,
+  .btn-gold:active {
+    transform: none !important;
+  }
+  .btn-gold:hover { filter: none; }
 }

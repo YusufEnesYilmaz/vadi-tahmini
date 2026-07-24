@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
+import ChampionGuide from './components/ChampionGuide'
 import WordleGame from './components/WordleGame'
 import BingoGame from './components/BingoGame'
 import TimelineGame from './components/TimelineGame'
@@ -17,6 +18,7 @@ type Screen =
   | { name: 'menu' }
   | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter }
   | { name: 'settings' }
+  | { name: 'champions' }
   | { name: 'wordle'; daily: boolean }
   | { name: 'bingo'; daily: boolean }
   | { name: 'timeline'; daily: boolean }
@@ -110,10 +112,14 @@ export default function App() {
   if (screen.name === 'settings') {
     return <Settings onExit={navigateMenu} />
   }
+  if (screen.name === 'champions') {
+    return <ChampionGuide onExit={navigateMenu} />
+  }
   return (
     <Menu
       onPlay={(top, sub, diff, filter) => navigateTo({ name: 'game', top, sub, diff, filter })}
       onSettings={() => navigateTo({ name: 'settings' })}
+      onChampions={() => navigateTo({ name: 'champions' })}
       onMiniGame={(g, d) => {
         if (g === 'wordle') navigateTo({ name: 'wordle', daily: d })
         else if (g === 'bingo') navigateTo({ name: 'bingo', daily: d })

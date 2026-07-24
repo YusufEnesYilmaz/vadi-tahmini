@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CHAMPIONS, PATCH } from '../game/data'
+import { CHAMPIONS, PATCH, splashUrl } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
 import { getBestScore, getDailyHistory, getDailyState, getDailyStreak, getStats, isStreakAlive, normalizeEntry } from '../game/stats'
@@ -26,12 +26,25 @@ import RankEmblem from './RankEmblem'
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
+  onChampions: () => void
   /** Mini oyunlar ayrı ekran — alt mod yapısına oturmuyorlar */
   onMiniGame: (game: 'wordle' | 'bingo' | 'timeline' | 'hunt' | 'grid' | 'connections', daily: boolean) => void
   /** "Kaç Tane?" — tek kişilik Sınırsız */
   onCounter: () => void
   /** "Kaç Tane?" — gerçek zamanlı oda (multiplayer) */
   onCounterMulti: () => void
+}
+
+interface MenuCollageLayout {
+  key: string
+  top?: string
+  right?: string
+  bottom?: string
+  left?: string
+  width: string
+  rotate: string
+  objectPosition: string
+  opacity: number
 }
 
 const LOL_TIPS = [
@@ -43,7 +56,27 @@ const LOL_TIPS = [
   '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
 ]
 
-export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCounterMulti }: Props) {
+const MENU_COLLAGE_LAYOUTS: readonly MenuCollageLayout[] = [
+  { key: 'left-top', top: '2%', left: '-6%', width: 'clamp(340px, 29vw, 560px)', rotate: '-9deg', objectPosition: '30% center', opacity: 0.4 },
+  { key: 'left-mid', top: '29%', left: '-8%', width: 'clamp(360px, 31vw, 590px)', rotate: '-4deg', objectPosition: '42% center', opacity: 0.36 },
+  { key: 'right-top', top: '-2%', right: '-5%', width: 'clamp(340px, 28vw, 550px)', rotate: '8deg', objectPosition: '58% center', opacity: 0.42 },
+  { key: 'right-mid', top: '26%', right: '-7%', width: 'clamp(370px, 31vw, 610px)', rotate: '6deg', objectPosition: '61% center', opacity: 0.38 },
+  { key: 'bottom-left', bottom: '-5%', left: '1%', width: 'clamp(320px, 27vw, 520px)', rotate: '7deg', objectPosition: '38% center', opacity: 0.34 },
+  { key: 'bottom-right', bottom: '-6%', right: '2%', width: 'clamp(330px, 27vw, 530px)', rotate: '-8deg', objectPosition: '62% center', opacity: 0.39 },
+  { key: 'left-low', top: '52%', left: '-5%', width: 'clamp(300px, 25vw, 500px)', rotate: '-5deg', objectPosition: '40% center', opacity: 0.4 },
+  { key: 'bottom-cl', bottom: '-3%', left: '22%', width: 'clamp(300px, 24vw, 470px)', rotate: '6deg', objectPosition: '50% center', opacity: 0.37 },
+  { key: 'bottom-cr', bottom: '-3%', right: '22%', width: 'clamp(300px, 24vw, 470px)', rotate: '-7deg', objectPosition: '52% center', opacity: 0.39 },
+] as const
+
+/**
+ * Menü arka plan kolajı için ELLE SEÇİLMİŞ kadro — sıra MENU_COLLAGE_LAYOUTS ile
+ * birebir eşleşir (0:sol-üst, 1:sol-orta, 2:sağ-üst, 3:sağ-orta, 4:alt-sol, 5:alt-sağ).
+ * Rastgele-günlük seçim yerine sabit kadro: kullanıcı hangi şampiyonların görüneceğini
+ * kontrol etsin, sürpriz/istenmeyen splash gelmesin.
+ */
+const MENU_COLLAGE_CHAMPIONS = ['Garen', 'Jinx', 'Seraphine', 'Ahri', 'Teemo', 'Yasuo', 'Jhin', 'Vi', 'Caitlyn'] as const
+
+export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCounter, onCounterMulti }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [howTo, setHowTo] = useState(false)
   const [stats, setStats] = useState(false)
@@ -58,6 +91,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
   const [soundOn, setSoundOn] = useState(sfxEnabled)
+  const [hiddenCollageSplashes, setHiddenCollageSplashes] = useState<Record<string, boolean>>({})
   const updateReady = useUpdateAvailable()
 
   function pickDifficulty(d: Difficulty) {
@@ -92,7 +126,17 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
   const earnedAchCount = getEarnedAchievements().length
   const totalAchCount = ACHIEVEMENTS.length
 
-  const todayData = getDailyHistory()[todayKey()] ?? {}
+  const today = todayKey()
+  const menuCollageSplashes = useMemo(
+    () =>
+      MENU_COLLAGE_LAYOUTS.map((layout, i) => {
+        const id = MENU_COLLAGE_CHAMPIONS[i]
+        return { ...layout, id, src: splashUrl(id, 0) }
+      }),
+    [],
+  )
+
+  const todayData = getDailyHistory()[today] ?? {}
   const todayDoneCount = DAILY_SUBS.filter((m) => {
     const entry = normalizeEntry(todayData[m.id])
     return entry && entry.g > 0
@@ -112,6 +156,42 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
   return (
     // Masaüstünde geniş sahne (5xl) — ana menü iki kolona açılır; mobil tek kolon aynı
     <div className="relative mx-auto flex w-full max-w-2xl lg:max-w-5xl flex-col items-center gap-3.5 sm:gap-5 px-3.5 sm:px-4 pb-8 pt-3 sm:pt-8">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+        {menuCollageSplashes.map((splash) => (
+          hiddenCollageSplashes[splash.src]
+            ? null
+            : (
+              <div
+                key={`${splash.key}-${splash.id}`}
+                className="absolute"
+                style={{
+                  top: splash.top,
+                  right: splash.right,
+                  bottom: splash.bottom,
+                  left: splash.left,
+                  width: splash.width,
+                  aspectRatio: '1215 / 717',
+                  transform: `rotate(${splash.rotate})`,
+                }}
+              >
+                <img
+                  src={splash.src}
+                  alt=""
+                  className="menu-collage-splash h-full w-full object-cover"
+                  style={{ objectPosition: splash.objectPosition, opacity: splash.opacity }}
+                  decoding="async"
+                  loading="lazy"
+                  onError={() => {
+                    setHiddenCollageSplashes((prev) => (
+                      prev[splash.src] ? prev : { ...prev, [splash.src]: true }
+                    ))
+                  }}
+                />
+              </div>
+            )
+        ))}
+        <div className="menu-collage-vignette absolute inset-0" />
+      </div>
       {/* Ambient Glow Lights */}
       <div className="pointer-events-none absolute -top-16 inset-x-0 flex justify-between opacity-30 blur-3xl" aria-hidden>
         <div className="h-48 w-48 rounded-full" style={{ background: 'var(--gold)' }} />
@@ -119,12 +199,14 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
       </div>
 
       {/* Üst Canlı Bar: Sihirdar Kimliği & Ses Kontrolü */}
-      <div className="z-10 flex w-full items-center justify-between gap-2 text-xs">
+      <div className="menu-hero anim-pop z-10 w-full overflow-hidden rounded-[24px] border px-3.5 py-3 sm:rounded-[30px] sm:px-5 sm:py-4">
+        <div className="flex flex-col gap-5 sm:gap-8">
+          <div className="flex w-full items-center justify-between gap-2 text-xs">
         {/* Sol: Sihirdar Unvanı — tıklanınca kademelerin listesi açılır */}
-        <button
+            <button
           onClick={() => setRank(true)}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold shadow-sm backdrop-blur-md transition-all hover:scale-105"
-          style={{ background: 'rgba(255, 255, 255, 0.03)', borderColor: 'var(--border)' }}
+          className="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-bold shadow-sm backdrop-blur-md transition-all hover:scale-105 sm:gap-2 sm:px-3 sm:py-1"
+          style={{ background: 'rgba(var(--bg-card-rgb), 0.68)', borderColor: 'rgba(var(--gold-rgb), 0.2)' }}
           aria-label="Sihirdar unvanları ve kademeleri gör"
           title="Unvanların nasıl yükseldiğini gör"
         >
@@ -132,15 +214,15 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
           <span style={{ color: summoner.color }}>{summoner.title}</span>
           <span className="opacity-40">•</span>
           <span style={{ color: 'var(--text-dim)' }}>🔥 {activeStreak} Gün</span>
-        </button>
+            </button>
 
         {/* Sağ: Ses Aç/Kapat Butonu */}
-        <button
+            <button
           onClick={toggleSound}
-          className="flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold transition-all duration-200 hover:scale-105"
+          className="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-bold transition-all duration-200 hover:scale-105 sm:px-3 sm:py-1"
           style={{
-            background: soundOn ? 'rgba(var(--accent-done-rgb), 0.1)' : 'rgba(255, 255, 255, 0.04)',
-            borderColor: soundOn ? 'rgba(var(--accent-done-rgb), 0.3)' : 'var(--border)',
+            background: soundOn ? 'rgba(var(--accent-done-rgb), 0.14)' : 'rgba(var(--bg-card-rgb), 0.72)',
+            borderColor: soundOn ? 'rgba(var(--accent-done-rgb), 0.36)' : 'rgba(var(--gold-rgb), 0.18)',
             color: soundOn ? 'var(--accent-done)' : 'var(--text-dim)',
           }}
           aria-label={soundOn ? 'Ses efektlerini kapat' : 'Ses efektlerini aç'}
@@ -148,11 +230,11 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
         >
           <span>{soundOn ? '🔊' : '🔇'}</span>
           <span className="hidden sm:inline">{soundOn ? 'Ses Açık' : 'Sessiz'}</span>
-        </button>
-      </div>
+            </button>
+          </div>
 
       {/* Header & Logo */}
-      <header className="anim-pop z-10 flex flex-col items-center text-center">
+          <header className="flex min-h-[132px] flex-col items-center justify-center pb-1 text-center sm:min-h-[168px] sm:pb-2">
         <h1
           className="text-shimmer font-display text-3xl font-extrabold tracking-tight sm:text-5xl"
           style={{ filter: 'drop-shadow(0 0 18px rgba(var(--gold-glow-rgb), 0.35))' }}
@@ -161,16 +243,18 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
         </h1>
 
         {/* Altın Hextech süsleme çizgisi */}
-        <div className="mx-auto mt-1.5 sm:mt-2.5 flex items-center justify-center gap-2" aria-hidden>
+            <div className="mx-auto mt-1.5 flex items-center justify-center gap-2 sm:mt-2.5" aria-hidden>
           <span className="h-px w-10 sm:w-14" style={{ background: 'linear-gradient(90deg, transparent, var(--gold))' }} />
           <span style={{ color: 'var(--gold)' }}>◆</span>
           <span className="h-px w-10 sm:w-14" style={{ background: 'linear-gradient(90deg, var(--gold), transparent)' }} />
         </div>
 
-        <p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium tracking-wide" style={{ color: 'var(--text-dim)' }}>
+            <p className="mt-1 text-xs font-medium tracking-wide sm:mt-2 sm:text-sm" style={{ color: 'var(--gold-bright)' }}>
           ⚔️ League of Legends Tahmin Oyunu · Bil bakalım, şampiyon kim?
-        </p>
-      </header>
+            </p>
+          </header>
+        </div>
+      </div>
 
       {!top ? (
         <div className="stagger z-10 flex w-full flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-5">
@@ -193,7 +277,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
           {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
           <button
             onClick={quickPlay}
-            className="group relative flex w-full items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border px-3.5 sm:px-5 py-2.5 sm:py-3.5 shadow-lg transition-all duration-300 active:scale-[0.99]"
+            className="group hextech-card relative flex w-full items-center justify-between overflow-hidden rounded-xl border px-3.5 py-2.5 shadow-lg transition-all duration-300 active:scale-[0.99] sm:rounded-2xl sm:px-5 sm:py-3.5"
             style={{
               background: isDailyAllCompleted
                 ? 'linear-gradient(135deg, rgba(var(--accent-done-deep-rgb), 0.15), rgba(var(--accent-endless-rgb), 0.08))'
@@ -242,7 +326,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
             {/* Sınırsız */}
             <button
               onClick={() => setTop('endless')}
-              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(var(--accent-endless-rgb),0.2)]"
+              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(var(--accent-endless-rgb),0.2)] sm:rounded-2xl sm:p-4"
               style={{ background: 'linear-gradient(135deg, rgba(var(--accent-endless-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
               <div className="flex w-full items-center justify-between">
@@ -266,7 +350,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
             {/* Günlük */}
             <button
               onClick={() => setTop('daily')}
-              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(var(--gold-glow-rgb),0.35)]"
+              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(var(--gold-glow-rgb),0.35)] sm:rounded-2xl sm:p-4"
               style={{
                 background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.12), rgba(255, 255, 255, 0.02))',
                 borderColor: isDailyAllCompleted ? 'var(--accent-done)' : 'rgba(var(--gold-glow-rgb), 0.4)',
@@ -299,7 +383,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
             {/* Zamana Karşı */}
             <button
               onClick={() => setTop('timed')}
-              className="group card-btn card-btn-lg relative flex flex-col items-start justify-between overflow-hidden rounded-xl sm:rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-300 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(var(--accent-timed-rgb),0.2)]"
+              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(var(--accent-timed-rgb),0.2)] sm:rounded-2xl sm:p-4"
               style={{ background: 'linear-gradient(135deg, rgba(var(--accent-timed-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
               <div className="flex w-full items-center justify-between">
@@ -322,7 +406,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
           </div>
 
           {/* Kariyer & Sihirdar İlerleme Barı */}
-          <div className="flex items-center justify-around rounded-xl border py-2.5 sm:py-3 px-3 text-center text-xs backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-card)' }}>
+          <div className="hextech-frame flex items-center justify-around rounded-xl border px-3 py-2.5 text-center text-xs backdrop-blur-md sm:py-3" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-card)' }}>
             <div>
               <span className="block font-extrabold text-sm" style={{ color: 'var(--gold-bright)', textShadow: '0 0 12px rgba(var(--gold-glow-rgb), 0.35)' }}>💎 {uniqueChampCount}/{totalChamps}</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Keşif</span>
@@ -343,7 +427,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
               7 mini oyunla uzayınca butonlar dibe gömülüyordu, sol altta boşluk vardı) */}
           <div className="flex flex-col gap-2 w-full">
             {/* Üst Sıra: Sistem & Rehber */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
               <button
                 onClick={() => setHowTo(true)}
                 className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
@@ -359,6 +443,14 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
               >
                 <span className="text-sm transition-transform duration-300 group-hover:scale-125">📊</span>
                 <span>İstatistikler</span>
+              </button>
+              <button
+                onClick={onChampions}
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              >
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📖</span>
+                <span>Şampiyonlar</span>
               </button>
               <button
                 onClick={onSettings}
@@ -414,11 +506,10 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
           <div className="flex flex-col gap-3 sm:gap-4">
           {/* Mini Oyunlar */}
           <div>
-            <div className="mb-1.5 sm:mb-2 flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+            <div className="section-label hextech-divider mb-1.5 sm:mb-2" style={{ color: 'var(--gold)' }}>
+              <span>
                 🕹️ Mini Oyunlar
               </span>
-              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.3), transparent)' }} />
             </div>
 
             {/*
@@ -439,7 +530,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
                 return (
                 <div
                   key={g.id}
-                  className="group flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+                  className="group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
                   style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
@@ -480,7 +571,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
               })}
 
               {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi), aynı satır kalıbı */}
-              <div className="group flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+              <div className="group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
                   🔢
@@ -584,11 +675,8 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
 
           {/* Mod seçimi bölgesi */}
           <div>
-            <div className="mb-2 flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
-                Ne tahmin edeceksin?
-              </span>
-              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, var(--border), transparent)' }} />
+            <div className="section-label hextech-divider mb-2">
+              <span>Ne tahmin edeceksin?</span>
             </div>
 
             {/* Alt modlar — geniş ekranda ikişerli */}
