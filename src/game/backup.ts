@@ -92,7 +92,15 @@ export function applyBackup(text: string): ImportResult {
     return { ok: false, error: 'Yedekte geri yüklenecek kayıt yok.' }
   }
 
-  clearProgress()
-  for (const [k, v] of entries) localStorage.setItem(k, v)
-  return { ok: true, count: entries.length }
+  // Yazma yarıda kesilirse oyuncunun eski ilerlemesi kaybolmasın diye önce anlık görüntü al.
+  const previous = buildBackup().data
+  try {
+    clearProgress()
+    for (const [k, v] of entries) localStorage.setItem(k, v)
+    return { ok: true, count: entries.length }
+  } catch {
+    clearProgress()
+    for (const [k, v] of Object.entries(previous)) localStorage.setItem(k, v)
+    return { ok: false, error: 'Yedek yazılırken hata oluştu; eski ilerlemen geri yüklendi.' }
+  }
 }

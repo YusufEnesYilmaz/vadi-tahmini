@@ -314,5 +314,8 @@ if (warn.species.length) console.log(`⚠ Tür tablosunda YOK (scripts/species.m
 if (warn.faction.length) console.log(`⚠ Bilinmeyen bölge slug'ı (FACTION_TR'ye ekle): ${warn.faction.join(', ')}`)
 if (noYear.length) console.log(`⚠ Yıl bilgisi eksik: ${noYear.join(', ')}`)
 if (noLane.length) console.log(`⚠ Koridor bilgisi eksik: ${noLane.join(', ')}`)
-if (!warn.meraki.length && !warn.gender.length && !warn.faction.length && !noYear.length && !noLane.length)
+if (!warn.meraki.length && !warn.gender.length && !warn.species.length && !warn.faction.length && !noYear.length && !noLane.length)
   console.log('✓ Tüm alanlar eksiksiz.')
+
+// Eksik zorunlu sınıflandırma ya da mükerrer eşya tahmini bozabilir; uyarıyla başarılı çıkma.
+if (warn.gender.length || warn.species.length || itemDupes.length) process.exitCode = 1

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { SUB_MODES, type SubMode } from '../game/types'
 import DifficultyTable from './DifficultyTable'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   sub?: SubMode // oyun içinden açıldıysa o modun anlatımı öne çıkar
@@ -38,6 +39,8 @@ const MINI_GAMES: { icon: string; name: string; desc: string }[] = [
 
 /** Nasıl oynanır penceresi — menüden ve oyun içindeki "?" butonundan açılır */
 export default function HowTo({ sub, onClose }: Props) {
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
+
   // Escape ile kapansın (masaüstünde beklenen davranış)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -55,6 +58,7 @@ export default function HowTo({ sub, onClose }: Props) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className="anim-pop my-auto w-full max-w-3xl rounded-2xl border p-5 sm:p-6 panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()}

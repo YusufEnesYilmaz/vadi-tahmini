@@ -190,8 +190,11 @@ export function loadDailyGrid(): GridDailySave | null {
     if (!raw) return null
     const save = JSON.parse(raw) as GridDailySave
     if (save.date !== todayKey()) return null
-    if (!Array.isArray(save.cells) || save.cells.length !== 9) return null
-    if (!Array.isArray(save.wrong) || save.wrong.length !== 9) return null
+    // Bozuk eksen kaydı criteriaFromIds'te ekranı patlatmasın; taze bulmaca üretilecek.
+    if (!Array.isArray(save.rowIds) || save.rowIds.length !== GRID_SIZE) return null
+    if (!Array.isArray(save.colIds) || save.colIds.length !== GRID_SIZE) return null
+    if (!Array.isArray(save.cells) || save.cells.length !== GRID_SIZE * GRID_SIZE) return null
+    if (!Array.isArray(save.wrong) || save.wrong.length !== GRID_SIZE * GRID_SIZE) return null
     return save
   } catch {
     return null

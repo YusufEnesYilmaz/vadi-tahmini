@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getPlayerId } from './challenge'
 import { LEADERBOARD_DIFFS, type Difficulty } from './types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -11,15 +12,22 @@ export const supabase = isLeaderboardEnabled
   : null
 
 export interface LeaderboardEntry {
-  /**
-   * Oyuncunun DEĞİŞMEZ kimliği. "Bu satır ben miyim?" sorusu YALNIZ bununla
-   * cevaplanır — takma ad kimlik değildir, iki kişi aynı adı yazabilir
-   * (yazıyordu da: ikisi de "(Sen)" görüyordu).
-   */
-  playerId: string
   /** Yalnız görüntü adı — değişebilir, tekil değildir */
   nick: string
   score: number
+  /** Ham `player_id` dönmez; "benim satırım mı?" bilgisi sunucudan gelir */
+  isMe: boolean
+}
+
+export interface LeaderboardLoadResult {
+  entries: LeaderboardEntry[]
+  error: string | null
+}
+
+interface LeaderboardRow {
+  nick: string
+  score: number
+  is_me: boolean
 }
 
 // ---- Gönderim başarısızlığının izi ----
@@ -140,45 +148,45 @@ export async function updateLeaderboardNick(playerId: string, newNick: string) {
   }
 }
 
-/** Zamana Karşı sıralamasını getirir (yüksek skor üste) */
-export async function getTimedLeaderboard(sub: string, diff: string): Promise<LeaderboardEntry[]> {
-  if (!supabase) return []
-  const mode = `timed:${sub}:${diff}`
+async function callLeaderboard(mode: string, date?: string): Promise<LeaderboardLoadResult> {
+  if (!supabase) return { entries: [], error: null }
 
   try {
-    const { data, error } = await supabase
-      .from('vt_leaderboard')
-      .select('player_id, nick, score')
-      .eq('mode', mode)
-      .order('score', { ascending: false })
-      .limit(50)
+    const { data, error } = await supabase.rpc('get_leaderboard', {
+      p_mode: mode,
+      p_date: date ?? null,
+      p_me: getPlayerId(),
+    })
+    const rows = (data as LeaderboardRow[] | null) ?? []
 
-    if (error) throw error
-    return (data || []).map((d) => ({ playerId: d.player_id, nick: d.nick, score: Number(d.score) }))
+    if (error) {
+      console.error(`Get leaderboard failed (${mode}):`, error.message)
+      return { entries: [], error: error.message }
+    }
+
+    return {
+      entries: rows.map((d) => ({
+        nick: d.nick,
+        score: Number(d.score),
+        isMe: Boolean(d.is_me),
+      })),
+      error: null,
+    }
   } catch (err) {
-    console.error('Get timed leaderboard failed:', err)
-    return []
+    const msg = err instanceof Error ? err.message : 'bağlantı hatası'
+    console.error(`Get leaderboard failed (${mode}):`, msg)
+    return { entries: [], error: msg }
   }
 }
 
+/** Zamana Karşı sıralamasını getirir (yüksek skor üste) */
+export async function getTimedLeaderboard(sub: string, diff: string): Promise<LeaderboardLoadResult> {
+  const mode = `timed:${sub}:${diff}`
+  return callLeaderboard(mode)
+}
+
 /** Günlük sıralamasını getirir (düşük tahmin sayısı üste) */
-export async function getDailyLeaderboard(sub: string, date: string): Promise<LeaderboardEntry[]> {
-  if (!supabase) return []
+export async function getDailyLeaderboard(sub: string, date: string): Promise<LeaderboardLoadResult> {
   const mode = `daily:${sub}`
-
-  try {
-    const { data, error } = await supabase
-      .from('vt_leaderboard')
-      .select('player_id, nick, score')
-      .eq('mode', mode)
-      .eq('date', date)
-      .order('score', { ascending: true })
-      .limit(50)
-
-    if (error) throw error
-    return (data || []).map((d) => ({ playerId: d.player_id, nick: d.nick, score: Number(d.score) }))
-  } catch (err) {
-    console.error('Get daily leaderboard failed:', err)
-    return []
-  }
+  return callLeaderboard(mode, date)
 }

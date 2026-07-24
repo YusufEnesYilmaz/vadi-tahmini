@@ -443,6 +443,8 @@ export interface Achievement {
   cat: 'temel' | 'seri' | 'tahmin' | 'cesitlilik' | 'hiz' | 'azim' | 'zorluk' | 'koleksiyon' | 'sosyal' | 'mini'
   /** Kazanıldı mı */
   check: (snap: AchSnapshot) => boolean
+  /** Günlük ilk-tahmin rozeti geçerli günlük moda bağlı kalsın diye test verisi. */
+  dailyFirstSub?: PlaySub
   /** İlerleme (opsiyonel — vitrin'de çubuk gösterilir) */
   progress?: (snap: AchSnapshot) => { current: number; target: number }
 }
@@ -1004,46 +1006,44 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'daily_first_classic', icon: '🎯', name: 'Günlük Dahi: Klasik', cat: 'cesitlilik',
     desc: 'Günlük Klasik bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'classic',
     check: (s) => s.dailyFirstMap['classic'] ?? false,
   },
   {
     id: 'daily_first_ability', icon: '✨', name: 'Günlük Dahi: Yetenek', cat: 'cesitlilik',
     desc: 'Günlük Yetenek bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'ability',
     check: (s) => s.dailyFirstMap['ability'] ?? false,
   },
   {
     id: 'daily_first_art', icon: '🖼️', name: 'Günlük Dahi: Görsel', cat: 'cesitlilik',
     desc: 'Günlük Görsel bulmacasını ilk tahminde bil',
-    check: (s) => s.dailyFirstMap['art'] ?? false,
+    // Görsel modun kanonik id'si splash; art diye bir günlük mod yok.
+    dailyFirstSub: 'splash',
+    check: (s) => s.dailyFirstMap['splash'] ?? false,
   },
   {
     id: 'daily_first_skin', icon: '🎭', name: 'Günlük Dahi: Kostüm', cat: 'cesitlilik',
     desc: 'Günlük Kostüm bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'skin',
     check: (s) => s.dailyFirstMap['skin'] ?? false,
   },
   {
     id: 'daily_first_quote', icon: '🔊', name: 'Günlük Dahi: Replik', cat: 'cesitlilik',
     desc: 'Günlük Replik bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'quote',
     check: (s) => s.dailyFirstMap['quote'] ?? false,
   },
   {
     id: 'daily_first_emoji', icon: '😀', name: 'Günlük Dahi: Emoji', cat: 'cesitlilik',
     desc: 'Günlük Emoji bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'emoji',
     check: (s) => s.dailyFirstMap['emoji'] ?? false,
-  },
-  {
-    id: 'daily_first_silhouette', icon: '👤', name: 'Günlük Dahi: Silüet', cat: 'cesitlilik',
-    desc: 'Günlük Silüet bulmacasını ilk tahminde bil',
-    check: (s) => s.dailyFirstMap['silhouette'] ?? false,
-  },
-  {
-    id: 'daily_first_story', icon: '📜', name: 'Günlük Dahi: Hikâye', cat: 'cesitlilik',
-    desc: 'Günlük Hikâye bulmacasını ilk tahminde bil',
-    check: (s) => s.dailyFirstMap['story'] ?? false,
   },
   {
     id: 'daily_first_item', icon: '🗡️', name: 'Günlük Dahi: Eşya', cat: 'cesitlilik',
     desc: 'Günlük Eşya bulmacasını ilk tahminde bil',
+    dailyFirstSub: 'item',
     check: (s) => s.dailyFirstMap['item'] ?? false,
   },
 

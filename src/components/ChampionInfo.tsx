@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { passiveUrl, spellUrl, splashUrl } from '../game/data'
 import type { Champion } from '../game/types'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface InfoEntry {
   lore: string
@@ -32,6 +33,7 @@ interface Props {
 export default function ChampionInfo({ champion, splashNum = 0, onClose }: Props) {
   const [info, setInfo] = useState<InfoEntry | null>(cache?.[champion.id] ?? null)
   const [failed, setFailed] = useState(false)
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -50,7 +52,7 @@ export default function ChampionInfo({ champion, splashNum = 0, onClose }: Props
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center ovl"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="anim-pop my-auto w-full max-w-2xl rounded-2xl border panel"
+      <div ref={dialogRef} className="anim-pop my-auto w-full max-w-2xl rounded-2xl border panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
         aria-label={`${champion.name} bilgi kartı`}>

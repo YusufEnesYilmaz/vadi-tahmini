@@ -21,6 +21,7 @@ import Autocomplete, { type AcOption } from './Autocomplete'
 import ExitConfirm from './ExitConfirm'
 import WinConfetti from './game/WinConfetti'
 import GameShell from './game/GameShell'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   daily?: boolean
@@ -48,6 +49,7 @@ export default function GridGame({ daily = false, onExit }: Props) {
   const [showHowTo, setShowHowTo] = useState(false)
   const [copied, setCopied] = useState(false)
   const [announce, setAnnounce] = useState('')
+  const howToDialogRef = useModalFocusTrap<HTMLDivElement>(showHowTo)
 
   // İlk yükleme: günlükte kayıt varsa geri kur (kriter id çözülmezse taze bulmaca)
   useEffect(() => {
@@ -393,7 +395,7 @@ export default function GridGame({ daily = false, onExit }: Props) {
       {showHowTo && (
         <div className="ovl fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'var(--overlay)' }} onClick={() => setShowHowTo(false)}>
-          <div className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
+          <div ref={howToDialogRef} className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
             role="dialog" aria-modal="true" aria-label="Dokuz Kare kuralları"
             style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
             onClick={(e) => e.stopPropagation()}>

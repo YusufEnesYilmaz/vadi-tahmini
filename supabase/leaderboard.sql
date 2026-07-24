@@ -5,6 +5,10 @@
 -- fonksiyonlar `create or replace`. Mevcut skorlar SİLİNMEZ.
 -- 2026-07-23 güncellemesi: fonksiyonlara `set search_path = ''` + skor akla
 -- yatkınlık tavanı eklendi → bu dosyanın YENİDEN çalıştırılması gerekir.
+-- 2026-07-24 güncellemesi: tabloyu anon istemciye doğrudan okutmak `player_id`
+-- sızdırıyordu; okuma `get_leaderboard` RPC'sine taşındı ve satır başına yalnız
+-- `nick`, `score`, `is_me` dönüyor. Bu güvenlik düzeltmesi için bu dosyanın
+-- YENİDEN çalıştırılması gerekir.
 
 -- 1) Tablo
 create table if not exists public.vt_leaderboard (
@@ -30,11 +34,7 @@ drop policy if exists "vt_update" on public.vt_leaderboard;
 drop policy if exists "vt_read" on public.vt_leaderboard;
 
 -- 3) Güvenli Kurallar:
--- Yalnızca SELECT açık (herkes sıralamayı görebilir)
-create policy "vt_read" on public.vt_leaderboard
-  for select using (true);
-
--- İstemciden doğrudan INSERT/UPDATE/DELETE tamamen kapalıdır.
+-- İstemciden doğrudan SELECT/INSERT/UPDATE/DELETE tamamen kapalıdır.
 -- Skor ekleme/güncelleme işlemleri yalnızca aşağıdaki SECURITY DEFINER RPC fonksiyonları ile yapılabilir.
 
 -- 4) Stored Procedure: Güvenli Skor Gönderimi (submit_score)
@@ -120,7 +120,53 @@ begin
 end;
 $$;
 
--- 5) Stored Procedure: Oyuncu Takma Adı Güncelleme (update_player_nick)
+-- 5) Stored Procedure: Güvenli Sıralama Okuma (get_leaderboard)
+create or replace function public.get_leaderboard(
+  p_mode text,
+  p_date text default null,
+  p_me   text default null
+)
+returns table (
+  nick  text,
+  score integer,
+  is_me boolean
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_mode is null or trim(p_mode) = '' then
+    return;
+  end if;
+
+  if p_mode like 'daily:%' then
+    return query
+    select
+      lb.nick,
+      lb.score,
+      case when p_me is not null and lb.player_id = p_me then true else false end
+    from public.vt_leaderboard as lb
+    where lb.mode = p_mode
+      and coalesce(lb.date, '') = coalesce(p_date, '')
+    order by lb.score asc, lb.created_at asc
+    limit 50;
+    return;
+  end if;
+
+  return query
+  select
+    lb.nick,
+    lb.score,
+    case when p_me is not null and lb.player_id = p_me then true else false end
+  from public.vt_leaderboard as lb
+  where lb.mode = p_mode
+  order by lb.score desc, lb.created_at asc
+  limit 50;
+end;
+$$;
+
+-- 6) Stored Procedure: Oyuncu Takma Adı Güncelleme (update_player_nick)
 create or replace function public.update_player_nick(
   p_player_id text,
   p_nick      text
@@ -150,4 +196,5 @@ $$;
 
 -- Fonksiyonları anon ve authenticated kullanıcılara aç
 grant execute on function public.submit_score(text, text, text, integer, text) to anon, authenticated;
+grant execute on function public.get_leaderboard(text, text, text) to anon, authenticated;
 grant execute on function public.update_player_nick(text, text) to anon, authenticated;

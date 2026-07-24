@@ -17,6 +17,7 @@ import {
 import { evaluateAchievements } from '../game/achievements'
 import WinConfetti from './game/WinConfetti'
 import GameShell from './game/GameShell'
+import { useModalFocusTrap } from './useModalFocusTrap'
 import type { Champion } from '../game/types'
 
 interface TimelineGameProps {
@@ -33,6 +34,7 @@ interface TimelineGameProps {
 export default function TimelineGame({ daily = false, onExit }: TimelineGameProps) {
   const [started, setStarted] = useState(false)
   const [showHowTo, setShowHowTo] = useState(false)
+  const howToDialogRef = useModalFocusTrap<HTMLDivElement>(showHowTo)
 
   const [puzzle, setPuzzle] = useState<TimelinePuzzle | null>(null)
   const [currentOrder, setCurrentOrder] = useState<Champion[]>([])
@@ -427,7 +429,7 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
       {showHowTo && (
         <div className="ovl fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'var(--overlay)' }} onClick={() => setShowHowTo(false)}>
-          <div className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
+          <div ref={howToDialogRef} className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
             role="dialog" aria-modal="true" aria-label="Zaman Tüneli kuralları"
             style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
             onClick={(e) => e.stopPropagation()}>

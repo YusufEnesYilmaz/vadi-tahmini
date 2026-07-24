@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.tools/node/
 dist
 dist-ssr
 *.local
@@ -34,3 +35,7 @@ CLAUDE.md
 AGENTS.md
 .claude/
 .codex/
+
+# Codex MCP sandbox'ı için yerel Node sarmalayıcısı — sadece bu makinedeki
+# .tools/node çalışma zamanını PATH'e ekler, repoya girmesine gerek yok.
+scripts/codex-node.cmd

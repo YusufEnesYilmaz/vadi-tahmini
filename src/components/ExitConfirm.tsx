@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   title: string
@@ -17,6 +18,8 @@ interface Props {
  * yanlışlıkla basılan tuş oyuncuyu turundan etmemeli.
  */
 export default function ExitConfirm({ title, children, stayLabel = 'Devam et', leaveLabel = 'Çık', onStay, onLeave }: Props) {
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onStay()
     window.addEventListener('keydown', onKey)
@@ -26,7 +29,7 @@ export default function ExitConfirm({ title, children, stayLabel = 'Devam et', l
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 ovl"
       style={{ background: 'var(--overlay)' }} onClick={onStay}>
-      <div className="anim-pop w-full max-w-xs rounded-2xl border p-5 text-center panel"
+      <div ref={dialogRef} className="anim-pop w-full max-w-xs rounded-2xl border p-5 text-center panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="text-3xl">🚪</div>

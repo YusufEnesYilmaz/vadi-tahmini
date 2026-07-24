@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { clearSubmitFailure, getDailyLeaderboard, getSubmitFailure, getTimedLeaderboard, type LeaderboardEntry, type SubmitFailure } from '../game/supabase'
 import { DAILY_SUBS, DIFFICULTIES, LEADERBOARD_DIFFS, SUB_MODES, MIX_MODE, type Difficulty, type PlaySub } from '../game/types'
 import { todayKey } from '../game/rng'
-import { getPlayerId } from '../game/challenge'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   onClose: () => void
@@ -17,11 +17,10 @@ export default function Leaderboard({ onClose }: Props) {
   const [diff, setDiff] = useState<Difficulty>('hard')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   // Panel açılışında son gönderim hatasını oku (varsa uyarı satırı çıkar)
   const [fail, setFail] = useState<SubmitFailure | null>(getSubmitFailure)
-  // Kimlik = player_id. Takma adla karşılaştırmak HATALIYDI: aynı adı yazan iki
-  // kişinin satırı da "(Sen)" oluyordu. Ad değişebilir, kimlik değişmez.
-  const myId = getPlayerId()
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
 
   // ESC ile kapatma
   useEffect(() => {
@@ -37,13 +36,19 @@ export default function Leaderboard({ onClose }: Props) {
 
     const fetchLeaderboard = async () => {
       let res: LeaderboardEntry[] = []
+      let error: string | null = null
       if (tab === 'timed') {
-        res = await getTimedLeaderboard(sub, diff)
+        const result = await getTimedLeaderboard(sub, diff)
+        res = result.entries
+        error = result.error
       } else {
-        res = await getDailyLeaderboard(sub === 'mix' ? 'classic' : sub, todayKey())
+        const result = await getDailyLeaderboard(sub === 'mix' ? 'classic' : sub, todayKey())
+        res = result.entries
+        error = result.error
       }
       if (active) {
         setEntries(res)
+        setLoadError(error)
         setLoading(false)
       }
     }
@@ -69,7 +74,7 @@ export default function Leaderboard({ onClose }: Props) {
   return (
     <div className="ovl fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="panel anim-pop my-auto w-full max-w-lg overflow-hidden rounded-2xl border"
+      <div ref={dialogRef} className="panel anim-pop my-auto w-full max-w-lg overflow-hidden rounded-2xl border"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Sıralama Tablosu">
 
@@ -127,6 +132,20 @@ export default function Leaderboard({ onClose }: Props) {
               style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
               Gizle
             </button>
+          </div>
+        )}
+
+        {loadError && (
+          <div className="mt-3 flex items-start gap-2 rounded-xl border p-2.5 text-xs"
+            style={{ borderColor: 'rgba(var(--gold-glow-rgb),0.35)', background: 'rgba(var(--gold-glow-rgb),0.06)' }}>
+            <span aria-hidden>⚠</span>
+            <span className="min-w-0">
+              <b style={{ color: 'var(--partial)' }}>Sıralama şu an yüklenemedi.</b>
+              <span className="block" style={{ color: 'var(--text-dim)' }}>
+                Supabase SQL güncellemesi henüz çalıştırılmadıysa bu pencere geçici olarak boş görünebilir.
+                <span className="block opacity-70">{loadError}</span>
+              </span>
+            </span>
           </div>
         )}
 
@@ -215,7 +234,7 @@ export default function Leaderboard({ onClose }: Props) {
             {entries.length >= 3 && (
               <div className="mt-4 grid grid-cols-3 items-end gap-2">
                 {[{ e: entries[1], rank: 2 }, { e: entries[0], rank: 1 }, { e: entries[2], rank: 3 }].map(({ e, rank }) => {
-                  const isMe = e.playerId === myId
+                  const isMe = e.isMe
                   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'
                   const barH = rank === 1 ? 'h-20' : rank === 2 ? 'h-14' : 'h-11'
                   const val = String(e.score)
@@ -259,7 +278,7 @@ export default function Leaderboard({ onClose }: Props) {
                 <tbody>
                   {(entries.length >= 3 ? entries.slice(3) : entries).map((entry, index) => {
                     const rank = (entries.length >= 3 ? 4 : 1) + index
-                    const isMe = entry.playerId === myId
+                    const isMe = entry.isMe
                     const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`
                     // Dönüşümlü satır zebra'sı — "Sen" satırı her zaman altın vurgulu
                     const zebra = index % 2 === 1

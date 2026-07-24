@@ -332,13 +332,22 @@ describe('Gizli, Bölgesel ve Özel Rozetler', () => {
 })
 
 describe('ACHIEVEMENTS list integrity', () => {
-  it('111 rozet tanımlı (99 + yeni mini oyun rozetleri)', () => {
-    expect(ACHIEVEMENTS).toHaveLength(111)
+  it('109 rozet tanımlı (99 + yeni mini oyun rozetleri)', () => {
+    expect(ACHIEVEMENTS).toHaveLength(109)
   })
 
   it('idler benzersiz', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('her günlük ilk-tahmin rozeti gerçekten günlükteki bir moda bakar', () => {
+    // Mod listesi büyüdüğünde elle güncellenecek bir liste yerine kanonik DAILY_SUBS kullanılır.
+    const dailyFirst = ACHIEVEMENTS.filter((a) => a.id.startsWith('daily_first_'))
+    for (const achievement of dailyFirst) {
+      expect(achievement.dailyFirstSub).toBeTruthy()
+      expect(DAILY_SUBS.some((mode) => mode.id === achievement.dailyFirstSub)).toBe(true)
+    }
   })
 
   it('her rozette cat alani var', () => {

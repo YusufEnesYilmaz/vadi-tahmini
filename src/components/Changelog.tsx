@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { CHANGELOG, markChangelogSeen } from '../game/changelog'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   onClose: () => void
@@ -14,6 +15,8 @@ interface Props {
  * satırları — menü kartları ve Ayarlar bölüm başlıklarıyla aynı aile.
  */
 export default function Changelog({ onClose }: Props) {
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
+
   useEffect(() => {
     markChangelogSeen()
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -24,7 +27,7 @@ export default function Changelog({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center ovl"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="anim-pop my-auto flex max-h-[85vh] w-full max-w-md sm:max-w-lg flex-col overflow-hidden rounded-2xl border panel"
+      <div ref={dialogRef} className="anim-pop my-auto flex max-h-[85vh] w-full max-w-md sm:max-w-lg flex-col overflow-hidden rounded-2xl border panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Yenilikler">
 

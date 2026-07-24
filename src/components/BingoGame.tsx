@@ -9,6 +9,7 @@ import { BINGO_DAILY_KEY as KEY } from '../game/miniDaily'
 import { godMode } from '../game/dev'
 import WinConfetti from './game/WinConfetti'
 import GameShell from './game/GameShell'
+import { useModalFocusTrap } from './useModalFocusTrap'
 import type { Champion } from '../game/types'
 
 interface Props {
@@ -74,10 +75,13 @@ export default function BingoGame({ daily, onExit }: Props) {
   const [shake, setShake] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false) // çıkış onayı modalı
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const exitDialogRef = useModalFocusTrap<HTMLDivElement>(confirmExit)
 
   const current = stream[pos]
   const doldurulan = filled.filter(Boolean).length
   const won = doldurulan === BOX_COUNT
+  // Geri yüklenmiş bitmiş günlük tekrar açılınca yeni galibiyet sayılmamalı.
+  const winRecordedRef = useRef(won)
   const best = Number(localStorage.getItem(BEST_KEY) ?? 0)
 
   // Sayaç — `won` KONTROLÜ ŞART: kart tamamlanınca durmazsa geçen süre şişmeye
@@ -99,8 +103,9 @@ export default function BingoGame({ daily, onExit }: Props) {
     if (!over && !won) return
     if (won) playWin(); else playLose()
     if (doldurulan > best) localStorage.setItem(BEST_KEY, String(doldurulan))
-    // Tam kart galibiyeti sayacı (rozet için) + rozetleri sessizce işle
-    if (won) {
+    // Gerçek oyun içi tam kartı yalnız bir kez say: StrictMode ve geri yükleme şişirmesin.
+    if (won && !winRecordedRef.current) {
+      winRecordedRef.current = true
       localStorage.setItem(WINS_KEY, String(Number(localStorage.getItem(WINS_KEY) ?? 0) + 1))
     }
     evaluateAchievements()
@@ -140,6 +145,8 @@ export default function BingoGame({ daily, onExit }: Props) {
     setFilled(new Array(BOX_COUNT).fill(null))
     setLeft(BINGO_SECONDS)
     setOver(false)
+    // Yeni sınırsız tur kendi gerçek galibiyetini yeniden kaydedebilsin.
+    winRecordedRef.current = false
     setStarted(true)
   }
 
@@ -306,7 +313,7 @@ export default function BingoGame({ daily, onExit }: Props) {
       {confirmExit && (
         <div className="ovl fixed inset-0 z-[60] flex items-center justify-center p-4"
           style={{ background: 'var(--overlay)' }} onClick={() => setConfirmExit(false)}>
-          <div className="panel anim-pop w-full max-w-sm rounded-2xl border p-5 text-center"
+          <div ref={exitDialogRef} className="panel anim-pop w-full max-w-sm rounded-2xl border p-5 text-center"
             style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}
             onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Çıkış onayı">
             <div className="mb-2 text-4xl">🚪</div>

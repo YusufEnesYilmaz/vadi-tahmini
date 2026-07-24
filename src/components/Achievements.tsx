@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { ACH_CATEGORIES, getAchievementShowcase, ACHIEVEMENTS } from '../game/achievements'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   onClose: () => void
@@ -9,6 +10,8 @@ interface Props {
  * Başarımlar ekranı — kategorilere ayrılmış, kazanılan/kilitli/ilerlemeli rozet vitrini.
  */
 export default function Achievements({ onClose }: Props) {
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -27,7 +30,7 @@ export default function Achievements({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center ovl"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="anim-pop my-auto w-full max-w-2xl rounded-2xl border p-5 panel"
+      <div ref={dialogRef} className="anim-pop my-auto w-full max-w-2xl rounded-2xl border p-5 panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Başarımlar">
 

@@ -116,4 +116,18 @@ describe('grid — günlük kayıt', () => {
   it('bilinmeyen kriter id → kayıt atılır (veri değişti senaryosu)', () => {
     expect(criteriaFromIds(['b:OlmayanBolge'])).toBeNull()
   })
+
+  it('bozuk eksen id kaydı atılır; ekran taze bulmacaya düşer', () => {
+    const base = {
+      date: todayKey(), colIds: [], cells: Array(GRID_SIZE * GRID_SIZE).fill(null),
+      wrong: Array.from({ length: GRID_SIZE * GRID_SIZE }, () => []), over: false, won: false,
+    }
+    // Eksik, kısa ve dizi olmayan rowIds aynı güvenli geri dönüşü vermeli.
+    for (const rowIds of [undefined, ['b:Demacia'], 'b:Demacia']) {
+      localStorage.setItem(GRID_DAILY_KEY, JSON.stringify({ ...base, rowIds }))
+      expect(loadDailyGrid()).toBeNull()
+    }
+    localStorage.setItem(GRID_DAILY_KEY, JSON.stringify({ ...base, rowIds: [], colIds: undefined }))
+    expect(loadDailyGrid()).toBeNull()
+  })
 })

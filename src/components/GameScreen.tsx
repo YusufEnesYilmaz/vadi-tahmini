@@ -8,6 +8,7 @@ import { getNick, setNick, getPlayerId } from '../game/challenge'
 import type { PoolFilter } from '../game/filter'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
+import { getTimedSecondsLeft } from '../game/timed'
 import { rulesFor } from '../game/difficulty'
 import { godMode } from '../game/dev'
 import { playCorrect, playLose, playWin, playWrong, playAchievement } from '../game/sfx'
@@ -100,6 +101,7 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
   const [bestCombo, setBestCombo] = useState(0)
   const [comboRecord, setComboRecord] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timedStartedAtRef = useRef(0)
   const recordedRef = useRef(false) // tur kaydı bir kez yazılsın
   // Tur bitiş anı: sonuç kartı kazara Enter ile atlanmasın (aşağıdaki kısayola bak)
   const finishedAtRef = useRef(0)
@@ -169,21 +171,28 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
   const spellIndex = puzzle?.sub === 'ability' ? puzzle.spellIndex ?? 0 : 0
   const slotOk = bonusMode && puzzle && slotGuess !== null ? slotGuess === spellIndex : undefined
 
+  const refreshTimedClock = useCallback((nowMs = Date.now()) => {
+    if (!timedStartedAtRef.current) return
+    const nextLeft = getTimedSecondsLeft(timedStartedAtRef.current, TIMED_SECONDS, nowMs)
+    setTimeLeft(nextLeft)
+    if (nextLeft === 0) {
+      if (timerRef.current) clearInterval(timerRef.current)
+      setTimedOver(true)
+    }
+  }, [TIMED_SECONDS])
+
   // Zamana Karşı sayacı
   useEffect(() => {
     if (!timed || !puzzle || timedOver) return
-    timerRef.current = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(timerRef.current!)
-          setTimedOver(true)
-          return 0
-        }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(timerRef.current!)
-  }, [timed, puzzle, timedOver])
+    refreshTimedClock()
+    timerRef.current = setInterval(() => refreshTimedClock(Date.now()), 250)
+    const onVisibilityChange = () => refreshTimedClock(Date.now())
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [timed, puzzle, timedOver, refreshTimedClock])
 
   // Zamana Karşı bitti → turu ve rekorları kaydet.
   // `recordedRef`: StrictMode geliştirmede efektleri iki kez çalıştırıyor,
@@ -348,7 +357,9 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
   }
 
   function startTimed() {
+    if (timerRef.current) clearInterval(timerRef.current)
     streamRef.current = createTimedStream(cryptoRandInt(0x100000000), sub, filter)
+    timedStartedAtRef.current = Date.now()
     setNeedsNick(false)
     setLbSaved(false)
     setScore(0)

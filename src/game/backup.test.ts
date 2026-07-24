@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { applyBackup, buildBackup, clearProgress, progressKeys } from './backup'
 
 function seed() {
@@ -57,5 +57,24 @@ describe('yedekleme', () => {
       expect(res.ok).toBe(false)
     }
     expect(localStorage.getItem('vt:nick')).toBe(before) // hiçbiri veriyi bozmadı
+  })
+
+  it('yazma hatasında eski ilerlemeyi geri yükler', () => {
+    seed()
+    // Seed değişirse geri alma testi de gerçek eski değeri doğrulamayı sürdürsün.
+    const previousNick = localStorage.getItem('vt:nick')
+    const incoming = JSON.stringify({
+      app: 'vadi-tahmini', version: 1, exportedAt: '', data: { 'vt:nick': 'Yeni' },
+    })
+    const setItem = vi.spyOn(localStorage, 'setItem').mockImplementationOnce(() => {
+      throw new Error('kota dolu')
+    })
+
+    const result = applyBackup(incoming)
+
+    expect(result).toEqual({ ok: false, error: 'Yedek yazılırken hata oluştu; eski ilerlemen geri yüklendi.' })
+    expect(localStorage.getItem('vt:nick')).toBe(previousNick)
+    expect(localStorage.getItem('vt:ach')).toBe('{"first_blood":"2026-07-20"}')
+    setItem.mockRestore()
   })
 })

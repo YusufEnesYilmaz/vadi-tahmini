@@ -22,6 +22,7 @@ import type { Champion } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import WinConfetti from './game/WinConfetti'
 import GameShell from './game/GameShell'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   daily?: boolean
@@ -63,6 +64,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
   const [showHowTo, setShowHowTo] = useState(false)
   const [copied, setCopied] = useState(false)
   const [announce, setAnnounce] = useState('')
+  const howToDialogRef = useModalFocusTrap<HTMLDivElement>(showHowTo)
 
   // İpucu HER kademesi 1 hak yakar → kullanılan hak = tahmin + ipucu
   const attemptsUsed = guesses.length + hints
@@ -292,7 +294,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
       {showHowTo && (
         <div className="ovl fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'var(--overlay)' }} onClick={() => setShowHowTo(false)}>
-          <div className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
+          <div ref={howToDialogRef} className="panel anim-pop w-full max-w-sm rounded-2xl border p-5"
             role="dialog" aria-modal="true" aria-label="Şampiyon Avı kuralları"
             style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
             onClick={(e) => e.stopPropagation()}>

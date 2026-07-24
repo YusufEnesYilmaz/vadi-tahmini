@@ -5,6 +5,7 @@ import {
   DAILY_SUBS, DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta,
   type Difficulty, type PlaySub, type TopMode,
 } from '../game/types'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 interface Props {
   initialDifficulty: Difficulty
@@ -24,6 +25,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   const [top, setTop] = useState<TopMode>('endless')
   const [diff, setDiff] = useState<Difficulty>(initialDifficulty)
   const [detail, setDetail] = useState<PlaySub | null>(null) // dağılımı açılan mod
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -71,7 +73,7 @@ export default function Stats({ initialDifficulty, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center ovl"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="anim-pop my-auto w-full max-w-lg rounded-2xl border p-4 panel"
+      <div ref={dialogRef} className="anim-pop my-auto w-full max-w-lg rounded-2xl border p-4 panel"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="İstatistikler">
 
