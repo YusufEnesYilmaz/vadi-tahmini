@@ -17,6 +17,7 @@ import {
 } from '../game/connections'
 import { evaluateAchievements } from '../game/achievements'
 import WinConfetti from './game/WinConfetti'
+import GameShell from './game/GameShell'
 
 interface Props {
   daily?: boolean
@@ -217,7 +218,7 @@ export default function ConnectionsGame({ daily = false, onExit }: Props) {
   const unsolvedGroups = over && !won ? puzzle.groups.filter((g) => !solved.some((s) => s.id === g.id)) : []
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 px-3 pb-10 pt-2 sm:gap-5 sm:pt-4">
+    <GameShell>
       {won && <WinConfetti />}
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
@@ -428,6 +429,6 @@ export default function ConnectionsGame({ daily = false, onExit }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </GameShell>
   )
 }

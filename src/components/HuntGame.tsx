@@ -21,6 +21,7 @@ import { evaluateAchievements } from '../game/achievements'
 import type { Champion } from '../game/types'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import WinConfetti from './game/WinConfetti'
+import GameShell from './game/GameShell'
 
 interface Props {
   daily?: boolean
@@ -143,7 +144,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 px-3 pb-10 pt-2 sm:gap-5 sm:pt-4">
+    <GameShell>
       {won && <WinConfetti />}
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
@@ -313,6 +314,6 @@ export default function HuntGame({ daily = false, onExit }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </GameShell>
   )
 }

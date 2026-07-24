@@ -16,6 +16,7 @@ import {
 } from '../game/timeline'
 import { evaluateAchievements } from '../game/achievements'
 import WinConfetti from './game/WinConfetti'
+import GameShell from './game/GameShell'
 import type { Champion } from '../game/types'
 
 interface TimelineGameProps {
@@ -206,7 +207,7 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
   // Başlangıç ekranı (günlük bitmişse atlanır — sonuç ekranına düşülür)
   if (!started && (!daily || (!over && !won))) {
     return (
-      <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 px-3 pb-10 pt-6">
+      <GameShell>
         <div className="anim-pop w-full rounded-2xl border p-6 text-center"
           style={{ borderColor: 'var(--border)', background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)' }}>
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border text-3xl"
@@ -239,12 +240,12 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
             </button>
           </div>
         </div>
-      </div>
+      </GameShell>
     )
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 px-3 pb-10 pt-2 sm:gap-5 sm:pt-4">
+    <GameShell>
       {won && <WinConfetti />}
       {/* Üst bar — mini oyun kalıbı (Kelime ile aynı ritim) */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
@@ -447,6 +448,6 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
           </div>
         </div>
       )}
-    </div>
+    </GameShell>
   )
 }

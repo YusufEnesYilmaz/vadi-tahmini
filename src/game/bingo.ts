@@ -28,8 +28,12 @@ export function allCriteria(): Criterion[] {
   for (const r of uniq(CHAMPIONS.map((c) => c.region))) {
     out.push({ id: `b:${r}`, label: r, test: (c) => c.region === r })
   }
-  for (const r of uniq(CHAMPIONS.flatMap((c) => c.roles))) {
-    out.push({ id: `r:${r}`, label: r, test: (c) => c.roles.includes(r) })
+  // Rol = Riot'un BİRİNCİL sınıfı (ddragon tags[0]). `includes` KULLANILMAZ:
+  // ddragon her şampiyona ikincil etiket de basıyor (Tristana/Lucian "Nişancı,Suikastçı")
+  // → "Suikastçı" havuzu nişancı/savaşçıyla dolup anlamsızlaşıyordu (kullanıcı bildirdi:
+  // "Tristana/Lucian ne zamandır suikastçı"). Birincil sınıf her rolde ≥17 tutuyor.
+  for (const r of uniq(CHAMPIONS.map((c) => c.roles[0]))) {
+    out.push({ id: `r:${r}`, label: r, test: (c) => c.roles[0] === r })
   }
   for (const l of uniq(CHAMPIONS.flatMap((c) => c.lanes))) {
     out.push({ id: `k:${l}`, label: `${l} koridoru`, test: (c) => c.lanes.includes(l) })

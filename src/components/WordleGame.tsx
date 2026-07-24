@@ -15,6 +15,7 @@ import type { Champion } from '../game/types'
 import { type AcOption } from './Autocomplete'
 import ChampionInfo from './ChampionInfo'
 import WinConfetti from './game/WinConfetti'
+import GameShell from './game/GameShell'
 
 const MAX_TRIES = 6
 
@@ -155,7 +156,7 @@ export default function WordleGame({ daily, onExit }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-3 pb-10">
+    <GameShell>
       {won && <WinConfetti />}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
         style={{ borderColor: 'var(--border)' }}>
@@ -298,6 +299,6 @@ export default function WordleGame({ daily, onExit }: Props) {
       )}
 
       {info && <ChampionInfo champion={target} onClose={() => setInfo(false)} />}
-    </div>
+    </GameShell>
   )
 }

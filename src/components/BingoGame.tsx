@@ -8,6 +8,7 @@ import { evaluateAchievements } from '../game/achievements'
 import { BINGO_DAILY_KEY as KEY } from '../game/miniDaily'
 import { godMode } from '../game/dev'
 import WinConfetti from './game/WinConfetti'
+import GameShell from './game/GameShell'
 import type { Champion } from '../game/types'
 
 interface Props {
@@ -172,7 +173,7 @@ export default function BingoGame({ daily, onExit }: Props) {
 
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-3 pb-10">
+    <GameShell>
       {won && <WinConfetti />}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
         style={{ borderColor: 'var(--border)' }}>
@@ -329,6 +330,6 @@ export default function BingoGame({ daily, onExit }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </GameShell>
   )
 }
