@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { byId, squareUrl } from '../game/data'
 import { copyToClipboard } from '../game/share'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
@@ -46,6 +46,7 @@ function shuffleArr<T>(arr: T[]): T[] {
  * açar, 1 HAK yakar — ön seçmeli zorluk yerine canlı bir tradeoff.
  */
 export default function ConnectionsGame({ daily = false, onExit }: Props) {
+  const sessionDate = useRef(todayKey()).current
   const [puzzle, setPuzzle] = useState<ConnPuzzle | null>(null)
   const [board, setBoard] = useState<string[]>([]) // çözülmemiş kartların anlık sırası
   const [solved, setSolved] = useState<ConnGroup[]>([]) // çözülme sırasıyla
@@ -103,7 +104,7 @@ export default function ConnectionsGame({ daily = false, onExit }: Props) {
   const persist = (s: ConnGroup[], h: string[][], m: number, rev: string[], isOver: boolean, isWon: boolean) => {
     if (!daily) return
     saveDailyConnections({
-      date: todayKey(),
+      date: sessionDate,
       solvedIds: s.map((g) => g.id),
       history: h,
       mistakes: m,

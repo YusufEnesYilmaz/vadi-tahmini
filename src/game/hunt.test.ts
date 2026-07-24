@@ -103,6 +103,13 @@ describe('hunt — üretim + günlük', () => {
     expect(miniDailyDone('hunt')).toBe(false)
   })
 
+  it('farklı veri sürümü kaydı atılır, eski v’siz kayıt çalışır', () => {
+    localStorage.setItem(HUNT_DAILY_KEY, JSON.stringify({ date: todayKey(), v: 'eski', targetId: 'Ahri', guessIds: [], over: false, won: false }))
+    expect(loadDailyHunt()).toBeNull()
+    localStorage.setItem(HUNT_DAILY_KEY, JSON.stringify({ date: todayKey(), targetId: 'Ahri', guessIds: ['Garen'], over: false, won: false }))
+    expect(loadDailyHunt()?.guessIds).toEqual(['Garen'])
+  })
+
   it('sabitler mantıklı: 8 deneme (log2 173 ≈ 7.4 sınırı)', () => {
     expect(HUNT_MAX_ATTEMPTS).toBe(8)
   })

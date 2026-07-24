@@ -113,6 +113,32 @@ describe('grid — günlük kayıt', () => {
     expect(miniDailyDone('grid')).toBe(true)
   })
 
+  it('farklı veri sürümü kaydı atılır, eski v’siz kayıt çalışır', () => {
+    const p = dailyGrid()
+    localStorage.setItem(GRID_DAILY_KEY, JSON.stringify({
+      date: todayKey(),
+      v: 'eski',
+      rowIds: p.rows.map((r) => r.id),
+      colIds: p.cols.map((c) => c.id),
+      cells: Array(9).fill(null),
+      wrong: Array.from({ length: 9 }, () => []),
+      over: false,
+      won: false,
+    }))
+    expect(loadDailyGrid()).toBeNull()
+
+    localStorage.setItem(GRID_DAILY_KEY, JSON.stringify({
+      date: todayKey(),
+      rowIds: p.rows.map((r) => r.id),
+      colIds: p.cols.map((c) => c.id),
+      cells: Array(9).fill(null),
+      wrong: Array.from({ length: 9 }, () => []),
+      over: false,
+      won: false,
+    }))
+    expect(loadDailyGrid()?.rowIds).toEqual(p.rows.map((r) => r.id))
+  })
+
   it('bilinmeyen kriter id → kayıt atılır (veri değişti senaryosu)', () => {
     expect(criteriaFromIds(['b:OlmayanBolge'])).toBeNull()
   })

@@ -1,7 +1,7 @@
 import { allCriteria, type Criterion } from './bingo'
-import { CHAMPIONS } from './data'
+import { CHAMPIONS, DATA_VERSION } from './data'
 import { godMode } from './dev'
-import { GRID_DAILY_KEY } from './miniDaily'
+import { GRID_DAILY_KEY, isCurrentMiniDailyRecord } from './miniDaily'
 import { fnv1a, seededRng, todayKey } from './rng'
 import type { Champion } from './types'
 
@@ -161,6 +161,7 @@ export function randomGrid(): GridPuzzle {
 
 export interface GridDailySave {
   date: string
+  v?: string
   rowIds: string[]
   colIds: string[]
   /** 9 hücre — dolu ise şampiyon id'si, boşsa null */
@@ -189,7 +190,7 @@ export function loadDailyGrid(): GridDailySave | null {
     const raw = localStorage.getItem(GRID_DAILY_KEY)
     if (!raw) return null
     const save = JSON.parse(raw) as GridDailySave
-    if (save.date !== todayKey()) return null
+    if (!isCurrentMiniDailyRecord(save, DATA_VERSION)) return null
     // Bozuk eksen kaydı criteriaFromIds'te ekranı patlatmasın; taze bulmaca üretilecek.
     if (!Array.isArray(save.rowIds) || save.rowIds.length !== GRID_SIZE) return null
     if (!Array.isArray(save.colIds) || save.colIds.length !== GRID_SIZE) return null
@@ -203,7 +204,7 @@ export function loadDailyGrid(): GridDailySave | null {
 
 export function saveDailyGrid(save: GridDailySave): void {
   try {
-    localStorage.setItem(GRID_DAILY_KEY, JSON.stringify(save))
+    localStorage.setItem(GRID_DAILY_KEY, JSON.stringify({ ...save, v: DATA_VERSION }))
   } catch {
     // localStorage kapalı olabilir
   }

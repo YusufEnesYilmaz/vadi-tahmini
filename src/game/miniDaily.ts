@@ -9,6 +9,7 @@
  * gerçeğini değiştirmez.
  */
 
+import { DATA_VERSION } from './data'
 import { todayKey } from './rng'
 
 export const WORDLE_DAILY_KEY = 'vt:wordle:daily'
@@ -20,6 +21,11 @@ export const CONN_DAILY_KEY = 'vt:conn:daily'
 
 export type MiniGameId = 'wordle' | 'bingo' | 'timeline' | 'hunt' | 'grid' | 'connections'
 
+export interface VersionedMiniDailyRecord {
+  date?: string
+  v?: string
+}
+
 const KEYS: Record<MiniGameId, string> = {
   wordle: WORDLE_DAILY_KEY,
   bingo: BINGO_DAILY_KEY,
@@ -29,13 +35,20 @@ const KEYS: Record<MiniGameId, string> = {
   connections: CONN_DAILY_KEY,
 }
 
+/** Bugünün kaydı mı; `v` varsa mevcut veri sürümüyle de eşleşmeli. */
+export function isCurrentMiniDailyRecord(record: VersionedMiniDailyRecord | null | undefined, dataVersion?: string): boolean {
+  if (!record || record.date !== todayKey()) return false
+  if (dataVersion && record.v && record.v !== dataVersion) return false
+  return true
+}
+
 /** İlgili mini oyunun BUGÜNKÜ günlüğü tamamlandı mı? Bozuk/eksik kayıtta güvenle false döner. */
 export function miniDailyDone(id: MiniGameId): boolean {
   try {
     const raw = localStorage.getItem(KEYS[id])
     if (!raw) return false
-    const s = JSON.parse(raw) as { date?: string; done?: boolean; over?: boolean; won?: boolean }
-    if (s.date !== todayKey()) return false
+    const s = JSON.parse(raw) as VersionedMiniDailyRecord & { done?: boolean; over?: boolean; won?: boolean }
+    if (!isCurrentMiniDailyRecord(s, DATA_VERSION)) return false
     // Kelime `done` yazar; diğerlerinde bitiş = over || won
     if (id === 'wordle') return !!s.done
     return !!(s.over || s.won)

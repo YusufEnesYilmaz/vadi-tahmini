@@ -15,4 +15,12 @@ describe('timed wall-clock helper', () => {
     expect(getTimedSecondsLeft(5_000, 45, 4_000)).toBe(45)
     expect(getTimedSecondsLeft(5_000, 45, 99_000)).toBe(0)
   })
+
+  it('duraklatılan süreyi oyun süresinden düşer', () => {
+    expect(getTimedSecondsLeft(1_000, 60, 21_000, { pausedMs: 10_000 })).toBe(50)
+  })
+
+  it('ceza saniyelerini ayrıca düşer', () => {
+    expect(getTimedSecondsLeft(1_000, 60, 6_000, { penaltySeconds: 10 })).toBe(45)
+  })
 })

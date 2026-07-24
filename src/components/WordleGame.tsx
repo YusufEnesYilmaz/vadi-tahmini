@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { squareUrl } from '../game/data'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { DATA_VERSION, squareUrl } from '../game/data'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
 import { todayKey } from '../game/rng'
@@ -9,7 +9,7 @@ import {
   type LenBucket, type LetterResult,
 } from '../game/wordle'
 import { evaluateAchievements } from '../game/achievements'
-import { WORDLE_DAILY_KEY as KEY } from '../game/miniDaily'
+import { WORDLE_DAILY_KEY as KEY, isCurrentMiniDailyRecord } from '../game/miniDaily'
 import { godMode } from '../game/dev'
 import type { Champion } from '../game/types'
 import { type AcOption } from './Autocomplete'
@@ -26,14 +26,14 @@ const CELL_BG: Record<LetterResult, string> = {
 }
 
 /** Günlük durum — mod başına değil, tek anahtar (Kelime'nin kendi günlüğü). Anahtar: miniDaily.ts (tek kaynak) */
-interface DailyState { date: string; guesses: string[]; done: boolean }
+interface DailyState { date: string; v?: string; guesses: string[]; done: boolean }
 
 function loadDaily(): DailyState {
   try {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const s = JSON.parse(raw) as DailyState
-      if (s.date === todayKey()) return s
+      if (isCurrentMiniDailyRecord(s, DATA_VERSION)) return s
     }
   } catch { /* yoksay */ }
   return { date: todayKey(), guesses: [], done: false }
@@ -53,6 +53,7 @@ function pickRandom(pool: Champion[], avoidId?: string): Champion {
 }
 
 export default function WordleGame({ daily, onExit }: Props) {
+  const sessionDate = useRef(todayKey()).current
   // Uzunluk tercihi yalnız Sınırsız'da geçerli — Günlük herkeste aynı olmalı
   const [bucket, setBucket] = useState<LenBucket>(getLenBucket)
   const pool = useMemo(() => wordlePool(daily ? 'all' : bucket), [daily, bucket])
@@ -100,8 +101,8 @@ export default function WordleGame({ daily, onExit }: Props) {
   )
 
   useEffect(() => {
-    if (daily) localStorage.setItem(KEY, JSON.stringify({ date: todayKey(), guesses, done: finished }))
-  }, [daily, guesses, finished])
+    if (daily) localStorage.setItem(KEY, JSON.stringify({ date: sessionDate, v: DATA_VERSION, guesses, done: finished }))
+  }, [daily, sessionDate, guesses, finished])
 
   function handlePick(champId: string) {
     if (finished) return

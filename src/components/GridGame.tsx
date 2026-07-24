@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { CHAMPIONS, byId, squareUrl } from '../game/data'
 import { copyToClipboard } from '../game/share'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
@@ -37,6 +37,7 @@ const EMPTY_WRONG: string[][] = Array.from({ length: 9 }, () => [])
  * düşünmek oyunun özü; tek global inputun otomatik yerleştirmesi onu çalardı).
  */
 export default function GridGame({ daily = false, onExit }: Props) {
+  const sessionDate = useRef(todayKey()).current
   const [puzzle, setPuzzle] = useState<GridPuzzle | null>(null)
   const [cells, setCells] = useState<(string | null)[]>(EMPTY_CELLS)
   const [wrong, setWrong] = useState<string[][]>(EMPTY_WRONG)
@@ -101,7 +102,7 @@ export default function GridGame({ daily = false, onExit }: Props) {
   const persist = (nextCells: (string | null)[], nextWrong: string[][], isOver: boolean, isWon: boolean) => {
     if (!daily || !puzzle) return
     saveDailyGrid({
-      date: todayKey(),
+      date: sessionDate,
       rowIds: puzzle.rows.map((r) => r.id),
       colIds: puzzle.cols.map((c) => c.id),
       cells: nextCells,

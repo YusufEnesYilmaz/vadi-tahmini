@@ -1,15 +1,21 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   MIN_YEAR_GAP,
   dailyTimeline,
   evaluateOrder,
+  loadDailyTimeline,
   randomTimeline,
+  saveDailyTimeline,
   swapItems,
   validateTimelineYears,
 } from './timeline'
 import { byId } from './data'
+import { TIMELINE_DAILY_KEY } from './miniDaily'
+import { todayKey } from './rng'
 
 describe('timeline.ts', () => {
+  beforeEach(() => localStorage.removeItem(TIMELINE_DAILY_KEY))
+
   it('5 şampiyonun 5 farklı çıkış yılı olduğunu doğrular', () => {
     const puzzle = dailyTimeline()
     expect(puzzle.target).toHaveLength(5)
@@ -74,5 +80,31 @@ describe('timeline.ts', () => {
         expect(years[i] - years[i - 1], `${years.join(',')}`).toBeGreaterThanOrEqual(MIN_YEAR_GAP)
       }
     }
+  })
+
+  it('farklı veri sürümü kaydı atılır, eski v’siz kayıt çalışır', () => {
+    const puzzle = dailyTimeline()
+    localStorage.setItem(TIMELINE_DAILY_KEY, JSON.stringify({
+      date: todayKey(),
+      v: 'eski',
+      targetIds: puzzle.target.map((c) => c.id),
+      currentIds: puzzle.initial.map((c) => c.id),
+      locked: [false, false, false, false, false],
+      attempts: 0,
+      over: false,
+      won: false,
+    }))
+    expect(loadDailyTimeline()).toBeNull()
+
+    saveDailyTimeline({
+      date: todayKey(),
+      targetIds: puzzle.target.map((c) => c.id),
+      currentIds: puzzle.initial.map((c) => c.id),
+      locked: [false, false, false, false, false],
+      attempts: 1,
+      over: false,
+      won: false,
+    })
+    expect(loadDailyTimeline()?.attempts).toBe(1)
   })
 })

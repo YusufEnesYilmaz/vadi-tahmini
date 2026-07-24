@@ -75,6 +75,7 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
   // Günlük fonksiyonları gerçek SubMode ister; menü Günlük'te 'mix' sunmadığı için
   // daily ⟹ sub gerçek tip. 'classic' yalnız tip güvenliği için yer tutucu (daily'de asla tetiklenmez).
   const dailySub: SubMode = sub === 'mix' ? 'classic' : sub
+  const sessionDate = useRef(todayKey()).current
 
   // God mode (yalnız yerel dev): günlükte kayıtlı durumu YÜKLEME → her giriş taze, sınırsız tekrar
   const loadDaily = daily && !godMode()
@@ -297,7 +298,9 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
         setWon(true)
         if (puzzle.sub !== 'item') recordChampWin(puzzle.champion.id, newGuesses.length === 1)
         if (daily && nick && nick.trim()) {
-          void submitDailyScore(getPlayerId(), sub, todayKey(), nick, newGuesses.length)
+          void submitDailyScore(getPlayerId(), sub, sessionDate, nick, newGuesses.length)
+        } else if (daily && isLeaderboardEnabled) {
+          setNeedsNick(true)
         }
       }
       recordGame(top, sub, diff, correct, newGuesses.length)
@@ -317,7 +320,7 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
     }
     if (daily) {
       saveDailyState(dailySub, {
-        date: getDailyState(dailySub).date,
+        date: sessionDate,
         guesses: newGuesses,
         done: correct || ranOut,
         won: correct,
@@ -343,7 +346,14 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
         setScore((s) => s + 1)
       }
     } else if (daily) {
-      saveDailyState(dailySub, { ...getDailyState(dailySub), slot: idx })
+      saveDailyState(dailySub, {
+        date: sessionDate,
+        guesses,
+        done: won || outOfGuesses,
+        won,
+        slot: idx,
+        answer: answerLabel(puzzle),
+      })
     }
   }
 
@@ -395,7 +405,33 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
     setNickState(getNick())
     setNeedsNick(false)
     setLbSaved(true)
-    void submitTimedScore(getPlayerId(), sub, diff, n, score)
+    if (timed) {
+      void submitTimedScore(getPlayerId(), sub, diff, n, score)
+    } else if (daily && won) {
+      void submitDailyScore(getPlayerId(), sub, sessionDate, n, guesses.length)
+    }
+  }
+
+  function renderNickPrompt() {
+    if (!needsNick) return null
+    return (
+      <div className="anim-pop flex w-full max-w-sm flex-col gap-2 rounded-xl border p-3"
+        style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
+        <label className="text-sm" style={{ color: 'var(--text-dim)' }}>
+          Skorun sıralamaya yazılsın — takma adın:
+        </label>
+        <div className="flex gap-2">
+          <input value={nick} onChange={(e) => setNickState(e.target.value)} maxLength={20}
+            onKeyDown={(e) => e.key === 'Enter' && saveNickAndSubmit()}
+            placeholder="Örn: Ahmet"
+            className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+            style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+          <button onClick={saveNickAndSubmit} className="btn-gold shrink-0 rounded-lg px-4 py-2 text-sm font-bold">
+            Kaydet
+          </button>
+        </div>
+      </div>
+    )
   }
 
   /** Aynı sonucu görsel kart olarak paylaş — emoji ızgarası cihazdan cihaza kayıyordu */
@@ -512,24 +548,7 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
           </div>
 
           {/* Takma ad yoksa skor sıralamaya yazılamadı — burada sorulur, girilince gönderilir */}
-          {needsNick && (
-            <div className="anim-pop flex w-full max-w-sm flex-col gap-2 rounded-xl border p-3"
-              style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
-              <label className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                Skorun sıralamaya yazılsın — takma adın:
-              </label>
-              <div className="flex gap-2">
-                <input value={nick} onChange={(e) => setNickState(e.target.value)} maxLength={20}
-                  onKeyDown={(e) => e.key === 'Enter' && saveNickAndSubmit()}
-                  placeholder="Örn: Ahmet"
-                  className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
-                  style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }} />
-                <button onClick={saveNickAndSubmit} className="btn-gold shrink-0 rounded-lg px-4 py-2 text-sm font-bold">
-                  Kaydet
-                </button>
-              </div>
-            </div>
-          )}
+          {renderNickPrompt()}
           {lbSaved && (
             <p className="text-sm font-semibold" style={{ color: 'var(--accent-done)' }}>✓ Skorun sıralamaya gönderildi</p>
           )}
@@ -676,6 +695,10 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
                     </button>
                   )}
                 </div>
+              )}
+              {renderNickPrompt()}
+              {lbSaved && (
+                <p className="text-sm font-semibold" style={{ color: 'var(--accent-done)' }}>✓ Skorun sıralamaya gönderildi</p>
               )}
               {daily && (
                 <p className="text-xs" style={{ color: 'var(--text-dim)' }}>

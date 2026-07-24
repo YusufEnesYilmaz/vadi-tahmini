@@ -1,6 +1,6 @@
-import { CHAMPIONS } from './data'
+import { CHAMPIONS, DATA_VERSION } from './data'
 import { godMode } from './dev'
-import { HUNT_DAILY_KEY } from './miniDaily'
+import { HUNT_DAILY_KEY, isCurrentMiniDailyRecord } from './miniDaily'
 import { fnv1a, seededRng, todayKey } from './rng'
 import { toLetters } from './wordle'
 import type { Champion } from './types'
@@ -120,6 +120,7 @@ export function randomHuntTarget(avoidId?: string): Champion {
 
 export interface HuntDailySave {
   date: string
+  v?: string
   targetId: string
   guessIds: string[]
   /** Açılan ipucu kademesi (0-2). Eski kayıtlarda yok → 0. Her kademe 1 hak yakar. */
@@ -135,7 +136,7 @@ export function loadDailyHunt(): HuntDailySave | null {
     const raw = localStorage.getItem(HUNT_DAILY_KEY)
     if (!raw) return null
     const save = JSON.parse(raw) as HuntDailySave
-    if (save.date !== todayKey()) return null
+    if (!isCurrentMiniDailyRecord(save, DATA_VERSION)) return null
     if (!Array.isArray(save.guessIds)) return null
     return save
   } catch {
@@ -145,7 +146,7 @@ export function loadDailyHunt(): HuntDailySave | null {
 
 export function saveDailyHunt(save: HuntDailySave): void {
   try {
-    localStorage.setItem(HUNT_DAILY_KEY, JSON.stringify(save))
+    localStorage.setItem(HUNT_DAILY_KEY, JSON.stringify({ ...save, v: DATA_VERSION }))
   } catch {
     // localStorage kapalı olabilir
   }

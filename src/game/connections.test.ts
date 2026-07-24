@@ -116,4 +116,11 @@ describe('connections — günlük kayıt', () => {
     saveDailyConnections({ date: '2020-01-01', solvedIds: [], history: [], mistakes: 0, over: true, won: true })
     expect(loadDailyConnections()).toBeNull()
   })
+
+  it('farklı veri sürümü kaydı atılır, eski v’siz kayıt çalışır', () => {
+    localStorage.setItem(CONN_DAILY_KEY, JSON.stringify({ date: todayKey(), v: 'eski', solvedIds: [], history: [], mistakes: 0, over: false, won: false }))
+    expect(loadDailyConnections()).toBeNull()
+    localStorage.setItem(CONN_DAILY_KEY, JSON.stringify({ date: todayKey(), solvedIds: ['b:Noxus'], history: [], mistakes: 0, over: false, won: false }))
+    expect(loadDailyConnections()?.solvedIds).toEqual(['b:Noxus'])
+  })
 })

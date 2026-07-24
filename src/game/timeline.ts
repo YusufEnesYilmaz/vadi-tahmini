@@ -1,6 +1,6 @@
-import { CHAMPIONS } from './data'
+import { CHAMPIONS, DATA_VERSION } from './data'
 import { godMode } from './dev'
-import { TIMELINE_DAILY_KEY } from './miniDaily'
+import { TIMELINE_DAILY_KEY, isCurrentMiniDailyRecord } from './miniDaily'
 import { fnv1a, seededRng, todayKey } from './rng'
 import type { Champion } from './types'
 export const TIMELINE_CARDS = 5
@@ -30,6 +30,7 @@ export interface TimelinePuzzle {
 
 export interface TimelineDailySave {
   date: string
+  v?: string
   targetIds: string[]
   currentIds: string[]
   locked: boolean[]
@@ -153,7 +154,7 @@ export function loadDailyTimeline(): TimelineDailySave | null {
     const raw = localStorage.getItem(TIMELINE_DAILY_KEY)
     if (!raw) return null
     const save = JSON.parse(raw) as TimelineDailySave
-    if (save.date !== todayKey()) return null
+    if (!isCurrentMiniDailyRecord(save, DATA_VERSION)) return null
     return save
   } catch {
     return null
@@ -163,7 +164,7 @@ export function loadDailyTimeline(): TimelineDailySave | null {
 /** Günlük durumu kaydeder */
 export function saveDailyTimeline(save: TimelineDailySave): void {
   try {
-    localStorage.setItem(TIMELINE_DAILY_KEY, JSON.stringify(save))
+    localStorage.setItem(TIMELINE_DAILY_KEY, JSON.stringify({ ...save, v: DATA_VERSION }))
   } catch {
     // localStorage kapalı olabilir
   }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CHAMPIONS, byId, squareUrl } from '../game/data'
 import { copyToClipboard } from '../game/share'
 import { playLose, playWin, playWrong } from '../game/sfx'
@@ -50,6 +50,7 @@ function heatEmoji(d: number): string {
  * her turda gerçek bir karar. Başlangıç ekranı yok; kurallar "?" modalında.
  */
 export default function HuntGame({ daily = false, onExit }: Props) {
+  const sessionDate = useRef(todayKey()).current
   const [target, setTarget] = useState<Champion>(() => {
     if (daily) {
       const saved = loadDailyHunt()
@@ -92,7 +93,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
 
   const persist = (nextGuesses: string[], nextHints: number, isOver: boolean, isWon: boolean) => {
     if (!daily) return
-    saveDailyHunt({ date: todayKey(), targetId: target.id, guessIds: nextGuesses, hints: nextHints, over: isOver, won: isWon })
+    saveDailyHunt({ date: sessionDate, targetId: target.id, guessIds: nextGuesses, hints: nextHints, over: isOver, won: isWon })
   }
 
   function pick(id: string) {

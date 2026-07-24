@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { COUNT_SECONDS, PENALTY_SECONDS, WRONG_STREAK_PENALTY, getCounterBest, isInChallenge, randomChallenge, recordCounterScore, type CountChallenge } from '../game/counter'
 import { byId, squareUrl } from '../game/data'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
+import { getTimedSecondsLeft } from '../game/timed'
 import CounterBoard from './CounterBoard'
 import ExitConfirm from './ExitConfirm'
 
@@ -34,6 +35,8 @@ export default function CounterGame({ onExit }: Props) {
   const [isRecord, setIsRecord] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startedAtRef = useRef(0)
+  const penaltySecondsRef = useRef(0)
 
   const total = challenge?.ids.length ?? 0
   const allFound = started && total > 0 && found.length === total
@@ -45,23 +48,30 @@ export default function CounterGame({ onExit }: Props) {
     [challenge, found],
   )
 
-  // Sayaç — hepsi bulununca (allFound) ya da süre bitince durur
+  const refreshClock = useCallback((nowMs = Date.now()) => {
+    if (!startedAtRef.current) return
+    const nextLeft = getTimedSecondsLeft(startedAtRef.current, COUNT_SECONDS, nowMs, {
+      penaltySeconds: penaltySecondsRef.current,
+    })
+    setLeft(nextLeft)
+    if (nextLeft === 0) {
+      if (timerRef.current) clearInterval(timerRef.current)
+      setOver(true)
+    }
+  }, [])
+
+  // Sayaç — hepsi bulununca (allFound) ya da süre bitince durur.
   useEffect(() => {
     if (!started || finished) return
-    timerRef.current = setInterval(() => {
-      setLeft((t) => {
-        if (t <= 1) { clearInterval(timerRef.current!); setOver(true); return 0 }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(timerRef.current!)
-  }, [started, finished])
-
-  // Ceza süreyi 0'a indirdiyse tur biter. `setOver` doğrudan setLeft güncelleyicisinin
-  // içinde çağrılamaz (StrictMode güncelleyiciyi iki kez çalıştırır) → burada yakalanır.
-  useEffect(() => {
-    if (started && !over && left === 0) setOver(true)
-  }, [started, over, left])
+    refreshClock()
+    timerRef.current = setInterval(() => refreshClock(Date.now()), 250)
+    const onVisibilityChange = () => refreshClock(Date.now())
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [started, finished, refreshClock])
 
   // Bitiş: skor kaydı + ses (bir kez)
   const scoredRef = useRef(false)
@@ -74,11 +84,14 @@ export default function CounterGame({ onExit }: Props) {
   }, [finished, allFound, found.length])
 
   function start() {
+    if (timerRef.current) clearInterval(timerRef.current)
     setChallenge(randomChallenge(challenge?.label))
     setFound([])
     setWrong([])
     setWrongStreak(0)
     setPenalty(false)
+    startedAtRef.current = Date.now()
+    penaltySecondsRef.current = 0
     setLeft(COUNT_SECONDS)
     setOver(false)
     setIsRecord(false)
@@ -98,7 +111,8 @@ export default function CounterGame({ onExit }: Props) {
       const streak = wrongStreak + 1
       if (streak >= WRONG_STREAK_PENALTY) {
         setWrongStreak(0) // ceza bir kez uygulanır, sonraki her yanlışta değil
-        setLeft((t) => Math.max(0, t - PENALTY_SECONDS))
+        penaltySecondsRef.current += PENALTY_SECONDS
+        refreshClock()
         setPenalty(true)
         setTimeout(() => setPenalty(false), 1500)
         playLose()

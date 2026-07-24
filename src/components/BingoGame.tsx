@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { BINGO_SECONDS, BOX_COUNT, buildCard, championStream, dailyCard, type Criterion } from '../game/bingo'
-import { byId, squareUrl } from '../game/data'
+import { DATA_VERSION, byId, squareUrl } from '../game/data'
 import { cryptoRandInt, fnv1a, seededRng, todayKey } from '../game/rng'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
 import { evaluateAchievements } from '../game/achievements'
-import { BINGO_DAILY_KEY as KEY } from '../game/miniDaily'
+import { BINGO_DAILY_KEY as KEY, isCurrentMiniDailyRecord } from '../game/miniDaily'
 import { godMode } from '../game/dev'
+import { getTimedSecondsLeft } from '../game/timed'
 import WinConfetti from './game/WinConfetti'
 import GameShell from './game/GameShell'
 import { useModalFocusTrap } from './useModalFocusTrap'
@@ -23,6 +24,7 @@ const WINS_KEY = 'vt:bingo:wins' // tam kart (12/12) tamamlama sayısı — roze
 
 interface DailyState {
   date: string
+  v?: string
   filled: number
   won: boolean
   // Oyun-ortası devam için (çıkıp dönünce kaldığı yerden):
@@ -38,7 +40,7 @@ function loadDaily(): DailyState {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const s = JSON.parse(raw) as DailyState
-      if (s.date === todayKey()) return s
+      if (isCurrentMiniDailyRecord(s, DATA_VERSION)) return s
     }
   } catch { /* yoksay */ }
   return { date: todayKey(), filled: 0, won: false }
@@ -52,6 +54,7 @@ function dailyDeck() {
 }
 
 export default function BingoGame({ daily, onExit }: Props) {
+  const sessionDate = useRef(todayKey()).current
   // God mode (yalnız yerel dev): kayıtlı günlüğü yükleme → kilit/devam yok, hep taze başlar
   const saved = daily && !godMode() ? loadDaily() : null
   // Yeni biçimde kayıt (filledIds var) → kartı ve süreyi geri yükleyebiliriz
@@ -59,6 +62,7 @@ export default function BingoGame({ daily, onExit }: Props) {
   // Eski biçim ya da geri yüklenemeyen "bugün oynandı" → tekrar oynatma, kilitle
   const playedLocked = !!(saved && !canRestore && (saved.won || saved.filled > 0))
   const restoreDeck = canRestore ? dailyDeck() : null
+  const restoredLeft = canRestore ? Math.max(0, Math.min(BINGO_SECONDS, saved?.left ?? BINGO_SECONDS)) : BINGO_SECONDS
 
   const [started, setStarted] = useState(canRestore)
   const [card, setCard] = useState<Criterion[]>(restoreDeck?.card ?? [])
@@ -69,12 +73,15 @@ export default function BingoGame({ daily, onExit }: Props) {
       ? saved.filledIds.map((id) => (id ? byId(id) ?? null : null))
       : new Array(BOX_COUNT).fill(null),
   )
-  const [left, setLeft] = useState(canRestore ? saved?.left ?? BINGO_SECONDS : BINGO_SECONDS)
+  const [left, setLeft] = useState(restoredLeft)
   const [over, setOver] = useState(!!(canRestore && saved?.over))
   const [copied, setCopied] = useState(false)
   const [shake, setShake] = useState(false)
   const [confirmExit, setConfirmExit] = useState(false) // çıkış onayı modalı
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startedAtRef = useRef(canRestore ? Date.now() - (BINGO_SECONDS - restoredLeft) * 1000 : 0)
+  const pausedMsRef = useRef(0)
+  const pauseStartedAtRef = useRef<number | null>(null)
   const exitDialogRef = useModalFocusTrap<HTMLDivElement>(confirmExit)
 
   const current = stream[pos]
@@ -84,19 +91,45 @@ export default function BingoGame({ daily, onExit }: Props) {
   const winRecordedRef = useRef(won)
   const best = Number(localStorage.getItem(BEST_KEY) ?? 0)
 
+  const refreshClock = useCallback((nowMs = Date.now()) => {
+    if (!startedAtRef.current) return
+    const activePauseMs = pauseStartedAtRef.current === null ? 0 : Math.max(0, nowMs - pauseStartedAtRef.current)
+    const nextLeft = getTimedSecondsLeft(startedAtRef.current, BINGO_SECONDS, nowMs, {
+      pausedMs: pausedMsRef.current + activePauseMs,
+    })
+    setLeft(nextLeft)
+    if (nextLeft === 0) {
+      if (timerRef.current) clearInterval(timerRef.current)
+      setOver(true)
+    }
+  }, [])
+
   // Sayaç — `won` KONTROLÜ ŞART: kart tamamlanınca durmazsa geçen süre şişmeye
   // devam ediyordu ("Kart tamam! 82 saniye" sayısı artıyordu)
   useEffect(() => {
-    // Çıkış onayı açıkken sayaç durur — karar verirken süre akmasın
-    if (!started || over || won || confirmExit) return
-    timerRef.current = setInterval(() => {
-      setLeft((t) => {
-        if (t <= 1) { clearInterval(timerRef.current!); setOver(true); return 0 }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(timerRef.current!)
-  }, [started, over, won, confirmExit])
+    if (!started || over || won) return
+    refreshClock()
+    timerRef.current = setInterval(() => refreshClock(Date.now()), 250)
+    const onVisibilityChange = () => refreshClock(Date.now())
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [started, over, won, refreshClock])
+
+  // Çıkış onayı açıkken süre durur — karar verirken süre akmasın.
+  useEffect(() => {
+    if (!started || over || won) return
+    const now = Date.now()
+    if (confirmExit) {
+      if (pauseStartedAtRef.current === null) pauseStartedAtRef.current = now
+    } else if (pauseStartedAtRef.current !== null) {
+      pausedMsRef.current += Math.max(0, now - pauseStartedAtRef.current)
+      pauseStartedAtRef.current = null
+    }
+    refreshClock(now)
+  }, [confirmExit, started, over, won, refreshClock])
 
   // Bitiş: kayıt + ses
   useEffect(() => {
@@ -117,7 +150,8 @@ export default function BingoGame({ daily, onExit }: Props) {
   useEffect(() => {
     if (!daily || !started) return
     const state: DailyState = {
-      date: todayKey(),
+      date: sessionDate,
+      v: DATA_VERSION,
       filled: filled.filter(Boolean).length,
       won,
       started: true,
@@ -127,7 +161,7 @@ export default function BingoGame({ daily, onExit }: Props) {
       left,
     }
     localStorage.setItem(KEY, JSON.stringify(state))
-  }, [daily, started, filled, pos, left, over, won])
+  }, [daily, sessionDate, started, filled, pos, left, over, won])
 
   /** Çıkış: günlük oyun sürüyorsa onay modalını aç — ilerleme ve süre korunur. */
   function handleExit() {
@@ -136,6 +170,7 @@ export default function BingoGame({ daily, onExit }: Props) {
   }
 
   function start() {
+    if (timerRef.current) clearInterval(timerRef.current)
     // Günlük: tarihten türeyen kart ve sıra → herkes aynı oyunu oynar
     const rand = daily ? seededRng(fnv1a(`${todayKey()}:bingo:akis`)) : () => cryptoRandInt(1e6) / 1e6
     const c = daily ? dailyCard() : buildCard(rand)
@@ -143,6 +178,9 @@ export default function BingoGame({ daily, onExit }: Props) {
     setStream(championStream(c, rand))
     setPos(0)
     setFilled(new Array(BOX_COUNT).fill(null))
+    startedAtRef.current = Date.now()
+    pausedMsRef.current = 0
+    pauseStartedAtRef.current = null
     setLeft(BINGO_SECONDS)
     setOver(false)
     // Yeni sınırsız tur kendi gerçek galibiyetini yeniden kaydedebilsin.

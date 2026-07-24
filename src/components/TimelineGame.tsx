@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { byId, squareUrl } from '../game/data'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
@@ -32,6 +32,7 @@ interface TimelineGameProps {
  * (bağımlılık eklemiyoruz + mobil + klavye erişilebilirliği bedava).
  */
 export default function TimelineGame({ daily = false, onExit }: TimelineGameProps) {
+  const sessionDate = useRef(todayKey()).current
   const [started, setStarted] = useState(false)
   const [showHowTo, setShowHowTo] = useState(false)
   const howToDialogRef = useModalFocusTrap<HTMLDivElement>(showHowTo)
@@ -108,7 +109,7 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
   const persistDaily = (currentIds: string[], nextLocked: boolean[], nextAttempts: number, isOver: boolean, isWon: boolean) => {
     if (!daily || !puzzle) return
     saveDailyTimeline({
-      date: todayKey(),
+      date: sessionDate,
       targetIds: puzzle.target.map((c) => c.id),
       currentIds,
       locked: nextLocked,

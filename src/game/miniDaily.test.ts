@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { BINGO_DAILY_KEY, WORDLE_DAILY_KEY, miniDailyDone } from './miniDaily'
+import { BINGO_DAILY_KEY, WORDLE_DAILY_KEY, isCurrentMiniDailyRecord, miniDailyDone } from './miniDaily'
 import { todayKey } from './rng'
 
 const today = () => todayKey()
@@ -30,6 +30,11 @@ describe('miniDailyDone', () => {
     expect(miniDailyDone('wordle')).toBe(false)
   })
 
+  it('Kelime: aynı tarih ama farklı veri sürümü → false', () => {
+    localStorage.setItem(WORDLE_DAILY_KEY, JSON.stringify({ date: today(), v: 'eski', guesses: [], done: true }))
+    expect(miniDailyDone('wordle')).toBe(false)
+  })
+
   it('Bingo: bugün + over → true (süre bitti)', () => {
     localStorage.setItem(BINGO_DAILY_KEY, JSON.stringify({ date: today(), filled: 4, won: false, over: true }))
     expect(miniDailyDone('bingo')).toBe(true)
@@ -45,8 +50,23 @@ describe('miniDailyDone', () => {
     expect(miniDailyDone('bingo')).toBe(false)
   })
 
+  it('Bingo: aynı tarih ama farklı veri sürümü → false', () => {
+    localStorage.setItem(BINGO_DAILY_KEY, JSON.stringify({ date: today(), v: 'eski', filled: 12, won: true, over: false }))
+    expect(miniDailyDone('bingo')).toBe(false)
+  })
+
   it('bozuk JSON → false, patlamaz', () => {
     localStorage.setItem(WORDLE_DAILY_KEY, '{bozuk')
     expect(miniDailyDone('wordle')).toBe(false)
+  })
+})
+
+describe('isCurrentMiniDailyRecord', () => {
+  it('aynı tarih + sürümsüz eski kayıt kabul edilir', () => {
+    expect(isCurrentMiniDailyRecord({ date: today() }, '16.14.1')).toBe(true)
+  })
+
+  it('aynı tarih ama farklı veri sürümü → bayat sayılır', () => {
+    expect(isCurrentMiniDailyRecord({ date: today(), v: '16.13.1' }, '16.14.1')).toBe(false)
   })
 })

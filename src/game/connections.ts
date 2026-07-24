@@ -1,7 +1,7 @@
 import { allCriteria, type Criterion } from './bingo'
-import { CHAMPIONS } from './data'
+import { CHAMPIONS, DATA_VERSION } from './data'
 import { godMode } from './dev'
-import { CONN_DAILY_KEY } from './miniDaily'
+import { CONN_DAILY_KEY, isCurrentMiniDailyRecord } from './miniDaily'
 import { fnv1a, seededRng, todayKey } from './rng'
 import { toLetters } from './wordle'
 
@@ -185,6 +185,7 @@ export function evaluateConnGuess(
 
 export interface ConnDailySave {
   date: string
+  v?: string
   /** Çözülen grupların kriter id'leri (çözülme sırasıyla) */
   solvedIds: string[]
   /** Her onaylanan 4'lü (paylaşım ızgarası bundan türür) */
@@ -202,7 +203,7 @@ export function loadDailyConnections(): ConnDailySave | null {
     const raw = localStorage.getItem(CONN_DAILY_KEY)
     if (!raw) return null
     const save = JSON.parse(raw) as ConnDailySave
-    if (save.date !== todayKey()) return null
+    if (!isCurrentMiniDailyRecord(save, DATA_VERSION)) return null
     if (!Array.isArray(save.solvedIds) || !Array.isArray(save.history)) return null
     return save
   } catch {
@@ -212,7 +213,7 @@ export function loadDailyConnections(): ConnDailySave | null {
 
 export function saveDailyConnections(save: ConnDailySave): void {
   try {
-    localStorage.setItem(CONN_DAILY_KEY, JSON.stringify(save))
+    localStorage.setItem(CONN_DAILY_KEY, JSON.stringify({ ...save, v: DATA_VERSION }))
   } catch {
     // localStorage kapalı olabilir
   }

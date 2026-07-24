@@ -21,7 +21,8 @@ try {
 
 export const DATA: ChampionData = bundled as ChampionData
 export const CHAMPIONS: Champion[] = DATA.champions
-export const PATCH = DATA.version
+export const DATA_VERSION = DATA.version
+export const PATCH = DATA_VERSION
 
 export function byId(id: string): Champion | undefined {
   return CHAMPIONS.find((c) => c.id === id)
