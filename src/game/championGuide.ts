@@ -10,9 +10,15 @@ export function filterGuideChampions(
   champions: Champion[],
   search: string,
   filter: PoolFilter = ALL_FILTER,
+  years: number[] = [],
 ): Champion[] {
   const query = toLetters(search.trim())
   return champions
-    .filter((champion) => matches(champion, filter) && (!query || toLetters(champion.name).includes(query)))
+    .filter((champion) => {
+      const matchesFilter = matches(champion, filter)
+      const matchesYear = !years.length || (champion.year != null && years.includes(champion.year))
+      const matchesSearch = !query || toLetters(champion.name).includes(query)
+      return matchesFilter && matchesYear && matchesSearch
+    })
     .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
 }

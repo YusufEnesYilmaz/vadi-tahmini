@@ -15,6 +15,7 @@ function makeChampion(
   region: string,
   roles: string[],
   lanes: string[],
+  year: number | null = null,
 ): Champion {
   return {
     id: name.replace(/[^A-Za-z]/g, '') || 'champion',
@@ -27,8 +28,8 @@ function makeChampion(
     rangeType: 'Menzilli',
     region,
     gender: 'Bilinmiyor',
-    species: 'İnsan',
-    year: null,
+    species: 'Insan',
+    year,
     skins: [],
     spells: SPELLS,
     passive: { name: '', img: '' },
@@ -36,28 +37,41 @@ function makeChampion(
 }
 
 const SAMPLE: Champion[] = [
-  makeChampion("Kai'Sa", 'Void', ['Nişancı'], ['Alt']),
-  makeChampion('Master Yi', 'Ionia', ['Suikastçı'], ['Orman']),
-  makeChampion("Bel'Veth", 'Void', ['Savaşçı'], ['Orman']),
-  makeChampion('Çetin', 'Demacia', ['Tank'], ['Üst']),
+  makeChampion("Kai'Sa", 'Void', ['Nisanci'], ['Alt'], 2018),
+  makeChampion('Master Yi', 'Ionia', ['Suikastci'], ['Orman'], 2009),
+  makeChampion("Bel'Veth", 'Void', ['Savasci'], ['Orman'], 2022),
+  makeChampion('Cetin', 'Demacia', ['Tank'], ['Ust'], null),
 ]
 
 describe('champion guide helper', () => {
-  it('arama toLetters ile büyük-küçük ve noktalama işaretlerinden bağımsızdır', () => {
+  it('search is normalized with toLetters', () => {
     expect(filterGuideChampions(SAMPLE, 'belveth', ALL_FILTER).map((c) => c.name)).toEqual(["Bel'Veth"])
     expect(filterGuideChampions(SAMPLE, 'kai sa', ALL_FILTER).map((c) => c.name)).toEqual(["Kai'Sa"])
   })
 
-  it('arama ve filtreler birlikte uygulanır', () => {
-    const filter: PoolFilter = { ...ALL_FILTER, regions: ['Ionia'], roles: ['Suikastçı'], lanes: ['Orman'] }
+  it('search and pool filters work together', () => {
+    const filter: PoolFilter = { ...ALL_FILTER, regions: ['Ionia'], roles: ['Suikastci'], lanes: ['Orman'] }
     expect(filterGuideChampions(SAMPLE, 'yi', filter).map((c) => c.name)).toEqual(['Master Yi'])
     expect(filterGuideChampions(SAMPLE, 'kai', filter)).toEqual([])
   })
 
-  it('sonuçları tr yerelinde ada göre sıralar', () => {
+  it('sorts results by champion name', () => {
     expect(filterGuideChampions(SAMPLE, '', ALL_FILTER).map((c) => c.name)).toEqual([
       "Bel'Veth",
-      'Çetin',
+      'Cetin',
+      "Kai'Sa",
+      'Master Yi',
+    ])
+  })
+
+  it('applies selected years and keeps all champions when year filter is empty', () => {
+    expect(filterGuideChampions(SAMPLE, '', ALL_FILTER, [2022, 2018]).map((c) => c.name)).toEqual([
+      "Bel'Veth",
+      "Kai'Sa",
+    ])
+    expect(filterGuideChampions(SAMPLE, '', ALL_FILTER, []).map((c) => c.name)).toEqual([
+      "Bel'Veth",
+      'Cetin',
       "Kai'Sa",
       'Master Yi',
     ])
