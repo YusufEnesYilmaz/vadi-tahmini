@@ -83,6 +83,16 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            // LoL rank amblemleri (CommunityDragon, statik) — bir kez inip kalıcı önbellekte
+            urlPattern: /^https:\/\/raw\.communitydragon\.org\/.*ranked-emblem\/.*\.png$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cdragon-ranks',
+              expiration: { maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 90 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           /*
            * Replik modu sesleri (CommunityDragon .ogg) artık SW tarafından
            * ele ALINMIYOR. Neden:

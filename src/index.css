@@ -260,6 +260,19 @@ button { touch-action: manipulation; }
 .stagger > *:nth-child(6) { animation-delay: 0.27s; }
 
 /*
+ * Bölüm etiketi — ekranlarda elle tekrarlanan "küçük, büyük harfli, soluk başlık"
+ * stili (ÖLÇÜT / OYUNCULAR / UYMAYANLAR...) tek kaynak. Renk gerekirse inline
+ * `color` ile ezilir (ör. tehlike tonundaki "Uymayanlar").
+ */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+/*
  * Canlı altın başlık: metnin içinden yavaşça geçen parıltı. background-clip:text
  * ile boyanır, ek dosya yok. Uygulayan öğede inline `color` VERME (text-fill'i ezer).
  */

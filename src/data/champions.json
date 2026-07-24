@@ -1,6 +1,6 @@
 {
  "version": "16.14.1",
- "generatedAt": "2026-07-23",
+ "generatedAt": "2026-07-24",
  "champions": [
   {
    "id": "Aatrox",
@@ -5227,7 +5227,7 @@
    "rangeType": "Menzilli",
    "region": "Boşluk",
    "gender": "Kadın",
-   "species": "İnsan",
+   "species": "Boşluk",
    "year": 2018,
    "skins": [
     {
@@ -5595,7 +5595,7 @@
    "rangeType": "Yakın Dövüş",
    "region": "Boşluk",
    "gender": "Erkek",
-   "species": "İnsan",
+   "species": "Boşluk",
    "year": 2009,
    "skins": [
     {
@@ -7389,7 +7389,7 @@
    "rangeType": "Menzilli",
    "region": "Boşluk",
    "gender": "Erkek",
-   "species": "İnsan",
+   "species": "Boşluk",
    "year": 2010,
    "skins": [
     {

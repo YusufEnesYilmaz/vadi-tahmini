@@ -4,6 +4,8 @@ import Menu from './components/Menu'
 import Settings from './components/Settings'
 import WordleGame from './components/WordleGame'
 import BingoGame from './components/BingoGame'
+import CounterGame from './components/CounterGame'
+import CounterMulti from './components/CounterMulti'
 import { parseChallenge, type Challenge } from './game/challenge'
 import { parseFilterKey, type PoolFilter } from './game/filter'
 import type { Difficulty, PlaySub, TopMode } from './game/types'
@@ -14,6 +16,8 @@ type Screen =
   | { name: 'settings' }
   | { name: 'wordle'; daily: boolean }
   | { name: 'bingo'; daily: boolean }
+  | { name: 'counter' }
+  | { name: 'counterMulti' }
 
 /** URL'de ?c=... varsa meydan okumayı çöz, adres çubuğunu temizle */
 function initialScreen(): Screen {
@@ -81,6 +85,12 @@ export default function App() {
   if (screen.name === 'bingo') {
     return <BingoGame daily={screen.daily} onExit={navigateMenu} />
   }
+  if (screen.name === 'counter') {
+    return <CounterGame onExit={navigateMenu} />
+  }
+  if (screen.name === 'counterMulti') {
+    return <CounterMulti onExit={navigateMenu} />
+  }
   if (screen.name === 'settings') {
     return <Settings onExit={navigateMenu} />
   }
@@ -89,6 +99,8 @@ export default function App() {
       onPlay={(top, sub, diff, filter) => navigateTo({ name: 'game', top, sub, diff, filter })}
       onSettings={() => navigateTo({ name: 'settings' })}
       onMiniGame={(g, d) => navigateTo(g === 'wordle' ? { name: 'wordle', daily: d } : { name: 'bingo', daily: d })}
+      onCounter={() => navigateTo({ name: 'counter' })}
+      onCounterMulti={() => navigateTo({ name: 'counterMulti' })}
     />
   )
 }

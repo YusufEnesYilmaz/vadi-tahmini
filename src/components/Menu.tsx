@@ -19,12 +19,17 @@ import { sfxEnabled, setSfxEnabled } from '../game/sfx'
 import { getChampWins, getEarnedAchievements, ACHIEVEMENTS } from '../game/achievements'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { miniDailyDone } from '../game/miniDaily'
+import RankEmblem from './RankEmblem'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
   /** Mini oyunlar ayrı ekran — alt mod yapısına oturmuyorlar */
   onMiniGame: (game: 'wordle' | 'bingo', daily: boolean) => void
+  /** "Kaç Tane?" — tek kişilik Sınırsız */
+  onCounter: () => void
+  /** "Kaç Tane?" — gerçek zamanlı oda (multiplayer) */
+  onCounterMulti: () => void
 }
 
 const LOL_TIPS = [
@@ -36,7 +41,7 @@ const LOL_TIPS = [
   '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
 ]
 
-export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
+export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCounterMulti }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [howTo, setHowTo] = useState(false)
   const [stats, setStats] = useState(false)
@@ -100,7 +105,8 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center gap-3.5 sm:gap-5 px-3.5 sm:px-4 pb-8 pt-3 sm:pt-8">
+    // Masaüstünde geniş sahne (5xl) — ana menü iki kolona açılır; mobil tek kolon aynı
+    <div className="relative mx-auto flex w-full max-w-2xl lg:max-w-5xl flex-col items-center gap-3.5 sm:gap-5 px-3.5 sm:px-4 pb-8 pt-3 sm:pt-8">
       {/* Ambient Glow Lights */}
       <div className="pointer-events-none absolute -top-16 inset-x-0 flex justify-between opacity-30 blur-3xl" aria-hidden>
         <div className="h-48 w-48 rounded-full" style={{ background: 'var(--gold)' }} />
@@ -117,7 +123,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
           aria-label="Sihirdar unvanları ve kademeleri gör"
           title="Unvanların nasıl yükseldiğini gör"
         >
-          <span>{summoner.icon}</span>
+          <RankEmblem tier={summoner} size={26} />
           <span style={{ color: summoner.color }}>{summoner.title}</span>
           <span className="opacity-40">•</span>
           <span style={{ color: 'var(--text-dim)' }}>🔥 {activeStreak} Gün</span>
@@ -162,7 +168,9 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
       </header>
 
       {!top ? (
-        <div className="stagger z-10 flex w-full flex-col gap-3 sm:gap-4">
+        <div className="stagger z-10 flex w-full flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-5">
+          {/* SOL kolon (masaüstü): hero + ana modlar + ilerleme şeridi. Mobilde sıra değişmez. */}
+          <div className="flex flex-col gap-3 sm:gap-4">
           {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
           <button
             onClick={quickPlay}
@@ -311,7 +319,10 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Kariyer</span>
             </div>
           </div>
+          </div>
 
+          {/* SAĞ kolon (masaüstü): mini oyunlar + sistem butonları */}
+          <div className="flex flex-col gap-3 sm:gap-4">
           {/* Mini Oyunlar */}
           <div>
             <div className="mb-1.5 sm:mb-2 flex items-center gap-2">
@@ -321,7 +332,8 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.3), transparent)' }} />
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
+            {/* Masaüstünde sağ kolon dar (~400px) → kartlar tek kolon; sm-lg arası 2 kolon */}
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
               {[
                 { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
                 { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
@@ -330,7 +342,9 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                 return (
                 <div
                   key={g.id}
-                  className="group overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
+                  // flex-col + footer'da mt-auto: gridde kart komşusundan uzun olsa da
+                  // buton şeridi hep kartın DİBİNE yapışır (yoksa ortada asılı kalıyordu)
+                  className="group flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
                   style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
                 >
                   <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
@@ -347,8 +361,8 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                     </span>
                   </div>
 
-                  {/* Sınırsız / Günlük Buton Şeridi */}
-                  <div className="flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
+                  {/* Sınırsız / Günlük Buton Şeridi — mt-auto: hep kartın dibinde */}
+                  <div className="mt-auto flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
                     <button
                       onClick={() => onMiniGame(g.id, false)}
                       className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
@@ -372,6 +386,36 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                 </div>
                 )
               })}
+
+              {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi) */}
+              <div className="group flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
+                    🔢
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm sm:text-base font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                      Kaç Tane?
+                    </span>
+                    <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>
+                      Ölçüte uyan şampiyonları say · süre dolmadan kaç tane?
+                    </span>
+                  </span>
+                </div>
+                <div className="mt-auto flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
+                  <button onClick={onCounter}
+                    className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
+                    style={{ color: 'var(--gold)' }}>
+                    ♾️ Sınırsız
+                  </button>
+                  <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
+                    className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
+                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                    👥 Multi
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -444,13 +488,16 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             </div>
           </div>
 
-          {/* Vadi İpucu Banner'ı */}
-          <div className="rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(var(--gold-glow-rgb), 0.03)', borderColor: 'rgba(var(--gold-glow-rgb), 0.15)', color: 'var(--text-dim)' }}>
+          </div>
+
+          {/* Vadi İpucu Banner'ı — masaüstünde iki kolonun altında tam genişlik */}
+          <div className="lg:col-span-2 rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(var(--gold-glow-rgb), 0.03)', borderColor: 'rgba(var(--gold-glow-rgb), 0.15)', color: 'var(--text-dim)' }}>
             {randomTip}
           </div>
         </div>
       ) : (
-        <div className="stagger z-10 flex w-full flex-col gap-4">
+        // Alt mod seçimi odaklı bir akış — 5xl sahnede bile 3xl'de toplu kalır
+        <div className="stagger z-10 flex w-full lg:max-w-3xl flex-col gap-4">
           {/* Başlık: geri + üst modun kimliği (ikon + ad + kısa açıklama), ortalı */}
           <div className="flex items-center gap-2">
             <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105"

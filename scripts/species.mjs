@@ -7,6 +7,12 @@
  *
  * Sınıflandırma TARTIŞMALI olabilir (Cassiopeia insan mı canavar mı, Sion ölümsüz
  * mü dirilmiş insan mı...). Gözden geçirmek için: node scripts/species-review.mjs
+ *
+ * 2026-07-24 — Kullanıcı kararı: **Kassadin, Kai'Sa ve Malzahar 'Boşluk'** (önceden 'İnsan').
+ * Üçü de insan doğdu ama Boşluk'la dönüştüler (Kai'Sa ortakyaşam zırhı, Kassadin
+ * Boşluk enerjisi, Malzahar Boşluk kâhini); oyuncunun kafasındaki "Boşluk şampiyonu"
+ * kümesine giriyorlar. "Kaç Tane? → Boşluk" turunda reddedilince kullanıcı itiraz etti.
+ * Ölçüt: köken değil BUGÜNKÜ hâli — Boşluk'a dönüşmüş olan Boşluk sayılır.
  */
 
 /** Geçerli türler — Klasik tablodaki "Tür" sütununda görünecek değerler */
@@ -28,11 +34,11 @@ export const CHAMPION_SPECIES = {
   Gragas: 'İnsan', Graves: 'İnsan', Gwen: 'Ruh', Hecarim: 'Ölümsüz', Heimerdinger: 'Yordle',
   Hwei: 'İnsan', Illaoi: 'İnsan', Irelia: 'İnsan', Ivern: 'Bitki', Janna: 'Ruh',
   JarvanIV: 'İnsan', Jax: 'Bilinmiyor', Jayce: 'İnsan', Jhin: 'İnsan', Jinx: 'İnsan',
-  KSante: 'İnsan', Kaisa: 'İnsan', Kalista: 'Ölümsüz', Karma: 'İnsan', Karthus: 'Ölümsüz',
-  Kassadin: 'İnsan', Katarina: 'İnsan', Kayle: 'Semavi', Kayn: 'İnsan', Kennen: 'Yordle',
+  KSante: 'İnsan', Kaisa: 'Boşluk', Kalista: 'Ölümsüz', Karma: 'İnsan', Karthus: 'Ölümsüz',
+  Kassadin: 'Boşluk', Katarina: 'İnsan', Kayle: 'Semavi', Kayn: 'İnsan', Kennen: 'Yordle',
   Khazix: 'Boşluk', Kindred: 'Ruh', Kled: 'Yordle', KogMaw: 'Boşluk', Leblanc: 'İnsan',
   LeeSin: 'İnsan', Leona: 'Semavi', Lillia: 'Ruh', Lissandra: 'İnsan', Locke: 'İnsan',
-  Lucian: 'İnsan', Lulu: 'Yordle', Lux: 'İnsan', Malphite: 'Element', Malzahar: 'İnsan',
+  Lucian: 'İnsan', Lulu: 'Yordle', Lux: 'İnsan', Malphite: 'Element', Malzahar: 'Boşluk',
   Maokai: 'Bitki', MasterYi: 'İnsan', Mel: 'İnsan', Milio: 'İnsan', MissFortune: 'İnsan',
   Mordekaiser: 'Ölümsüz', Morgana: 'Semavi', Naafiri: 'Darkin', Nami: 'Vastaya', Nasus: 'Yükselmiş',
   Nautilus: 'Ölümsüz', Neeko: 'Vastaya', Nidalee: 'İnsan', Nilah: 'İnsan', Nocturne: 'İblis',

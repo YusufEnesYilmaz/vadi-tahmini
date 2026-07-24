@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { SUMMONER_TITLES, titleFor, nextTitle } from '../game/rank'
+import RankEmblem from './RankEmblem'
 
 interface Props {
   /** En iyi günlük seri — unvan kademesini BELİRLER (kırılsa da düşmez) */
@@ -53,8 +54,8 @@ export default function RankModal({ best, current, onClose }: Props) {
         {/* Mevcut durum + ilerleme */}
         <div className="mt-3 rounded-xl border p-3" style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 font-bold">
-              <span>{currentTitle.icon}</span>
+            <span className="flex items-center gap-2.5 font-bold">
+              <RankEmblem tier={currentTitle} size={48} />
               <span style={{ color: currentTitle.color }}>{currentTitle.title}</span>
             </span>
             <span className="text-right text-xs" style={{ color: 'var(--text-dim)' }}>
@@ -85,13 +86,13 @@ export default function RankModal({ best, current, onClose }: Props) {
             const isCurrent = t.title === currentTitle.title
             return (
               <div key={t.title}
-                className="flex items-center gap-2.5 rounded-lg border p-2"
+                className="flex items-center gap-3 rounded-lg border p-2.5"
                 style={{
                   borderColor: isCurrent ? 'var(--gold)' : 'var(--border)',
                   background: isCurrent ? 'var(--gold-soft)' : 'transparent',
                   opacity: reached ? 1 : 0.5,
                 }}>
-                <span className="text-lg">{t.icon}</span>
+                <RankEmblem tier={t} size={44} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold" style={{ color: t.color }}>{t.title}</span>
                   <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>{t.blurb}</span>
