@@ -6,6 +6,7 @@ import { getVolume, playGarenUltSound, setSfxEnabled, setVolume, sfxEnabled, upd
 import { updateLeaderboardNick } from '../game/supabase'
 import { applyUpdate, useUpdateAvailable } from '../game/pwaUpdate'
 import { godMode, godModeAvailable, setGodMode } from '../game/dev'
+import Changelog from './Changelog'
 
 /** Bölüm başlığı — dairesel ikon rozeti + başlık + (opsiyonel) sağda kontrol/durum */
 function SectionHead({ icon, title, right }: { icon: string; title: string; right?: React.ReactNode }) {
@@ -49,6 +50,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [nickSaved, setNickSaved] = useState(false)
   const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [changelog, setChangelog] = useState(false)
   const updateReady = useUpdateAvailable()
   const [god, setGod] = useState(godMode)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -232,6 +234,13 @@ export default function Settings({ onExit }: { onExit: () => void }) {
           </p>
         )}
 
+        {/* Yenilikler — kalıcı erişim noktası (menüdeki bant yalnız yeni girdi varken çıkıyor) */}
+        <button onClick={() => setChangelog(true)}
+          className="card-btn mb-2 w-full rounded-lg border px-4 py-2 text-xs font-semibold"
+          style={{ borderColor: 'rgba(var(--gold-glow-rgb), 0.35)', color: 'var(--gold-bright)' }}>
+          🆕 Yenilikleri gör
+        </button>
+
         {/* Elle sıfırlama: sinyal bir sebeple gelmezse ya da bir şey takılırsa son çare */}
         <button onClick={forceUpdateApp} disabled={updating}
           className="card-btn w-full rounded-lg border px-4 py-2 text-xs font-semibold disabled:opacity-50"
@@ -239,6 +248,8 @@ export default function Settings({ onExit }: { onExit: () => void }) {
           {updating ? '🔄 Güncelleniyor...' : '🔄 Elle denetle ve önbelleği temizle'}
         </button>
       </section>
+
+      {changelog && <Changelog onClose={() => setChangelog(false)} />}
 
       {/* Geliştirici modu — YALNIZ yerel dev sunucusunda görünür (godModeAvailable) */}
       {godModeAvailable && (

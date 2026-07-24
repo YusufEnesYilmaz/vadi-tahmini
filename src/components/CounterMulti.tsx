@@ -7,7 +7,8 @@ import {
   ROOM_CODE_LEN, hostOf, joinRoom, makeRoomCode, mergeScore, parseRoomCode, rankPlayers, winnersOf,
   type RoomHandle, type RoomPlayer, type RoomStatus,
 } from '../game/counterRoom'
-import { getNick, getPlayerId, setNick } from '../game/challenge'
+import { getNick, getPlayerId, recordChallengeWin, setNick } from '../game/challenge'
+import { evaluateAchievements } from '../game/achievements'
 import { isLeaderboardEnabled } from '../game/supabase'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
@@ -286,9 +287,23 @@ export default function CounterMulti({ onExit }: Props) {
   useEffect(() => {
     if (!roundClosed || !roundId || rematchStartedRef.current === roundId) return
     rematchStartedRef.current = roundId
-    setFinalRanking(latestResultRef.current)
+    const finalR = latestResultRef.current
+    setFinalRanking(finalR)
     setRematchLeft(REMATCH_SECONDS)
-  }, [roundClosed, roundId])
+    /*
+     * Meydan okuma rozetleri (vt:chwin) artık BURADAN beslenir — eski link tabanlı
+     * meydan okuma kaldırıldı (Faz 1b). Galibiyet sayılır: gerçekten rakip vardı
+     * (≥2 katılımcı) ve TEK galip benim. Beraberlik sayılmaz (eski kuralla tutarlı:
+     * beraberlik "kazandın" değildi). evaluateAchievements sessiz çağrılır —
+     * toast sistemi GameScreen'de (mini oyunlarla aynı kural), Başarım paneli
+     * zaten açılışta kendini eşitliyor; burada çağırmak kazanım TARİHİNİ doğru tutar.
+     */
+    const ws = winnersOf(finalR)
+    if (finalR.length >= 2 && ws.length === 1 && ws[0].playerId === playerId) {
+      recordChallengeWin()
+      evaluateAchievements()
+    }
+  }, [roundClosed, roundId, playerId])
 
   /**
    * Tur sonu kararı: Evet → lobide "hazır" olarak kal · Hayır → odadan çık ·

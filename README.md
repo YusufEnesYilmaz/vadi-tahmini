@@ -14,7 +14,7 @@
 League of Legends şampiyonlarını ve eşyalarını çeşitli ipuçlarıyla tahmin etmeye çalıştığın,  
 arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tabanlı tahmin oyunu.
 
-**9 farklı alt mod** · **3 oyun modu** · **4 zorluk seviyesi** · **91 başarım rozeti** · **Küresel sıralama**
+**9 alt mod** · **7 mini oyun** · **3 oyun modu** · **4 zorluk seviyesi** · **111 başarım rozeti** · **Küresel sıralama** · **Canlı multiplayer**
 
 [🎮 **Oyna**](https://vadi-tahmini.vercel.app) · [🐛 Hata Bildir](https://github.com/YusufEnesYilmaz/vadi-tahmini/issues)
 
@@ -27,7 +27,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 - [Özellikler](#-özellikler)
 - [Oyun Modları](#-oyun-modları)
 - [Alt Modlar](#-alt-modlar-ne-tahmin-edilir)
-- [Meydan Okuma Sistemi](#-arkadaşına-meydan-oku)
+- [Mini Oyunlar](#-mini-oyunlar)
 - [Başarım Sistemi](#-başarım-sistemi)
 - [Zorluk Seviyeleri](#-zorluk-seviyeleri)
 - [Teknik Mimari](#%EF%B8%8F-teknik-mimari)
@@ -46,8 +46,9 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 | 📱 | **PWA Desteği** | Telefona yüklenebilir, çevrimdışı çalışabilir |
 | 🏆 | **Küresel Sıralama** | Supabase üzerinden canlı liderlik tablosu |
 | 🎯 | **9 Farklı Alt Mod** | Klasik, Yetenek, Görsel, Kostüm, Replik, Emoji, Eşya, Silüet, Hikâye |
-| ⚔️ | **Meydan Okuma** | Arkadaşlarına özel link ile meydan oku |
-| 🎖 | **91 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
+| 🕹️ | **7 Mini Oyun** | Kelime, Bingo, Zaman Tüneli, Şampiyon Avı, Dokuz Kare, Bağlantılar, Kaç Tane? |
+| 👥 | **Canlı Multiplayer** | "Kaç Tane?" modunda oda kur, arkadaşlarınla aynı anda gerçek zamanlı yarış |
+| 🎖 | **111 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
 | 📅 | **Günlük Bulmaca** | Her gün herkese aynı soru, takvim takibi |
 | 📊 | **Detaylı İstatistik** | Mod bazlı kazanma oranları, seriler ve grafikler |
 | 🔒 | **Güvenli** | CSP, X-Frame-Options ve modern güvenlik başlıkları |
@@ -76,7 +77,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
   <tr>
     <td><b>Zamana Karşı</b></td>
     <td align="center">⏱️</td>
-    <td><b>60 saniye</b> içinde en fazla doğru tahmini yapmaya çalış. Bitirdiğinde arkadaşlarına meydan okuma linki oluştur.</td>
+    <td>Zorluğa göre <b>30–90 saniye</b> içinde en fazla doğru tahmini yapmaya çalış. Skorun küresel sıralamaya işlenir (Zor & Aşırı Zor).</td>
   </tr>
 </table>
 
@@ -106,25 +107,31 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 
 ---
 
-## ⚔️ Arkadaşına Meydan Oku
+## 🕹️ Mini Oyunlar
 
-> Tamamen **sunucusuz (serverless)** çalışan, istemci taraflı meydan okuma sistemi.
+Ana tahmin modlarından bağımsız, kendi ekranlarında oynanan mini oyunlar. Her birinin **Günlük** (herkese aynı bulmaca) ve **Sınırsız** sürümü vardır; tamamlanan günlükler menüde "✓ Bitti" olarak işaretlenir.
 
-**Zamana Karşı** modunu bitirdiğinde özel bir meydan okuma linki oluşturulur. Bu link, kriptografik olarak rastgele üretilmiş bir **seed** değeri barındırır (`?c=...` payload).
+| Oyun | İkon | Nasıl Oynanır? |
+| :--- | :---: | :--- |
+| **Kelime (Wordle)** | 🔡 | Gizli şampiyon adını 6 hakta harf harf tahmin et. Yeşil = doğru konum, kehribar = isimde var ama yeri farklı, gri = yok. |
+| **Bingo** | 🎲 | 90 saniyede 12 kutuluk kartı doldur. Gelen şampiyonu uygun özellikteki (bölge, koridor, tür, yıl…) kutuya yerleştir. |
+| **Zaman Tüneli** | 🕰️ | 5 şampiyonu çıkış yılına göre eskiden yeniye sırala. Sürükle-bırak ya da ▲▼ oklarıyla diz; doğru pozisyonlar yeşile kilitlenir. 3 deneme. |
+| **Şampiyon Avı** | 🏹 | Gizli şampiyonu **alfabetik mesafe** ipuçlarıyla 8 hakta bul (kaç sıra uzakta + ↑/↓ yön). Takılırsan "🔎 İpucu aç" bölgeyi/türü verir — ama her ipucu 1 hak yakar. |
+| **Dokuz Kare** | 🔲 | 3×3 ızgarada her hücre, **satır ve sütun** kriterini birden sağlayan bir şampiyon ister. Her şampiyon yalnız bir kez kullanılır; süre yok. |
+| **Bağlantılar** | 🧩 | 16 şampiyonu ortak özellikli **4 gizli gruba** ayır (4 hak). "🔎 İpucu" bir grubun adını açar ama 1 hak yakar. Tuzaklara dikkat — geçerli bölünme tektir. |
+| **Kaç Tane?** | 🔢 | Verilen ölçüte uyan şampiyonları süre dolmadan arka arkaya say. Tek başına **ya da odada arkadaşlarınla canlı yarış** (👥 Multi). |
 
-Arkadaşın bu linkle giriş yaptığında:
+### 👥 Multiplayer — "Kaç Tane?" Odaları
 
-1. 🎯 Seninle **birebir aynı soruları**, aynı sıra ile çözer
-2. ⏱️ Aynı süre koşullarında yarışır
-3. 📊 Süre bittiğinde skorunu **senin skorunla karşılaştırır**
+> **Supabase Realtime** (broadcast + presence) üzerinden çalışan gerçek zamanlı oda sistemi — veritabanı tablosu gerektirmez.
 
-Böylece hiçbir backend sunucusuna gerek kalmadan adil ve tekrarlanabilir bir rekabet deneyimi sunulur.
+Oda kur, 4 haneli kodu arkadaşlarına gönder (2–8 kişi). Herkes **aynı ölçütü aynı anda** oynar, skorlar canlı akar, tur sonunda sıralama ve "tekrar oynayalım mı?" oylaması gelir. Multi tur galibiyetleri sosyal başarım rozetlerini besler.
 
 ---
 
 ## 🎖 Başarım Sistemi
 
-İstatistiklerden beslenen ve oyuncunun ilerlemesini ödüllendiren **91 adet benzersiz başarım rozeti** bulunur. Başarımlar **10 farklı kategoride** organize edilmiş olup canlı ilerleme çubukları ile takip edilir:
+İstatistiklerden beslenen ve oyuncunun ilerlemesini ödüllendiren **111 adet benzersiz başarım rozeti** bulunur. Başarımlar **10 farklı kategoride** organize edilmiş olup canlı ilerleme çubukları ile takip edilir:
 
 | Kategori | Rozet Örnekleri | Açıklama |
 | :--- | :--- | :--- |
@@ -136,8 +143,8 @@ Böylece hiçbir backend sunucusuna gerek kalmadan adil ve tekrarlanabilir bir r
 | 💪 **Azim** | Azimli, Bağımlı, Veteran, Maratoncu, Gece Kuşu | Toplam oynanan oyun sayısı (100 - 2500 oyun) ve 00:00-05:00 gece zaferleri |
 | ☠️ **Zorluk** | Gözü Kara, Zor Bela, Demir İrade, Zor Ustası, Delilik Efsanesi | Zor ve Aşırı Zor zorluk seviyelerindeki toplam galibiyetler |
 | 📚 **Koleksiyon** | Kaşif, Avcı, Ansiklopedi, Arcane Efsaneleri, Demacia Adaleti | Bölge tamamlama, koridor ustalıkları ve özel şampiyon başarımları |
-| ⚔️ **Sosyal** | Meydan Okuyucu, Rakip, Gladyatör, Şampiyon, Haberci | Arkadaşlara karşı meydan okuma zaferleri ve sonuç paylaşma |
-| 🕹️ **Mini Oyunlar** | İlk Kelime, Kelime Ustası, Keskin Zeka, Bingocu, Tam Kart | Kelime ve Bingo mini oyunlarındaki ustalık rozetleri |
+| ⚔️ **Sosyal** | Meydan Okuyucu, Rakip, Gladyatör, Şampiyon, Haberci | "Kaç Tane?" Multi tur galibiyetleri ve sonuç paylaşma |
+| 🕹️ **Mini Oyunlar** | Zaman Yolcusu, Usta Avcı, Kusursuz Dokuz, Dört Dörtlük, Mini Oyun Üstadı | 7 mini oyundaki galibiyet, kusursuzluk ve meta ustalık rozetleri |
 
 ### 🌟 Öne Çıkan Özel Başarım Mekanizmaları
 
@@ -307,7 +314,9 @@ vadi-tahmini/
 │   ├── game/                # Oyun mantığı ve yardımcı modüller
 │   │   ├── types.ts         #   Tip tanımlamaları
 │   │   ├── achievements.ts  #   Başarım hesaplama
-│   │   ├── challenge.ts     #   Meydan okuma sistemi
+│   │   ├── challenge.ts     #   Oyuncu kimliği + takma ad
+│   │   ├── counterRoom.ts   #   Multiplayer oda (Supabase Realtime)
+│   │   ├── hunt.ts / grid.ts / connections.ts / timeline.ts  # Mini oyun mantığı
 │   │   ├── puzzle.ts        #   Bulmaca üretimi
 │   │   ├── stats.ts         #   İstatistik yönetimi
 │   │   ├── difficulty.ts    #   Zorluk sistemi

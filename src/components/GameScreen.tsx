@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { evaluateGuess, type ClassicRow } from '../game/classic'
-import { byId, CHAMPIONS, ITEMS, itemIconUrl, PATCH, splashUrl, squareUrl } from '../game/data'
+import { byId, CHAMPIONS, ITEMS, itemIconUrl, splashUrl, squareUrl } from '../game/data'
 import { createTimedStream, nextPuzzle, type Puzzle, type PuzzleStream } from '../game/puzzle'
 import { copyToClipboard, shareDailyClassic, shareDailySimple, shareTimed } from '../game/share'
 import { shareCard } from '../game/shareCard'
-import { challengeUrl, getNick, recordChallengeWin, setNick, getPlayerId, type Challenge } from '../game/challenge'
-import { filterKey, type PoolFilter } from '../game/filter'
+import { getNick, setNick, getPlayerId } from '../game/challenge'
+import type { PoolFilter } from '../game/filter'
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { getBestCombo, getBestScore, getDailyState, recordCombo, recordGame, recordScore, recordTimedRun, saveDailyState, getStats } from '../game/stats'
 import { rulesFor } from '../game/difficulty'
 import { godMode } from '../game/dev'
 import { playCorrect, playLose, playWin, playWrong, playAchievement } from '../game/sfx'
 import { evaluateAchievements, recordChampWin, type EarnedAchievement } from '../game/achievements'
-import { DAILY_SUBS, DIFFICULTIES, SUB_MODES, TOP_MODES, subMeta, type Difficulty, type PlaySub, type SubMode, type TopMode } from '../game/types'
-import { submitDailyScore, submitTimedScore } from '../game/supabase'
+import { DAILY_SUBS, LEADERBOARD_DIFFS, SUB_MODES, TOP_MODES, subMeta, type Difficulty, type PlaySub, type SubMode, type TopMode } from '../game/types'
+import { isLeaderboardEnabled, submitDailyScore, submitTimedScore } from '../game/supabase'
 import Autocomplete, { type AcOption } from './Autocomplete'
 import ChampionInfo from './ChampionInfo'
 import ClassicBoard from './ClassicBoard'
@@ -27,7 +27,6 @@ interface Props {
   sub: PlaySub
   diff: Difficulty
   filter: PoolFilter // havuz daraltması (Günlük'te yok sayılır)
-  challenge?: Challenge // link'le açıldıysa: aynı seed + rakip skoru
   onPlaySub: (sub: SubMode) => void // Günlük: sıradaki moda geç (menüye dönmeden)
   onExit: () => void
 }
@@ -67,7 +66,7 @@ function answerLabel(puzzle: Puzzle): string {
 }
 
 
-export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySub, onExit }: Props) {
+export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }: Props) {
   const daily = top === 'daily'
   const timed = top === 'timed'
   const rules = rulesFor(top, diff)
@@ -104,14 +103,12 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
   const recordedRef = useRef(false) // tur kaydı bir kez yazılsın
   // Tur bitiş anı: sonuç kartı kazara Enter ile atlanmasın (aşağıdaki kısayola bak)
   const finishedAtRef = useRef(0)
-  // Zamana Karşı seed'li akış: tur boyunca sabit dizi (meydan okuma bunun üstüne kurulu)
+  // Zamana Karşı seed'li akış: tur boyunca sabit dizi
   const streamRef = useRef<PuzzleStream | null>(null)
-  // Meydan okuma paylaşımı
-  const [chLink, setChLink] = useState('') // "kopyalandı/paylaşıldı" geri bildirimi
+  // Sıralama takma adı: adsız oyuncunun skoru sessizce yazılamıyor — sonuçta sorulur
   const [nick, setNickState] = useState(getNick)
-  const [askNick, setAskNick] = useState(false)
-  const [chSeed, setChSeed] = useState(0) // bu turun seed'i (paylaşım için)
-  const [chResultWin, setChResultWin] = useState<boolean | null>(null) // meydan okuma sonucu
+  const [needsNick, setNeedsNick] = useState(false) // skor sıralamaya yazılamadı: ad iste
+  const [lbSaved, setLbSaved] = useState(false) // ad girildi, skor gönderildi geri bildirimi
 
   // Rozet toast kuyruğu
   const [achToasts, setAchToasts] = useState<EarnedAchievement[]>([])
@@ -202,19 +199,17 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
     recordTimedRun(sub, diff, finalScore)
     setWasRecord(recordScore(sub, diff, finalScore))
     setComboRecord(recordCombo(sub, diff, finalBestCombo))
-    // Küresel Sıralamaya ekle
+    // Küresel Sıralamaya ekle. Takma ad yoksa gönderilemez — eskiden bu sessizce
+    // atlanıyordu (adsız oyuncunun skoru sıralamaya HİÇ yazılmıyordu); artık sonuç
+    // ekranında ad sorulur ve girilince skor geriye dönük gönderilir.
     if (finalScore > 0 && nick && nick.trim()) {
       void submitTimedScore(getPlayerId(), sub, diff, nick, finalScore)
-    }
-    // Meydan okuma: rakibi geçtiysen kazandın (beraberlik kayıp sayılmaz, ama "kazandın" da denmez)
-    if (challenge) {
-      const win = finalScore > challenge.score
-      setChResultWin(win)
-      if (win) recordChallengeWin()
+    } else if (finalScore > 0 && isLeaderboardEnabled && LEADERBOARD_DIFFS.includes(diff)) {
+      setNeedsNick(true)
     }
     // Rozetleri kontrol et (kayıtlardan sonra)
     setTimeout(checkAchievements, 50)
-  }, [timedOver, sub, diff, score, bestCombo, combo, challenge, nick, checkAchievements])
+  }, [timedOver, sub, diff, score, bestCombo, combo, nick, checkAchievements])
 
   /**
    * Klavye kısayolları — masaüstünde fareye uzanmadan oynanabilsin.
@@ -353,11 +348,9 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
   }
 
   function startTimed() {
-    // Meydan okuma linkiyle açıldıysa aynı seed → birebir aynı sorular; yoksa rastgele
-    const seed = challenge ? challenge.seed : cryptoRandInt(0x100000000)
-    setChSeed(seed)
-    streamRef.current = createTimedStream(seed, sub, filter)
-    setChResultWin(null)
+    streamRef.current = createTimedStream(cryptoRandInt(0x100000000), sub, filter)
+    setNeedsNick(false)
+    setLbSaved(false)
     setScore(0)
     setTimeLeft(TIMED_SECONDS)
     setTimedOver(false)
@@ -383,33 +376,15 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
     }
   }
 
-  /** Meydan okuma linki üret + paylaş. Takma ad yoksa önce onu sorar. */
-  async function challengeShare() {
-    const currentNick = getNick()
-    if (!currentNick) { setAskNick(true); return }
-    const c: Challenge = { seed: chSeed, sub, diff, score, combo: bestCombo, nick: currentNick, filter: filterKey(filter) }
-    const text = `Vadi Tahmini — sana meydan okuyorum! 👊 ${TIMED_SECONDS} sn'de ${score} yaptım, geçebilir misin?\n${challengeUrl(c)}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Vadi Tahmini', text })
-        setChLink('✓ Paylaşıldı')
-      } catch { return } // kullanıcı vazgeçti
-    } else {
-      setChLink((await copyToClipboard(text)) ? '✓ Link kopyalandı' : 'Kopyalanamadı')
-    }
-    setTimeout(() => setChLink(''), 2500)
-  }
-
-  function saveNickAndShare() {
-    const n = nick.trim() || 'Rakip'
+  /** Sonuç ekranındaki ad kutusu: takma adı kaydet + bu turun skorunu sıralamaya gönder */
+  function saveNickAndSubmit() {
+    const n = nick.trim()
+    if (!n) return
     setNick(n)
-    setNickState(n)
-    setAskNick(false)
-    if (timed && score > 0) {
-      void submitTimedScore(getPlayerId(), sub, diff, n, score)
-    }
-    // Takma ad artık localStorage'da; challengeShare onu okuyup linki üretir
-    void challengeShare()
+    setNickState(getNick())
+    setNeedsNick(false)
+    setLbSaved(true)
+    void submitTimedScore(getPlayerId(), sub, diff, n, score)
   }
 
   /** Aynı sonucu görsel kart olarak paylaş — emoji ızgarası cihazdan cihaza kayıyordu */
@@ -483,47 +458,13 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
       {/* Zamana Karşı: başlangıç ekranı */}
       {timed && !puzzle && (
         <div className="flex flex-col items-center gap-4 pt-10 text-center">
-          {challenge ? (
-            <>
-              <div className="text-5xl">⚔️</div>
-              <h2 className="font-display text-xl font-bold">
-                <b style={{ color: 'var(--gold-bright)' }}>{challenge.nick}</b> sana meydan okuyor!
-              </h2>
-              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
-                <p style={{ color: 'var(--text-dim)' }}>Geçmen gereken skor:</p>
-                <p className="font-display text-4xl font-extrabold" style={{ color: 'var(--gold)' }}>{challenge.score}</p>
-                <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                  {subName} · {DIFFICULTIES.find((d) => d.id === diff)!.name} · {TIMED_SECONDS} sn
-                  {challenge.combo > 0 && <> · seri 🔥{challenge.combo}</>}
-                </p>
-              </div>
-              {/*
-                Veri sürümü uyuşmuyorsa "aynı sorular" garantisi bozulur: sorular
-                seed'den TÜRÜYOR ama havuzdan ÇEKİLİYOR; havuz değiştiyse (yeni
-                şampiyon/eşya) aynı seed başka soru verebilir. Link geçersiz
-                sayılmaz — oyuncu neden farklı gördüğünü anlasın diye uyarılır.
-                Eski linklerde alan yok (undefined) → uyarı çıkmaz.
-              */}
-              {challenge.dataVersion && challenge.dataVersion !== PATCH ? (
-                <p className="text-sm" style={{ color: 'var(--partial)' }}>
-                  ⚠ Bu link {challenge.dataVersion} sürümünde üretilmiş, sende {PATCH} var —
-                  sorular birebir aynı olmayabilir.
-                </p>
-              ) : (
-                <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Aynı sorular sana da gelecek — hazırsan başla.</p>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="text-5xl">⏱</div>
-              <h2 className="text-xl font-bold">Zamana Karşı — {subName}</h2>
-              <p style={{ color: 'var(--text-dim)' }}>
-                {TIMED_SECONDS} saniyede kaç tane bilebilirsin?<br />
-                Bilemediğini "Pas" ile geçebilirsin — ama Pas serini sıfırlar.
-              </p>
-              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub, diff)}</b></p>
-            </>
-          )}
+          <div className="text-5xl">⏱</div>
+          <h2 className="text-xl font-bold">Zamana Karşı — {subName}</h2>
+          <p style={{ color: 'var(--text-dim)' }}>
+            {TIMED_SECONDS} saniyede kaç tane bilebilirsin?<br />
+            Bilemediğini "Pas" ile geçebilirsin — ama Pas serini sıfırlar.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>En iyi skorun: <b style={{ color: 'var(--gold)' }}>{getBestScore(sub, diff)}</b></p>
           <button onClick={startTimed} className="btn-gold rounded-xl px-8 py-3 text-lg font-bold">
             Başla
           </button>
@@ -533,30 +474,6 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
       {/* Zamana Karşı: sonuç */}
       {timed && timedOver && (
         <div className="flex flex-col items-center gap-4 pt-10 text-center">
-          {/* Meydan okuma sonucu: rakiple karşılaştırma bandı */}
-          {challenge && chResultWin !== null && (
-            <div className="anim-pop w-full rounded-xl border p-4"
-              style={{
-                borderColor: chResultWin ? 'var(--correct)' : score === challenge.score ? 'var(--gold)' : 'var(--danger)',
-                background: 'var(--bg-card)',
-              }}>
-              <p className="font-display text-xl font-bold"
-                style={{ color: chResultWin ? 'var(--correct)' : score === challenge.score ? 'var(--gold)' : 'var(--danger-text)' }}>
-                {chResultWin ? '🏆 Kazandın!' : score === challenge.score ? '🤝 Berabere!' : '😔 Kaybettin'}
-              </p>
-              <div className="mt-2 flex items-center justify-center gap-6">
-                <div>
-                  <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>sen</div>
-                  <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--gold-bright)' }}>{score}</div>
-                </div>
-                <span style={{ color: 'var(--text-dim)' }}>vs</span>
-                <div>
-                  <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>{challenge.nick}</div>
-                  <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--text-dim)' }}>{challenge.score}</div>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="text-5xl">🏁</div>
           <h2 className="font-display text-2xl font-bold">{score} doğru!</h2>
           {wasRecord && (
@@ -583,27 +500,27 @@ export default function GameScreen({ top, sub, diff, filter, challenge, onPlaySu
             </button>
           </div>
 
-          {/* Meydan oku: aynı seed'i link olarak paylaş */}
-          {askNick ? (
+          {/* Takma ad yoksa skor sıralamaya yazılamadı — burada sorulur, girilince gönderilir */}
+          {needsNick && (
             <div className="anim-pop flex w-full max-w-sm flex-col gap-2 rounded-xl border p-3"
               style={{ borderColor: 'var(--gold)', background: 'var(--bg-card)' }}>
-              <label className="text-sm" style={{ color: 'var(--text-dim)' }}>Takma adın (linkte görünecek):</label>
+              <label className="text-sm" style={{ color: 'var(--text-dim)' }}>
+                Skorun sıralamaya yazılsın — takma adın:
+              </label>
               <div className="flex gap-2">
                 <input value={nick} onChange={(e) => setNickState(e.target.value)} maxLength={20}
-                  onKeyDown={(e) => e.key === 'Enter' && saveNickAndShare()}
-                  placeholder="Örn: Ahmet" autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && saveNickAndSubmit()}
+                  placeholder="Örn: Ahmet"
                   className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
                   style={{ background: 'var(--bg-input)', borderColor: 'var(--border)', color: 'var(--text)' }} />
-                <button onClick={saveNickAndShare} className="btn-gold shrink-0 rounded-lg px-4 py-2 text-sm font-bold">
-                  Paylaş
+                <button onClick={saveNickAndSubmit} className="btn-gold shrink-0 rounded-lg px-4 py-2 text-sm font-bold">
+                  Kaydet
                 </button>
               </div>
             </div>
-          ) : (
-            <button onClick={challengeShare} className="card-btn rounded-xl border px-6 py-3 font-bold"
-              style={{ borderColor: 'var(--gold)', color: 'var(--gold-bright)' }}>
-              {chLink || '⚔ Meydan oku'}
-            </button>
+          )}
+          {lbSaved && (
+            <p className="text-sm font-semibold" style={{ color: 'var(--accent-done)' }}>✓ Skorun sıralamaya gönderildi</p>
           )}
         </div>
       )}

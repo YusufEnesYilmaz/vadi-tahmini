@@ -1,5 +1,6 @@
 import { CHAMPIONS } from './data'
 import { getChallengeWins } from './challenge'
+import { miniDailyDone, type MiniGameId } from './miniDaily'
 import { todayKey } from './rng'
 import { getDailyHistory, getDailyStreak, getFullDayStreak, getStats, isStreakAlive, normalizeEntry, type DailyHistory, type ModeStats } from './stats'
 import { DAILY_SUBS, SUB_MODES, DIFFICULTIES, type PlaySub, type TopMode, type Difficulty } from './types'
@@ -179,6 +180,30 @@ export interface AchSnapshot {
   bingoBest: number
   /** Mini oyun — Bingo tam kart (12/12) tamamlama sayısı */
   bingoWins: number
+  /** Mini oyun — Zaman Tüneli galibiyet sayısı */
+  timelineWins: number
+  /** Mini oyun — Zaman Tüneli en az deneme (küçük daha iyi; 1 = ilk denemede) */
+  timelineBest: number
+  /** Mini oyun — Şampiyon Avı galibiyet sayısı */
+  huntWins: number
+  /** Mini oyun — Şampiyon Avı en az tahminle bulma (küçük daha iyi) */
+  huntBest: number
+  /** Mini oyun — Dokuz Kare tamamlama sayısı */
+  gridWins: number
+  /** Mini oyun — Dokuz Kare hiç yanlışsız (kusursuz) tamamlama sayısı */
+  gridPerfect: number
+  /** Mini oyun — Bağlantılar galibiyet sayısı */
+  connWins: number
+  /** Mini oyun — Bağlantılar hiç yanlış onaysız (kusursuz) çözme sayısı */
+  connPerfect: number
+  /** Tüm 6 mini oyunda en az 1 galibiyet var mı */
+  allMiniGamesWon: boolean
+  /** Galibiyet alınan mini oyun sayısı (en fazla 6) */
+  miniGamesWonCount: number
+  /** En az 5 galibiyet alınan mini oyun sayısı (en fazla 6) */
+  miniGames5Count: number
+  /** Bugün tamamlanan günlük mini oyun sayısı (en fazla 6) */
+  todayMiniDailyDoneCount: number
 }
 
 export function buildSnapshot(): AchSnapshot {
@@ -209,10 +234,6 @@ export function buildSnapshot(): AchSnapshot {
   let itemWins = 0
 
   for (const top of tops) {
-    // Günlük'te zorluk YOK: statsKey `diff`'i yok sayıp tek anahtara yazar
-    // (`vt:stats:daily:{sub}`). Dört zorluk için dönmek AYNI kaydı dört kez
-    // saymak olur ve üstelik Aşırı Zor/Zor rozetlerini Günlük oynayınca açardı.
-    // Günlük hep normal kurallarla oynanır (bkz. rulesFor), o yüzden tek tur.
     const topDiffs: Difficulty[] = top === 'daily' ? ['normal'] : diffs
     for (const sub of subs) {
       for (const diff of topDiffs) {
@@ -224,7 +245,6 @@ export function buildSnapshot(): AchSnapshot {
         if (s.firstTry > 0) hasFirstTry = true
         if (s.bestFirstTryStreak > bestFirstTryStreak) bestFirstTryStreak = s.bestFirstTryStreak
         if (s.bestStreak > bestWinStreak) bestWinStreak = s.bestStreak
-        // Zorluk rozetleri yalnız zorluk seçilebilen modlardan beslenir
         if (top !== 'daily' && diff === 'insane' && s.won > 0) { hasInsaneWin = true; insaneWins += s.won }
         if (top !== 'daily' && diff === 'hard' && s.won > 0) hardWins += s.won
         if (sub === 'mix') mixWon += s.won
@@ -235,7 +255,6 @@ export function buildSnapshot(): AchSnapshot {
     }
   }
 
-  // Zamana Karşı skorlar: getBestScore her (sub, diff) için ayrı
   for (const sub of subs) {
     for (const diff of diffs) {
       const best = Number(localStorage.getItem(`vt:best:${sub}:${diff}`) ?? 0)
@@ -250,9 +269,6 @@ export function buildSnapshot(): AchSnapshot {
     }
   }
 
-  // 6 alt modun tümünde galibiyet (gerçek 6 SubMode — mix sayılmaz).
-  // Yukarıda toplanan allStats'tan türetilir: aynı veriyi ikinci kez okumaya gerek yok
-  // ve Günlük'ün tek-tur kuralı burada da otomatik geçerli olur.
   const subWins = new Set<string>()
   const topWins = new Set<string>()
   const subWinCounts = new Map<string, number>()
@@ -271,7 +287,6 @@ export function buildSnapshot(): AchSnapshot {
   const dailyHistory = getDailyHistory()
   const fds = getFullDayStreak()
 
-  // Günlük modların 1. denemede kazanılma durumları
   const dailyFirstMap: Record<string, boolean> = {}
   for (const m of DAILY_SUBS) dailyFirstMap[m.id] = false
   for (const day of Object.values(dailyHistory)) {
@@ -281,12 +296,49 @@ export function buildSnapshot(): AchSnapshot {
     }
   }
 
-  // Kusursuz gün: tüm günlük modlar ilk tahminde bilinmiş mi?
   let dailyPerfect = false
   for (const day of Object.values(dailyHistory)) {
     const entries = DAILY_SUBS.map((m) => normalizeEntry(day[m.id]))
     if (entries.every((e) => e && e.g === 1)) { dailyPerfect = true; break }
   }
+
+  const wordleWins = num('vt:wordle:wins')
+  const wordleBestTries = num('vt:wordle:bestTries', 99)
+  const bingoBest = num('vt:bingo:best')
+  const bingoWins = num('vt:bingo:wins')
+  const timelineWins = num('vt:timeline:wins')
+  const timelineBest = num('vt:timeline:best', 99)
+  const huntWins = num('vt:hunt:wins')
+  const huntBest = num('vt:hunt:best', 99)
+  const gridWins = num('vt:grid:wins')
+  const gridPerfect = num('vt:grid:perfect')
+  const connWins = num('vt:conn:wins')
+  const connPerfect = num('vt:conn:perfect')
+
+  const miniGames: MiniGameId[] = ['wordle', 'bingo', 'timeline', 'hunt', 'grid', 'connections']
+
+  const miniWinMap: Record<MiniGameId, boolean> = {
+    wordle: wordleWins >= 1,
+    bingo: bingoWins >= 1 || bingoBest >= 8,
+    timeline: timelineWins >= 1,
+    hunt: huntWins >= 1,
+    grid: gridWins >= 1,
+    connections: connWins >= 1,
+  }
+
+  const miniWin5Map: Record<MiniGameId, boolean> = {
+    wordle: wordleWins >= 5,
+    bingo: bingoWins >= 5 || bingoBest >= 12,
+    timeline: timelineWins >= 5,
+    hunt: huntWins >= 5,
+    grid: gridWins >= 5,
+    connections: connWins >= 5,
+  }
+
+  const miniGamesWonCount = miniGames.filter((g) => miniWinMap[g]).length
+  const allMiniGamesWon = miniGamesWonCount >= 6
+  const miniGames5Count = miniGames.filter((g) => miniWin5Map[g]).length
+  const todayMiniDailyDoneCount = miniGames.filter((g) => miniDailyDone(g)).length
 
   return {
     stats: allStats,
@@ -330,10 +382,22 @@ export function buildSnapshot(): AchSnapshot {
     hasWindBrothersCombo: localStorage.getItem('vt:combo_wind_brothers') === '1',
     hasJinxChaosCombo: localStorage.getItem('vt:combo_jinx_chaos') === '1',
     hasChainWardenCombo: localStorage.getItem('vt:combo_chain_warden') === '1',
-    wordleWins: num('vt:wordle:wins'),
-    wordleBestTries: num('vt:wordle:bestTries', 99),
-    bingoBest: num('vt:bingo:best'),
-    bingoWins: num('vt:bingo:wins'),
+    wordleWins,
+    wordleBestTries,
+    bingoBest,
+    bingoWins,
+    timelineWins,
+    timelineBest,
+    huntWins,
+    huntBest,
+    gridWins,
+    gridPerfect,
+    connWins,
+    connPerfect,
+    allMiniGamesWon,
+    miniGamesWonCount,
+    miniGames5Count,
+    todayMiniDailyDoneCount,
   }
 }
 
@@ -902,26 +966,30 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
 
   // ═══ Sosyal ═══
+  // `challengeWins` (vt:chwin) eskiden link tabanlı meydan okumadan geliyordu;
+  // o özellik kaldırıldı (Faz 1b, 2026-07-24) — sayacı artık Kaç Tane? Multi tur
+  // galibiyetleri artırıyor. id'ler DEĞİŞMEDİ: kazanılmış rozetler ve eski
+  // galibiyetler aynen sayılır.
   {
     id: 'challenger', icon: '⚔️', name: 'Meydan Okuyucu', cat: 'sosyal',
-    desc: 'Bir meydan okumayı kazan',
+    desc: "Kaç Tane? Multi'de bir tur kazan",
     check: (s) => s.challengeWins >= 1,
   },
   {
     id: 'rival', icon: '🤝', name: 'Rakip', cat: 'sosyal',
-    desc: '3 meydan okuma kazan',
+    desc: "Kaç Tane? Multi'de 3 tur kazan",
     check: (s) => s.challengeWins >= 3,
     progress: (s) => ({ current: Math.min(s.challengeWins, 3), target: 3 }),
   },
   {
     id: 'gladiator', icon: '🏟️', name: 'Gladyatör', cat: 'sosyal',
-    desc: '5 meydan okuma kazan',
+    desc: "Kaç Tane? Multi'de 5 tur kazan",
     check: (s) => s.challengeWins >= 5,
     progress: (s) => ({ current: Math.min(s.challengeWins, 5), target: 5 }),
   },
   {
     id: 'champion', icon: '🏆', name: 'Şampiyon', cat: 'sosyal',
-    desc: '15 meydan okuma kazan',
+    desc: "Kaç Tane? Multi'de 15 tur kazan",
     check: (s) => s.challengeWins >= 15,
     progress: (s) => ({ current: Math.min(s.challengeWins, 15), target: 15 }),
   },
@@ -986,6 +1054,12 @@ export const ACHIEVEMENTS: Achievement[] = [
     check: (s) => s.wordleWins >= 1,
   },
   {
+    id: 'word_10', icon: '📝', name: 'Kelime Maceracısı', cat: 'mini',
+    desc: 'Kelime oyununu 10 kez kazan',
+    check: (s) => s.wordleWins >= 10,
+    progress: (s) => ({ current: Math.min(s.wordleWins, 10), target: 10 }),
+  },
+  {
     id: 'word_25', icon: '📖', name: 'Kelime Ustası', cat: 'mini',
     desc: 'Kelime oyununu 25 kez kazan',
     check: (s) => s.wordleWins >= 25,
@@ -996,6 +1070,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     desc: 'Kelime oyununu 3 veya daha az denemede bil',
     check: (s) => s.wordleBestTries <= 3,
   },
+
   {
     id: 'bingo_win', icon: '🎲', name: 'Bingocu', cat: 'mini',
     desc: 'Bingo’da bir turda 8+ kutu doldur',
@@ -1006,6 +1081,117 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: 'bingo_perfect', icon: '💯', name: 'Tam Kart', cat: 'mini',
     desc: 'Bingo’da 12 kutunun hepsini süre dolmadan doldur',
     check: (s) => s.bingoBest >= 12 || s.bingoWins >= 1,
+  },
+  {
+    id: 'bingo_10', icon: '🏆', name: 'Bingo Şampiyonu', cat: 'mini',
+    desc: 'Bingo’da 10 kez tam kart tamamla',
+    check: (s) => s.bingoWins >= 10,
+    progress: (s) => ({ current: Math.min(s.bingoWins, 10), target: 10 }),
+  },
+
+  {
+    id: 'timeline_first', icon: '🕰️', name: 'Zaman Yolcusu', cat: 'mini',
+    desc: "Zaman Tüneli'nde bir sırayı tamamla",
+    check: (s) => s.timelineWins >= 1,
+  },
+  {
+    id: 'timeline_10', icon: '⌛', name: 'Zaman Mimarı', cat: 'mini',
+    desc: "Zaman Tüneli'nde 10 galibiyet elde et",
+    check: (s) => s.timelineWins >= 10,
+    progress: (s) => ({ current: Math.min(s.timelineWins, 10), target: 10 }),
+  },
+  {
+    id: 'timeline_perfect', icon: '📜', name: 'Tarih Kitabı', cat: 'mini',
+    desc: "Zaman Tüneli'nde 5 şampiyonu İLK denemede doğru sırala",
+    check: (s) => s.timelineBest <= 1,
+  },
+
+  {
+    id: 'hunt_first', icon: '🐾', name: 'İz Sürücü', cat: 'mini',
+    desc: "Şampiyon Avı'nda avı bul",
+    check: (s) => s.huntWins >= 1,
+  },
+  {
+    id: 'hunt_10', icon: '🏹', name: 'Avcı Ustası', cat: 'mini',
+    desc: "Şampiyon Avı'nda 10 galibiyet elde et",
+    check: (s) => s.huntWins >= 10,
+    progress: (s) => ({ current: Math.min(s.huntWins, 10), target: 10 }),
+  },
+  {
+    id: 'hunt_sharp', icon: '🦅', name: 'Keskin İzci', cat: 'mini',
+    desc: "Şampiyon Avı'nda avı en fazla 4 denemede bitir",
+    check: (s) => s.huntBest <= 4,
+  },
+  {
+    id: 'hunt_sniper', icon: '🎯', name: 'Kör Nişancı', cat: 'mini',
+    desc: "Şampiyon Avı'nda avı en fazla 2 denemede bitir",
+    check: (s) => s.huntBest <= 2,
+  },
+
+  {
+    id: 'grid_first', icon: '🔲', name: 'Kare Kare', cat: 'mini',
+    desc: "Dokuz Kare'de 9 hücrenin hepsini doldur",
+    check: (s) => s.gridWins >= 1,
+  },
+  {
+    id: 'grid_10', icon: '📐', name: 'Izgara Mimarisi', cat: 'mini',
+    desc: "Dokuz Kare'de 10 galibiyet elde et",
+    check: (s) => s.gridWins >= 10,
+    progress: (s) => ({ current: Math.min(s.gridWins, 10), target: 10 }),
+  },
+  {
+    id: 'grid_perfect', icon: '🧠', name: 'Kusursuz Dokuz', cat: 'mini',
+    desc: "Dokuz Kare'yi hiç yanlış deneme yapmadan tamamla",
+    check: (s) => s.gridPerfect >= 1,
+  },
+  {
+    id: 'grid_master', icon: '✨', name: 'Dokuzda Dokuz', cat: 'mini',
+    desc: "Dokuz Kare'yi 3 kez hiç yanlış deneme yapmadan tamamla",
+    check: (s) => s.gridPerfect >= 3,
+    progress: (s) => ({ current: Math.min(s.gridPerfect, 3), target: 3 }),
+  },
+
+  {
+    id: 'conn_first', icon: '🧩', name: 'Bağ Kurucu', cat: 'mini',
+    desc: "Bağlantılar'da 4 grubun hepsini bul",
+    check: (s) => s.connWins >= 1,
+  },
+  {
+    id: 'conn_10', icon: '🌐', name: 'Zihin Ağları', cat: 'mini',
+    desc: "Bağlantılar'da 10 galibiyet elde et",
+    check: (s) => s.connWins >= 10,
+    progress: (s) => ({ current: Math.min(s.connWins, 10), target: 10 }),
+  },
+  {
+    id: 'conn_perfect', icon: '🔗', name: 'Dört Dörtlük', cat: 'mini',
+    desc: "Bağlantılar'ı hiç yanlış onay vermeden çöz",
+    check: (s) => s.connPerfect >= 1,
+  },
+  {
+    id: 'conn_master', icon: '💎', name: 'Kusursuz Bağlar', cat: 'mini',
+    desc: "Bağlantılar'ı 3 kez hiç yanlış onay vermeden çöz",
+    check: (s) => s.connPerfect >= 3,
+    progress: (s) => ({ current: Math.min(s.connPerfect, 3), target: 3 }),
+  },
+
+  // ═══ Meta Mini Oyun Başarımları ═══
+  {
+    id: 'mini_all_arounder', icon: '🌟', name: 'Mini Oyun Kaşifi', cat: 'mini',
+    desc: '6 mini oyunun (Kelime, Bingo, Zaman Tüneli, Av, Dokuz Kare, Bağlantılar) hepsinde en az 1 galibiyet kazan',
+    check: (s) => s.allMiniGamesWon,
+    progress: (s) => ({ current: s.miniGamesWonCount, target: 6 }),
+  },
+  {
+    id: 'mini_master', icon: '👑', name: 'Mini Oyun Üstadı', cat: 'mini',
+    desc: '6 mini oyunun her birinde en az 5 galibiyet kazan',
+    check: (s) => s.miniGames5Count >= 6,
+    progress: (s) => ({ current: s.miniGames5Count, target: 6 }),
+  },
+  {
+    id: 'mini_daily_marathon', icon: '📅', name: 'Günlük Altılı', cat: 'mini',
+    desc: 'Tek bir günde 6 mini oyunun TÜM günlük bulmacalarını tamamla',
+    check: (s) => s.todayMiniDailyDoneCount >= 6,
+    progress: (s) => ({ current: s.todayMiniDailyDoneCount, target: 6 }),
   },
 ]
 

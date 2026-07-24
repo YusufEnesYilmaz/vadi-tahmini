@@ -25,6 +25,17 @@ const MODE_HOWTO: Record<SubMode, string> = {
   item: 'Eşyayı ipuçlarından bul — ikon başta KAPALIDIR. Önce sadece altın değerini görürsün; yanlış tahminlerde sırayla stat etiketleri, bileşen ikonları ve en sonda eşyanın kendi ikonu açılır — ikon önce silik ve bulanık gelir, sonraki yanlışlarda netleşir. Havuzda Summoner’s Rift’te satılan 1600+ altınlık tam eşyalar var.',
 }
 
+/** Mini oyunlar — ayrı ekranlar (alt mod yapısına girmeyen bağımsız oyunlar) */
+const MINI_GAMES: { icon: string; name: string; desc: string }[] = [
+  { icon: '🔡', name: 'Kelime (Wordle)', desc: 'Gizli şampiyon adını 6 hakta harf harf tahmin et. Yeşil harf doğru konumda, kehribar harf isimde var ama yeri farklı, gri harf isimde yok.' },
+  { icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutuluk kartı doldur. Üstten gelen şampiyonu uygun özellikteki (bölge, koridor, tür, yıl vb.) boş kutuya yerleştir.' },
+  { icon: '🕰️', name: 'Zaman Tüneli', desc: '5 şampiyonu çıkış yılına göre eskiden yeniye sırala. Sürükle-bırak ya da ▲▼ oklarıyla diz; doğru bilinen pozisyonlar yeşile kilitlenir. 3 deneme hakkın var.' },
+  { icon: '🏹', name: 'Şampiyon Avı', desc: 'Gizli şampiyonu alfabetik mesafe ipuçlarıyla 8 hakta bul. Her tahmin hedefe kaç sıra uzakta ve hangi yönde (↑/↓) olduğunu söyler. Takılırsan "🔎 İpucu aç" bölgeyi/türü verir — ama her ipucu 1 hak yakar.' },
+  { icon: '🔲', name: 'Dokuz Kare', desc: '3×3 ızgarada her hücre, satır VE sütun kriterini birden sağlayan bir şampiyon ister. Hücreye dokun, yaz. Her şampiyon yalnız bir kez kullanılabilir; süre yok.' },
+  { icon: '🧩', name: 'Bağlantılar', desc: '16 şampiyonu ortak özellikli 4 gizli gruba ayır. 4 seç, onayla — 4 yanlış hakkın var. Takılırsan "🔎 İpucu" bir grubun adını açar ama 1 hak yakar. Tuzaklara dikkat: bazı şampiyonlar birden çok gruba uyar gibi görünür.' },
+  { icon: '🔢', name: 'Kaç Tane?', desc: 'Verilen ölçüte (ör. "Zaunlu", "Yordle") uyan şampiyonları süre dolmadan arka arkaya say. Tek başına ya da odada arkadaşlarınla canlı yarış (Multi).' },
+]
+
 /** Nasıl oynanır penceresi — menüden ve oyun içindeki "?" butonundan açılır */
 export default function HowTo({ sub, onClose }: Props) {
   // Escape ile kapansın (masaüstünde beklenen davranış)
@@ -177,27 +188,18 @@ export default function HowTo({ sub, onClose }: Props) {
         {!sub && (
           <section className="mt-5">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
-              🕹️ Mini Oyunlar
+              🕹️ Mini Oyunlar <span className="font-normal normal-case opacity-70">· her birinin Günlük ve Sınırsız'ı var</span>
             </h3>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border p-3.5 transition-all hover:scale-[1.01]" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🔡</span>
-                  <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>Kelime (Wordle)</span>
+              {MINI_GAMES.map((g) => (
+                <div key={g.name} className="rounded-xl border p-3.5 transition-all hover:scale-[1.01]" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{g.icon}</span>
+                    <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>{g.name}</span>
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>{g.desc}</p>
                 </div>
-                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
-                  Gizli şampiyon adını 6 hakkın bitmeden harf harf tahmin et. Yeşil harf doğru konumda, kehribar harf kelimede var ama yeri farklı, gri harf isimde yok demektir. 5 ve 6 harfli seçenekleri bulunur.
-                </p>
-              </div>
-              <div className="rounded-xl border p-3.5 transition-all hover:scale-[1.01]" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.015)' }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🎲</span>
-                  <span className="font-bold text-sm" style={{ color: 'var(--gold)' }}>Bingo</span>
-                </div>
-                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
-                  90 saniye içinde 12 kutuluk Bingo kartını doldur. Üstten gelen şampiyona uygun özellikteki (bölge, koridor, cinsiyet, yıl vb.) boş kutuya tıklayarak şampiyonu yerleştir. Süre dolmadan 12/12 tam kart yapmaya çalış.
-                </p>
-              </div>
+              ))}
             </div>
           </section>
         )}

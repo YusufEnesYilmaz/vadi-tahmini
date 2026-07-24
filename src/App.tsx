@@ -4,31 +4,36 @@ import Menu from './components/Menu'
 import Settings from './components/Settings'
 import WordleGame from './components/WordleGame'
 import BingoGame from './components/BingoGame'
+import TimelineGame from './components/TimelineGame'
+import HuntGame from './components/HuntGame'
+import GridGame from './components/GridGame'
+import ConnectionsGame from './components/ConnectionsGame'
 import CounterGame from './components/CounterGame'
 import CounterMulti from './components/CounterMulti'
-import { parseChallenge, type Challenge } from './game/challenge'
-import { parseFilterKey, type PoolFilter } from './game/filter'
+import type { PoolFilter } from './game/filter'
 import type { Difficulty, PlaySub, TopMode } from './game/types'
 
 type Screen =
   | { name: 'menu' }
-  | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter; challenge?: Challenge }
+  | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter }
   | { name: 'settings' }
   | { name: 'wordle'; daily: boolean }
   | { name: 'bingo'; daily: boolean }
+  | { name: 'timeline'; daily: boolean }
+  | { name: 'hunt'; daily: boolean }
+  | { name: 'grid'; daily: boolean }
+  | { name: 'connections'; daily: boolean }
   | { name: 'counter' }
   | { name: 'counterMulti' }
 
-/** URL'de ?c=... varsa meydan okumayı çöz, adres çubuğunu temizle */
+/**
+ * Eski link tabanlı meydan okuma (?c=...) KALDIRILDI (Faz 1b, 2026-07-24) —
+ * yerini Kaç Tane? multiplayer aldı. Hâlâ dolaşan eski linkler patlamasın:
+ * parametre sessizce temizlenir, oyuncu menüye düşer.
+ */
 function initialScreen(): Screen {
-  const code = new URLSearchParams(location.search).get('c')
-  if (code) {
-    const ch = parseChallenge(code)
-    history.replaceState({ screen: 'game' }, '', location.pathname) // linki paylaşınca tekrar tetiklenmesin
-    if (ch) {
-      // Havuz filtresi de linkten gelir — iki oyuncu aynı havuzdan oynasın
-      return { name: 'game', top: 'timed', sub: ch.sub, diff: ch.diff, filter: parseFilterKey(ch.filter), challenge: ch }
-    }
+  if (new URLSearchParams(location.search).get('c')) {
+    history.replaceState(null, '', location.pathname)
   }
   return { name: 'menu' }
 }
@@ -67,12 +72,11 @@ export default function App() {
   if (screen.name === 'game') {
     return (
       <GameScreen
-        key={`${screen.top}:${screen.sub}:${screen.diff}${screen.challenge ? ':ch' + screen.challenge.seed : ''}`}
+        key={`${screen.top}:${screen.sub}:${screen.diff}`}
         top={screen.top}
         sub={screen.sub}
         diff={screen.diff}
         filter={screen.filter}
-        challenge={screen.challenge}
         // Günlük'te bir modu bitirince menüye dönmeden sıradaki moda geç
         onPlaySub={(sub) => navigateTo({ name: 'game', top: screen.top, sub, diff: screen.diff, filter: screen.filter })}
         onExit={navigateMenu}
@@ -84,6 +88,18 @@ export default function App() {
   }
   if (screen.name === 'bingo') {
     return <BingoGame daily={screen.daily} onExit={navigateMenu} />
+  }
+  if (screen.name === 'timeline') {
+    return <TimelineGame daily={screen.daily} onExit={navigateMenu} />
+  }
+  if (screen.name === 'hunt') {
+    return <HuntGame daily={screen.daily} onExit={navigateMenu} />
+  }
+  if (screen.name === 'grid') {
+    return <GridGame daily={screen.daily} onExit={navigateMenu} />
+  }
+  if (screen.name === 'connections') {
+    return <ConnectionsGame daily={screen.daily} onExit={navigateMenu} />
   }
   if (screen.name === 'counter') {
     return <CounterGame onExit={navigateMenu} />
@@ -98,7 +114,14 @@ export default function App() {
     <Menu
       onPlay={(top, sub, diff, filter) => navigateTo({ name: 'game', top, sub, diff, filter })}
       onSettings={() => navigateTo({ name: 'settings' })}
-      onMiniGame={(g, d) => navigateTo(g === 'wordle' ? { name: 'wordle', daily: d } : { name: 'bingo', daily: d })}
+      onMiniGame={(g, d) => {
+        if (g === 'wordle') navigateTo({ name: 'wordle', daily: d })
+        else if (g === 'bingo') navigateTo({ name: 'bingo', daily: d })
+        else if (g === 'timeline') navigateTo({ name: 'timeline', daily: d })
+        else if (g === 'hunt') navigateTo({ name: 'hunt', daily: d })
+        else if (g === 'grid') navigateTo({ name: 'grid', daily: d })
+        else if (g === 'connections') navigateTo({ name: 'connections', daily: d })
+      }}
       onCounter={() => navigateTo({ name: 'counter' })}
       onCounterMulti={() => navigateTo({ name: 'counterMulti' })}
     />

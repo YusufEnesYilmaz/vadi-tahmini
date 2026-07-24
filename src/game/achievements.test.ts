@@ -51,6 +51,18 @@ function snap(overrides: Partial<AchSnapshot> = {}): AchSnapshot {
     wordleBestTries: 99, // hiç kazanılmadı
     bingoBest: 0,
     bingoWins: 0,
+    timelineWins: 0,
+    timelineBest: 99,
+    huntWins: 0,
+    huntBest: 99,
+    gridWins: 0,
+    gridPerfect: 0,
+    connWins: 0,
+    connPerfect: 0,
+    allMiniGamesWon: false,
+    miniGamesWonCount: 0,
+    miniGames5Count: 0,
+    todayMiniDailyDoneCount: 0,
     ...overrides,
   }
 }
@@ -320,8 +332,8 @@ describe('Gizli, Bölgesel ve Özel Rozetler', () => {
 })
 
 describe('ACHIEVEMENTS list integrity', () => {
-  it('91 rozet tanımli', () => {
-    expect(ACHIEVEMENTS).toHaveLength(91)
+  it('111 rozet tanımlı (99 + yeni mini oyun rozetleri)', () => {
+    expect(ACHIEVEMENTS).toHaveLength(111)
   })
 
   it('idler benzersiz', () => {
@@ -424,5 +436,64 @@ describe('buildSnapshot — Günlük sayımı (regresyon)', () => {
 
     localStorage.setItem(`vt:stats:endless:${subs.at(-1)}:normal`, stat(1)) // son gerçek mod
     expect(buildSnapshot().allSubsWon).toBe(true)
+  })
+})
+
+describe('Achievements — yeni 4 mini oyun rozetleri (2026-07-24)', () => {
+  it('ilk galibiyet rozetleri: timeline/hunt/grid/connections', () => {
+    expect(find('timeline_first').check(snap())).toBe(false)
+    expect(find('timeline_first').check(snap({ timelineWins: 1 }))).toBe(true)
+    expect(find('hunt_first').check(snap({ huntWins: 1 }))).toBe(true)
+    expect(find('grid_first').check(snap({ gridWins: 1 }))).toBe(true)
+    expect(find('conn_first').check(snap({ connWins: 1 }))).toBe(true)
+  })
+
+  it('kalite rozetleri: ilk denemede sıra / ≤4 tahminde av / kusursuzlar', () => {
+    // Zaman Tüneli: yalnız İLK denemede bitirmek sayılır
+    expect(find('timeline_perfect').check(snap({ timelineWins: 3, timelineBest: 2 }))).toBe(false)
+    expect(find('timeline_perfect').check(snap({ timelineWins: 1, timelineBest: 1 }))).toBe(true)
+    // Av: en iyi ≤4 tahmin
+    expect(find('hunt_sharp').check(snap({ huntWins: 5, huntBest: 5 }))).toBe(false)
+    expect(find('hunt_sharp').check(snap({ huntWins: 1, huntBest: 4 }))).toBe(true)
+    // Kusursuzlar: kazanmak yetmez, hiç yanlışsız olmalı
+    expect(find('grid_perfect').check(snap({ gridWins: 9, gridPerfect: 0 }))).toBe(false)
+    expect(find('grid_perfect').check(snap({ gridPerfect: 1 }))).toBe(true)
+    expect(find('conn_perfect').check(snap({ connWins: 9, connPerfect: 0 }))).toBe(false)
+    expect(find('conn_perfect').check(snap({ connPerfect: 1 }))).toBe(true)
+  })
+
+  it('yeni 10-galibiyet ve uzmanlık rozetleri', () => {
+    expect(find('word_10').check(snap({ wordleWins: 10 }))).toBe(true)
+    expect(find('bingo_10').check(snap({ bingoWins: 10 }))).toBe(true)
+    expect(find('timeline_10').check(snap({ timelineWins: 10 }))).toBe(true)
+    expect(find('hunt_10').check(snap({ huntWins: 10 }))).toBe(true)
+    expect(find('hunt_sniper').check(snap({ huntBest: 2 }))).toBe(true)
+    expect(find('grid_10').check(snap({ gridWins: 10 }))).toBe(true)
+    expect(find('grid_master').check(snap({ gridPerfect: 3 }))).toBe(true)
+    expect(find('conn_10').check(snap({ connWins: 10 }))).toBe(true)
+    expect(find('conn_master').check(snap({ connPerfect: 3 }))).toBe(true)
+  })
+
+  it('meta mini oyun rozetleri: kaşif / üstat / günlük altılı', () => {
+    expect(find('mini_all_arounder').check(snap({ allMiniGamesWon: false }))).toBe(false)
+    expect(find('mini_all_arounder').check(snap({ allMiniGamesWon: true }))).toBe(true)
+    expect(find('mini_master').check(snap({ miniGames5Count: 5 }))).toBe(false)
+    expect(find('mini_master').check(snap({ miniGames5Count: 6 }))).toBe(true)
+    expect(find('mini_daily_marathon').check(snap({ todayMiniDailyDoneCount: 5 }))).toBe(false)
+    expect(find('mini_daily_marathon').check(snap({ todayMiniDailyDoneCount: 6 }))).toBe(true)
+  })
+
+  it('rozet id\'leri kayıtlı ve benzersiz (vt:ach id ile saklıyor — id değişmez)', () => {
+    const ids = ACHIEVEMENTS.map((a) => a.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of [
+      'timeline_first', 'timeline_perfect', 'timeline_10',
+      'hunt_first', 'hunt_sharp', 'hunt_10', 'hunt_sniper',
+      'grid_first', 'grid_perfect', 'grid_10', 'grid_master',
+      'conn_first', 'conn_perfect', 'conn_10', 'conn_master',
+      'mini_all_arounder', 'mini_master', 'mini_daily_marathon',
+    ]) {
+      expect(ids).toContain(id)
+    }
   })
 })

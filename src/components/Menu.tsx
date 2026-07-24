@@ -13,6 +13,8 @@ import PoolFilterPicker from './PoolFilterPicker'
 import Leaderboard from './Leaderboard'
 import CalendarModal from './CalendarModal'
 import RankModal from './RankModal'
+import Changelog from './Changelog'
+import { hasUnseenChangelog } from '../game/changelog'
 import { titleFor } from '../game/rank'
 import { useUpdateAvailable } from '../game/pwaUpdate'
 import { sfxEnabled, setSfxEnabled } from '../game/sfx'
@@ -25,7 +27,7 @@ interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
   /** Mini oyunlar ayrı ekran — alt mod yapısına oturmuyorlar */
-  onMiniGame: (game: 'wordle' | 'bingo', daily: boolean) => void
+  onMiniGame: (game: 'wordle' | 'bingo' | 'timeline' | 'hunt' | 'grid' | 'connections', daily: boolean) => void
   /** "Kaç Tane?" — tek kişilik Sınırsız */
   onCounter: () => void
   /** "Kaç Tane?" — gerçek zamanlı oda (multiplayer) */
@@ -49,6 +51,9 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
   const [leaderboard, setLeaderboard] = useState(false)
   const [calendar, setCalendar] = useState(false)
   const [rank, setRank] = useState(false)
+  const [changelog, setChangelog] = useState(false)
+  // Kapanınca yeniden hesaplansın diye state — modal "görüldü" yazar, bant söner
+  const [unseenNews, setUnseenNews] = useState(hasUnseenChangelog)
   const [diffInfo, setDiffInfo] = useState(false)
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
@@ -171,6 +176,20 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
         <div className="stagger z-10 flex w-full flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-5">
           {/* SOL kolon (masaüstü): hero + ana modlar + ilerleme şeridi. Mobilde sıra değişmez. */}
           <div className="flex flex-col gap-3 sm:gap-4">
+          {/* 🆕 Yenilikler bandı — YALNIZ görülmemiş changelog girdisi varken; okuyunca söner */}
+          {unseenNews && (
+            <button
+              onClick={() => setChangelog(true)}
+              className="anim-pop flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all hover:scale-[1.01]"
+              style={{
+                background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.14), rgba(var(--gold-glow-rgb), 0.05))',
+                borderColor: 'rgba(var(--gold-glow-rgb), 0.4)',
+                color: 'var(--gold-bright)',
+              }}
+            >
+              🆕 Yeni sürümde neler var? <span aria-hidden>→</span>
+            </button>
+          )}
           {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
           <button
             onClick={quickPlay}
@@ -319,107 +338,9 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Kariyer</span>
             </div>
           </div>
-          </div>
 
-          {/* SAĞ kolon (masaüstü): mini oyunlar + sistem butonları */}
-          <div className="flex flex-col gap-3 sm:gap-4">
-          {/* Mini Oyunlar */}
-          <div>
-            <div className="mb-1.5 sm:mb-2 flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
-                🕹️ Mini Oyunlar
-              </span>
-              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.3), transparent)' }} />
-            </div>
-
-            {/* Masaüstünde sağ kolon dar (~400px) → kartlar tek kolon; sm-lg arası 2 kolon */}
-            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
-              {[
-                { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
-                { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
-              ].map((g) => {
-                const dailyDone = miniDailyDone(g.id)
-                return (
-                <div
-                  key={g.id}
-                  // flex-col + footer'da mt-auto: gridde kart komşusundan uzun olsa da
-                  // buton şeridi hep kartın DİBİNE yapışır (yoksa ortada asılı kalıyordu)
-                  className="group flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
-                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
-                >
-                  <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
-                      {g.icon}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm sm:text-base font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
-                        {g.name}
-                      </span>
-                      <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>
-                        {g.desc}
-                      </span>
-                    </span>
-                  </div>
-
-                  {/* Sınırsız / Günlük Buton Şeridi — mt-auto: hep kartın dibinde */}
-                  <div className="mt-auto flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
-                    <button
-                      onClick={() => onMiniGame(g.id, false)}
-                      className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
-                      style={{ color: 'var(--gold)' }}
-                    >
-                      ♾️ Sınırsız
-                    </button>
-                    <button
-                      onClick={() => onMiniGame(g.id, true)}
-                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10"
-                      style={{
-                        borderColor: 'var(--border)',
-                        color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
-                        background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
-                      }}
-                      aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
-                    >
-                      {dailyDone ? '✓ Bitti' : '📅 Günlük'}
-                    </button>
-                  </div>
-                </div>
-                )
-              })}
-
-              {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi) */}
-              <div className="group flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <div className="flex items-center gap-3 p-3 sm:p-4 pb-2.5">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-xl sm:text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
-                    🔢
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm sm:text-base font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
-                      Kaç Tane?
-                    </span>
-                    <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>
-                      Ölçüte uyan şampiyonları say · süre dolmadan kaç tane?
-                    </span>
-                  </span>
-                </div>
-                <div className="mt-auto flex border-t" style={{ borderColor: 'var(--border)', background: 'rgba(0,0,0,0.15)' }}>
-                  <button onClick={onCounter}
-                    className="flex-1 py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
-                    style={{ color: 'var(--gold)' }}>
-                    ♾️ Sınırsız
-                  </button>
-                  <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
-                    className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
-                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                    👥 Multi
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sistem & Kariyer Butonları */}
+          {/* Sistem & Kariyer Butonları — SOL kolonda (2026-07-24 dengeleme: sağ kolon
+              7 mini oyunla uzayınca butonlar dibe gömülüyordu, sol altta boşluk vardı) */}
           <div className="flex flex-col gap-2 w-full">
             {/* Üst Sıra: Sistem & Rehber */}
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
@@ -485,6 +406,106 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
                 <span className="text-sm transition-transform duration-300 group-hover:scale-125">📅</span>
                 <span>Takvim</span>
               </button>
+            </div>
+          </div>
+          </div>
+
+          {/* SAĞ kolon (masaüstü): mini oyunlar (sistem butonları 2026-07-24'te SOL kolona taşındı) */}
+          <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Mini Oyunlar */}
+          <div>
+            <div className="mb-1.5 sm:mb-2 flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--gold)' }}>
+                🕹️ Mini Oyunlar
+              </span>
+              <span className="h-px flex-1" style={{ background: 'linear-gradient(90deg, rgba(var(--gold-glow-rgb), 0.3), transparent)' }} />
+            </div>
+
+            {/*
+              KOMPAKT SATIR düzeni (2026-07-24): mini oyunlar 2→7'ye çıkınca büyük dikey
+              kartlar sağ kolonu upuzun yapıyordu (sol altta boşluk). Satır = ikon + ad +
+              tek satır truncate açıklama (tam metin title'da) + sağda küçük buton çifti.
+            */}
+            <div className="flex flex-col gap-2">
+              {[
+                { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
+                { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
+                { id: 'timeline' as const, icon: '🕰️', name: 'Zaman Tüneli', desc: '5 şampiyonu çıkış yılına göre sırala' },
+                { id: 'hunt' as const, icon: '🏹', name: 'Şampiyon Avı', desc: 'Alfabetik mesafe ipucuyla 8 denemede bul' },
+                { id: 'grid' as const, icon: '🔲', name: 'Dokuz Kare', desc: '3×3: iki kriteri sağlayan 9 farklı şampiyon' },
+                { id: 'connections' as const, icon: '🧩', name: 'Bağlantılar', desc: '16 şampiyonu 4\'lü gizli gruplara ayır' },
+              ].map((g) => {
+                const dailyDone = miniDailyDone(g.id)
+                return (
+                <div
+                  key={g.id}
+                  className="group flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
+                >
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
+                    {g.icon}
+                  </span>
+                  <span className="min-w-0 flex-1" title={g.desc}>
+                    <span className="block truncate text-sm font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                      {g.name}
+                    </span>
+                    <span className="block truncate text-[11px]" style={{ color: 'var(--text-dim)' }}>
+                      {g.desc}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 gap-1.5">
+                    <button
+                      onClick={() => onMiniGame(g.id, false)}
+                      aria-label={`${g.name} sınırsız`}
+                      className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
+                    >
+                      ♾️ Sınırsız
+                    </button>
+                    <button
+                      onClick={() => onMiniGame(g.id, true)}
+                      aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
+                      className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                      style={{
+                        borderColor: dailyDone ? 'var(--accent-done)' : 'var(--border)',
+                        color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
+                        background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
+                      }}
+                    >
+                      {dailyDone ? '✓ Bitti' : '📅 Günlük'}
+                    </button>
+                  </span>
+                </div>
+                )
+              })}
+
+              {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi), aynı satır kalıbı */}
+              <div className="group flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
+                  🔢
+                </span>
+                <span className="min-w-0 flex-1" title="Ölçüte uyan şampiyonları say · süre dolmadan kaç tane?">
+                  <span className="block truncate text-sm font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                    Kaç Tane?
+                  </span>
+                  <span className="block truncate text-[11px]" style={{ color: 'var(--text-dim)' }}>
+                    Ölçüte uyanları say · tek başına ya da odada
+                  </span>
+                </span>
+                <span className="flex shrink-0 gap-1.5">
+                  <button onClick={onCounter} aria-label="Kaç Tane? sınırsız"
+                    className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                    ♾️ Sınırsız
+                  </button>
+                  <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
+                    className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                    👥 Multi
+                  </button>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -651,6 +672,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame, onCounter, onCoun
       {leaderboard && <Leaderboard onClose={() => setLeaderboard(false)} />}
       {calendar && <CalendarModal onClose={() => setCalendar(false)} />}
       {rank && <RankModal best={dailyStreak.best} current={activeStreak} onClose={() => setRank(false)} />}
+      {changelog && <Changelog onClose={() => { setChangelog(false); setUnseenNews(hasUnseenChangelog()) }} />}
     </div>
   )
 }

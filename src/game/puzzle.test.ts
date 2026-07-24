@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CHAMPIONS, EMOJI, EMOJI_IDS } from './data'
-import { DAILY_OVERRIDES, nextPuzzle } from './puzzle'
+import { createTimedStream, DAILY_OVERRIDES, nextPuzzle } from './puzzle'
 import { resetDecks } from './deck'
 import { todayKey } from './rng'
 import { asChamp, champOf } from '../test/helpers'
@@ -115,5 +115,42 @@ describe('bulmaca üretimi', () => {
     const a = nextPuzzle('daily', 'item')
     const b = nextPuzzle('daily', 'item')
     expect(a).toEqual(b)
+  })
+})
+
+/*
+ * Zamana Karşı'nın seed'li akışı. Eskiden challenge.test.ts'teydi; link tabanlı
+ * meydan okuma kaldırılınca (Faz 1b, 2026-07-24) buraya taşındı — akış hâlâ
+ * Zamana Karşı'nın temeli, testleri özellikle kaybolmamalıydı.
+ */
+describe('Zamana Karşı seed akışı (createTimedStream)', () => {
+  it('aynı seed → birebir aynı soru dizisi', () => {
+    const a = createTimedStream(123456, 'mix')
+    const b = createTimedStream(123456, 'mix')
+    for (let i = 0; i < 15; i++) {
+      const pa = a.next()
+      const pb = b.next()
+      expect(pa.sub).toBe(pb.sub)
+      // Tüm alanlarıyla karşılaştır: eşya/şampiyon dalı fark etmeksizin birebir aynı olmalı
+      expect(pa).toEqual(pb)
+    }
+  })
+
+  it('farklı seed → farklı dizi (neredeyse kesin)', () => {
+    const a = createTimedStream(1, 'ability')
+    const b = createTimedStream(2, 'ability')
+    const seqA = Array.from({ length: 10 }, () => champOf(a.next()).id)
+    const seqB = Array.from({ length: 10 }, () => champOf(b.next()).id)
+    expect(seqA).not.toEqual(seqB)
+  })
+
+  it('akış Zamana Karşı Karışık kurallarına uyar (Klasik yok)', () => {
+    const s = createTimedStream(999, 'mix')
+    for (let i = 0; i < 50; i++) expect(s.next().sub).not.toBe('classic')
+  })
+
+  it('tek tip akışı hep o tipi verir', () => {
+    const s = createTimedStream(7, 'emoji')
+    for (let i = 0; i < 20; i++) expect(s.next().sub).toBe('emoji')
   })
 })
