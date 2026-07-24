@@ -128,6 +128,16 @@ button { touch-action: manipulation; }
 }
 .card-btn:active { transform: scale(0.985); box-shadow: var(--shadow-card); }
 
+/* Sıralama listesi satırı — hover'da hafif aydınlanma (yalnız fareyle) */
+@media (hover: hover) {
+  .lb-row:hover { background: rgba(var(--gold-glow-rgb), 0.05) !important; }
+}
+
+/* Takvim gün hücresi — oynanabilir günde hover'da altın kenar (yalnız fareyle) */
+@media (hover: hover) {
+  .cal-day:not(:disabled):hover { border-color: var(--gold); }
+}
+
 /*
  * Büyük "hero" kartlar (menüdeki 3 üst mod) için daha belirgin kalkma.
  * DİKKAT — Tailwind'in `hover:-translate-y-*` / `active:scale-*` yardımcılarıyla

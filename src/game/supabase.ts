@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { LEADERBOARD_DIFFS, type Difficulty } from './types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -98,6 +99,9 @@ async function callSubmit(mode: string, params: Record<string, unknown>): Promis
 /** Zamana Karşı skorunu kaydeder (yalnızca eskisinden yüksekse veya ad değiştiyse günceller) */
 export async function submitTimedScore(playerId: string, sub: string, diff: string, nick: string, score: number) {
   if (!supabase || !nick.trim() || score <= 0) return
+  // Sıralama yalnız Zor + Aşırı Zor (kullanıcı kararı). Kolay/Normal skorları
+  // global tabloya HİÇ gönderilmez — yerel istatistik/rekorlar etkilenmez.
+  if (!LEADERBOARD_DIFFS.includes(diff as Difficulty)) return
   const mode = `timed:${sub}:${diff}`
   await callSubmit(mode, {
     p_player_id: playerId,

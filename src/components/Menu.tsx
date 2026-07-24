@@ -12,10 +12,13 @@ import Achievements from './Achievements'
 import PoolFilterPicker from './PoolFilterPicker'
 import Leaderboard from './Leaderboard'
 import CalendarModal from './CalendarModal'
+import RankModal from './RankModal'
+import { titleFor } from '../game/rank'
 import { useUpdateAvailable } from '../game/pwaUpdate'
 import { sfxEnabled, setSfxEnabled } from '../game/sfx'
 import { getChampWins, getEarnedAchievements, ACHIEVEMENTS } from '../game/achievements'
 import { cryptoRandInt, todayKey } from '../game/rng'
+import { miniDailyDone } from '../game/miniDaily'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
@@ -33,14 +36,6 @@ const LOL_TIPS = [
   '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
 ]
 
-function getSummonerTitle(uniqueChamps: number): { title: string; icon: string; color: string } {
-  if (uniqueChamps >= 100) return { title: 'Runeterra Efsanesi', icon: '👑', color: 'var(--gold-bright)' }
-  if (uniqueChamps >= 50) return { title: 'Ionia Bilgesi', icon: '🔮', color: 'var(--accent-mystic)' }
-  if (uniqueChamps >= 25) return { title: 'Demacia Muhafızı', icon: '🛡️', color: 'var(--accent-endless)' }
-  if (uniqueChamps >= 10) return { title: 'Vadi Savaşçısı', icon: '⚔️', color: 'var(--accent-done)' }
-  return { title: 'Sihirdar Çırağı', icon: '🌱', color: 'var(--text-dim)' }
-}
-
 export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [howTo, setHowTo] = useState(false)
@@ -48,6 +43,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
   const [achievements, setAchievements] = useState(false)
   const [leaderboard, setLeaderboard] = useState(false)
   const [calendar, setCalendar] = useState(false)
+  const [rank, setRank] = useState(false)
   const [diffInfo, setDiffInfo] = useState(false)
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
@@ -77,10 +73,12 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
   const champWins = getChampWins()
   const uniqueChampCount = champWins.length
   const totalChamps = CHAMPIONS.length
-  const summoner = getSummonerTitle(uniqueChampCount)
 
   const dailyStreak = getDailyStreak()
   const activeStreak = isStreakAlive(dailyStreak) ? dailyStreak.streak : 0
+  // Unvan EN İYİ günlük seriye göre (kırılsa da düşmez, kullanıcı kararı).
+  // 🔥 rozetinde görünen `activeStreak` ise GÜNCEL seri — ikisi ayrı.
+  const summoner = titleFor(dailyStreak.best)
   const earnedAchCount = getEarnedAchievements().length
   const totalAchCount = ACHIEVEMENTS.length
 
@@ -111,13 +109,19 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
 
       {/* Üst Canlı Bar: Sihirdar Kimliği & Ses Kontrolü */}
       <div className="z-10 flex w-full items-center justify-between gap-2 text-xs">
-        {/* Sol: Sihirdar Unvanı */}
-        <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold shadow-sm backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.03)', borderColor: 'var(--border)' }}>
+        {/* Sol: Sihirdar Unvanı — tıklanınca kademelerin listesi açılır */}
+        <button
+          onClick={() => setRank(true)}
+          className="flex items-center gap-1.5 sm:gap-2 rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 font-bold shadow-sm backdrop-blur-md transition-all hover:scale-105"
+          style={{ background: 'rgba(255, 255, 255, 0.03)', borderColor: 'var(--border)' }}
+          aria-label="Sihirdar unvanları ve kademeleri gör"
+          title="Unvanların nasıl yükseldiğini gör"
+        >
           <span>{summoner.icon}</span>
           <span style={{ color: summoner.color }}>{summoner.title}</span>
           <span className="opacity-40">•</span>
           <span style={{ color: 'var(--text-dim)' }}>🔥 {activeStreak} Gün</span>
-        </div>
+        </button>
 
         {/* Sağ: Ses Aç/Kapat Butonu */}
         <button
@@ -291,19 +295,19 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
           </div>
 
           {/* Kariyer & Sihirdar İlerleme Barı */}
-          <div className="flex items-center justify-around rounded-xl border py-2.5 sm:py-3 px-3 text-center text-xs shadow-sm backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-around rounded-xl border py-2.5 sm:py-3 px-3 text-center text-xs backdrop-blur-md" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-card)' }}>
             <div>
-              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold-bright)' }}>💎 {uniqueChampCount}/{totalChamps}</span>
+              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold-bright)', textShadow: '0 0 12px rgba(var(--gold-glow-rgb), 0.35)' }}>💎 {uniqueChampCount}/{totalChamps}</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Keşif</span>
             </div>
-            <div className="h-5 w-px" style={{ background: 'var(--border)' }} />
+            <div className="h-6 w-px" style={{ background: 'linear-gradient(var(--border), transparent)' }} />
             <div>
-              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold)' }}>🏆 {earnedAchCount}/{totalAchCount}</span>
+              <span className="block font-extrabold text-sm" style={{ color: 'var(--gold)', textShadow: '0 0 12px rgba(var(--gold-glow-rgb), 0.3)' }}>🏆 {earnedAchCount}/{totalAchCount}</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Başarım</span>
             </div>
-            <div className="h-5 w-px" style={{ background: 'var(--border)' }} />
+            <div className="h-6 w-px" style={{ background: 'linear-gradient(var(--border), transparent)' }} />
             <div>
-              <span className="block font-extrabold text-sm text-sky-400">🎯 %{Math.round((earnedAchCount / totalAchCount) * 100)}</span>
+              <span className="block font-extrabold text-sm text-sky-400" style={{ textShadow: '0 0 12px rgba(var(--accent-endless-rgb), 0.35)' }}>🎯 %{Math.round((earnedAchCount / totalAchCount) * 100)}</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Kariyer</span>
             </div>
           </div>
@@ -321,7 +325,9 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
               {[
                 { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
                 { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
-              ].map((g) => (
+              ].map((g) => {
+                const dailyDone = miniDailyDone(g.id)
+                return (
                 <div
                   key={g.id}
                   className="group overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(var(--gold-glow-rgb),0.12)]"
@@ -352,14 +358,20 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
                     </button>
                     <button
                       onClick={() => onMiniGame(g.id, true)}
-                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10 hover:text-amber-300"
-                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
+                      className="flex-1 border-l py-2 text-xs font-bold tracking-wide transition-all hover:bg-amber-400/10"
+                      style={{
+                        borderColor: 'var(--border)',
+                        color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
+                        background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
+                      }}
+                      aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
                     >
-                      📅 Günlük
+                      {dailyDone ? '✓ Bitti' : '📅 Günlük'}
                     </button>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -369,30 +381,30 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 onClick={() => setHowTo(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
               >
-                <span>❓</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">❓</span>
                 <span>Nasıl Oynanır</span>
               </button>
               <button
                 onClick={() => setStats(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
               >
-                <span>📊</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📊</span>
                 <span>İstatistikler</span>
               </button>
               <button
                 onClick={onSettings}
-                className="card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
+                className="group card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
                 style={{
                   background: 'var(--bg-card)',
                   borderColor: updateReady ? 'var(--gold)' : 'var(--border)',
                   color: updateReady ? 'var(--gold-bright)' : 'var(--text)',
                 }}
               >
-                <span>⚙️</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">⚙️</span>
                 <span>Ayarlar</span>
                 {updateReady && (
                   <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5" aria-label="Yeni sürüm hazır" title="Yeni sürüm hazır">
@@ -407,26 +419,26 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
             <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               <button
                 onClick={() => setAchievements(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
                 style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
-                <span>🏆</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">🏆</span>
                 <span>Başarımlar</span>
               </button>
               <button
                 onClick={() => setLeaderboard(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
                 style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
-                <span>🥇</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">🥇</span>
                 <span>Sıralama</span>
               </button>
               <button
                 onClick={() => setCalendar(true)}
-                className="card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
+                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
                 style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
-                <span>📅</span>
+                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📅</span>
                 <span>Takvim</span>
               </button>
             </div>
@@ -591,6 +603,7 @@ export default function Menu({ onPlay, onSettings, onMiniGame }: Props) {
       {achievements && <Achievements onClose={() => setAchievements(false)} />}
       {leaderboard && <Leaderboard onClose={() => setLeaderboard(false)} />}
       {calendar && <CalendarModal onClose={() => setCalendar(false)} />}
+      {rank && <RankModal best={dailyStreak.best} current={activeStreak} onClose={() => setRank(false)} />}
     </div>
   )
 }

@@ -71,6 +71,14 @@ export const DIFFICULTIES: { id: Difficulty; name: string }[] = [
   { id: 'insane', name: 'Aşırı Zor' },
 ]
 
+/**
+ * Küresel Sıralamaya giren zorluklar — yalnız Zor + Aşırı Zor (kullanıcı kararı).
+ * TEK KAYNAK: hem Sıralama görünümü (`Leaderboard.tsx`) hem skor gönderimi
+ * (`submitTimedScore`) bundan okur. Kolay/Normal Zamana Karşı skorları global
+ * tabloya HİÇ gönderilmez; yerel istatistik/rekorlar tüm zorlukları saymaya devam eder.
+ */
+export const LEADERBOARD_DIFFS: Difficulty[] = ['hard', 'insane']
+
 /** Alt mod: ne tahmin ediliyor (gerçek soru tipleri) */
 export type SubMode = 'classic' | 'ability' | 'splash' | 'skin' | 'emoji' | 'quote' | 'item' | 'silhouette' | 'lore'
 

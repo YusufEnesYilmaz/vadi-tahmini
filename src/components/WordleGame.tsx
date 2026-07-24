@@ -9,9 +9,10 @@ import {
   type LenBucket, type LetterResult,
 } from '../game/wordle'
 import { evaluateAchievements } from '../game/achievements'
+import { WORDLE_DAILY_KEY as KEY } from '../game/miniDaily'
 import { godMode } from '../game/dev'
 import type { Champion } from '../game/types'
-import Autocomplete, { type AcOption } from './Autocomplete'
+import { type AcOption } from './Autocomplete'
 import ChampionInfo from './ChampionInfo'
 
 const MAX_TRIES = 6
@@ -22,9 +23,8 @@ const CELL_BG: Record<LetterResult, string> = {
   absent: 'var(--wrong)',
 }
 
-/** Günlük durum — mod başına değil, tek anahtar (Kelime'nin kendi günlüğü) */
+/** Günlük durum — mod başına değil, tek anahtar (Kelime'nin kendi günlüğü). Anahtar: miniDaily.ts (tek kaynak) */
 interface DailyState { date: string; guesses: string[]; done: boolean }
-const KEY = 'vt:wordle:daily'
 
 function loadDaily(): DailyState {
   try {
@@ -71,6 +71,8 @@ export default function WordleGame({ daily, onExit }: Props) {
   // God mode (yalnız yerel dev): kayıtlı günlük tahminleri yükleme → her giriş taze
   const [guesses, setGuesses] = useState<string[]>(() => (daily && !godMode() ? loadDaily().guesses : []))
   const [copied, setCopied] = useState(false)
+  const [text, setText] = useState('') // yazılan tahmin (öneri listesi yok; kendin yazarsın)
+  const [inputErr, setInputErr] = useState(false) // geçersiz/tekrar tahminde titreşim
 
   const rows = guesses.map((g) => ({ g, res: evaluateWord(g, word) }))
   const won = guesses.some((g) => g === word)
@@ -113,6 +115,22 @@ export default function WordleGame({ daily, onExit }: Props) {
       evaluateAchievements()
     } else if (next.length >= MAX_TRIES) playLose()
     else playWrong()
+  }
+
+  /** Yazılan adı geçerli (aynı harf sayılı) bir şampiyonla eşleştirip gönderir. */
+  function submitTyped() {
+    if (finished) return
+    const letters = toLetters(text.trim())
+    if (!letters) return
+    // Ad harflere indirgenip eşleşir (Kai'Sa→KAISA, "Master Yi"→MASTERYI); büyük/küçük ve işaret önemsiz
+    const match = options.find((o) => toLetters(o.label) === letters)
+    if (!match || guessedSet.has(match.key)) {
+      setInputErr(true) // gerçek şampiyon değil, yanlış uzunlukta ya da zaten denenmiş
+      playWrong()
+      return
+    }
+    handlePick(match.key)
+    setText('')
   }
 
   function nextRound() {
@@ -231,15 +249,23 @@ export default function WordleGame({ daily, onExit }: Props) {
       </div>
 
       {!finished && (
-        <div className="w-full">
-          <Autocomplete
-            options={options}
+        <div className={`flex w-full gap-2 ${inputErr ? 'anim-shake' : ''}`} onAnimationEnd={() => setInputErr(false)}>
+          <input
+            value={text}
+            onChange={(e) => { setText(e.target.value); setInputErr(false) }}
+            onKeyDown={(e) => { if (e.key === 'Enter') submitTyped() }}
             placeholder={`${word.length} harfli şampiyon yaz...`}
-            disabledKeys={guessedSet}
-            onPick={handlePick}
             autoFocus
-            maxResults={10}
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            aria-label={`${word.length} harfli şampiyon adını yaz ve Enter'a bas`}
+            className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-base outline-none transition-colors"
+            style={{ background: 'var(--bg-input)', borderColor: inputErr ? 'var(--danger)' : 'var(--border)', color: 'var(--text)' }}
           />
+          <button onClick={submitTyped} className="btn-gold shrink-0 rounded-xl px-5 py-3 font-bold" aria-label="Tahmini gönder">
+            Tahmin
+          </button>
         </div>
       )}
 

@@ -5,6 +5,7 @@ import { cryptoRandInt, fnv1a, seededRng, todayKey } from '../game/rng'
 import { playCorrect, playLose, playWin, playWrong } from '../game/sfx'
 import { copyToClipboard } from '../game/share'
 import { evaluateAchievements } from '../game/achievements'
+import { BINGO_DAILY_KEY as KEY } from '../game/miniDaily'
 import { godMode } from '../game/dev'
 import type { Champion } from '../game/types'
 
@@ -13,7 +14,7 @@ interface Props {
   onExit: () => void
 }
 
-const KEY = 'vt:bingo:daily'
+// KEY (vt:bingo:daily) miniDaily.ts'ten import edilir — menü göstergesiyle tek kaynak
 const BEST_KEY = 'vt:bingo:best'
 const WINS_KEY = 'vt:bingo:wins' // tam kart (12/12) tamamlama sayısı — rozet için
 

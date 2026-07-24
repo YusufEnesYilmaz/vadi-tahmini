@@ -45,18 +45,19 @@ export default function DailyCalendar() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2">
-        <button onClick={() => shift(-1)} className="card-btn rounded-xl border px-2.5 py-1 text-sm"
+      <div className="flex items-center justify-between gap-2 rounded-xl border p-1.5"
+        style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
+        <button onClick={() => shift(-1)} className="card-btn grid h-8 w-8 place-items-center rounded-lg border text-sm"
           style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }} aria-label="Önceki ay">←</button>
-        <span className="text-sm font-semibold" style={{ color: 'var(--gold)' }}>
+        <span className="font-display text-base font-bold" style={{ color: 'var(--gold-bright)' }}>
           {MONTHS[view.m]} {view.y}
         </span>
         <button onClick={() => shift(1)} disabled={isFuture}
-          className="card-btn rounded-xl border px-2.5 py-1 text-sm disabled:opacity-30"
+          className="card-btn grid h-8 w-8 place-items-center rounded-lg border text-sm disabled:opacity-30"
           style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }} aria-label="Sonraki ay">→</button>
       </div>
 
-      <div className="mt-2 grid grid-cols-7 gap-1 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
         {WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
       </div>
 
@@ -76,13 +77,14 @@ export default function DailyCalendar() {
               onClick={() => setSelected(isSelected ? null : key)}
               disabled={isFutureDay}
               title={done ? `${key}: ${done}/${total} mod` : key}
-              className="flex aspect-square items-center justify-center rounded-md border text-xs tabular-nums transition-transform active:scale-95 disabled:opacity-25"
+              className="cal-day flex aspect-square items-center justify-center rounded-lg border text-xs tabular-nums transition-all active:scale-95 disabled:opacity-25"
               style={{
                 borderColor: isSelected ? 'var(--gold-bright)' : isToday ? 'var(--gold)' : 'var(--border)',
                 borderWidth: isSelected ? 2 : 1,
                 background: done ? `rgba(var(--gold-rgb), ${alpha})` : 'transparent',
                 color: done >= total / 2 ? 'var(--on-gold)' : 'var(--text-dim)',
                 fontWeight: isToday || isSelected ? 700 : 400,
+                boxShadow: isToday && !isSelected ? '0 0 10px -3px rgba(var(--gold-glow-rgb),0.6)' : 'none',
               }}>
               {day}
             </button>
@@ -124,12 +126,13 @@ export default function DailyCalendar() {
         </div>
       )}
 
-      <div className="mt-2 flex items-center justify-between text-xs" style={{ color: 'var(--text-dim)' }}>
-        <span>{monthDays.length} gün oynandı</span>
+      <div className="mt-3 flex items-center justify-between rounded-lg border p-2 text-xs"
+        style={{ borderColor: 'var(--border)', background: 'var(--bg-input)', color: 'var(--text-dim)' }}>
+        <span><b style={{ color: 'var(--gold-bright)' }}>{monthDays.length}</b> gün oynandı</span>
         <span className="flex items-center gap-1">
           az
           {[0.2, 0.45, 0.7, 1].map((a) => (
-            <span key={a} className="h-2.5 w-2.5 rounded-md border"
+            <span key={a} className="h-2.5 w-2.5 rounded-sm border"
               style={{ background: `rgba(var(--gold-rgb), ${a})`, borderColor: 'var(--border)' }} />
           ))}
           çok

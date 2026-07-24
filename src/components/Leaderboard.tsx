@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { clearSubmitFailure, getDailyLeaderboard, getSubmitFailure, getTimedLeaderboard, type LeaderboardEntry, type SubmitFailure } from '../game/supabase'
-import { DAILY_SUBS, DIFFICULTIES, SUB_MODES, MIX_MODE, type Difficulty, type PlaySub } from '../game/types'
+import { DAILY_SUBS, DIFFICULTIES, LEADERBOARD_DIFFS, SUB_MODES, MIX_MODE, type Difficulty, type PlaySub } from '../game/types'
 import { todayKey } from '../game/rng'
 import { getPlayerId } from '../game/challenge'
 
@@ -13,7 +13,8 @@ type TabMode = 'timed' | 'daily'
 export default function Leaderboard({ onClose }: Props) {
   const [tab, setTab] = useState<TabMode>('timed')
   const [sub, setSub] = useState<PlaySub>('classic')
-  const [diff, setDiff] = useState<Difficulty>('normal')
+  // Sıralama yalnız Zor + Aşırı Zor (kullanıcı kararı) → varsayılan 'hard'
+  const [diff, setDiff] = useState<Difficulty>('hard')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   // Panel açılışında son gönderim hatasını oku (varsa uyarı satırı çıkar)
@@ -68,20 +69,38 @@ export default function Leaderboard({ onClose }: Props) {
   return (
     <div className="ovl fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-3 sm:items-center"
       style={{ background: 'var(--overlay)' }} onClick={onClose}>
-      <div className="panel anim-pop my-auto w-full max-w-lg rounded-2xl border p-5"
+      <div className="panel anim-pop my-auto w-full max-w-lg overflow-hidden rounded-2xl border"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Sıralama Tablosu">
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold" style={{ color: 'var(--gold-bright)' }}>
-            🏆 Küresel Sıralama
-          </h2>
-          <button onClick={onClose} className="card-btn rounded-xl border px-3 py-1 text-sm"
+        {/* Header — altın şerit + kupa ışıması */}
+        <div className="relative flex items-start justify-between gap-3 border-b p-5 pb-4"
+          style={{
+            borderColor: 'var(--border)',
+            background: 'linear-gradient(180deg, rgba(var(--gold-glow-rgb),0.10), transparent)',
+          }}>
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl"
+              style={{
+                background: 'var(--gold-soft)',
+                boxShadow: '0 0 20px -4px rgba(var(--gold-glow-rgb),0.5)',
+              }}>🏆</span>
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-bold leading-tight" style={{ color: 'var(--gold-bright)' }}>
+                Küresel Sıralama
+              </h2>
+              <p className="mt-0.5 text-[11px]" style={{ color: 'var(--text-dim)' }}>
+                En iyi skorlar
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="card-btn shrink-0 rounded-xl border px-3 py-1 text-sm"
             style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
             Kapat
           </button>
         </div>
+
+        <div className="p-5 pt-4">
 
         {/*
           Gönderim başarısızlığı uyarısı. Bu satırın var olma sebebi: skor gönderimi
@@ -148,19 +167,23 @@ export default function Leaderboard({ onClose }: Props) {
             ))}
           </div>
 
-          {/* Zorluk Seçici (Sadece Zamana Karşı için) */}
+          {/* Zorluk Seçici (Sadece Zamana Karşı için) — Zor 🔥 / Aşırı Zor 💀 */}
           {tab === 'timed' && (
-            <div className="mx-auto flex overflow-hidden rounded-lg border w-fit" style={{ borderColor: 'var(--border)' }}>
-              {DIFFICULTIES.map((d) => (
-                <button key={d.id} onClick={() => setDiff(d.id)}
-                  className="px-3 py-1 text-xs font-bold transition-colors"
-                  style={{
-                    background: diff === d.id ? 'var(--gold)' : 'transparent',
-                    color: diff === d.id ? 'var(--on-gold)' : 'var(--text-dim)',
-                  }}>
-                  {d.name}
-                </button>
-              ))}
+            <div className="mx-auto flex w-fit gap-1 rounded-lg border p-1" style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
+              {DIFFICULTIES.filter((d) => LEADERBOARD_DIFFS.includes(d.id)).map((d) => {
+                const active = diff === d.id
+                const tint = d.id === 'insane' ? 'var(--danger-text)' : 'var(--diff-hard)'
+                return (
+                  <button key={d.id} onClick={() => setDiff(d.id)}
+                    className="rounded-md px-3.5 py-1 text-xs font-bold transition-all"
+                    style={{
+                      background: active ? tint : 'transparent',
+                      color: active ? 'var(--on-gold)' : 'var(--text-dim)',
+                    }}>
+                    {d.id === 'insane' ? '💀' : '🔥'} {d.name}
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
@@ -175,10 +198,15 @@ export default function Leaderboard({ onClose }: Props) {
         ) : entries.length === 0 ? (
           <div className="mt-4 flex h-64 flex-col items-center justify-center rounded-xl border p-4 text-center"
             style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
-            <span className="mb-2 text-4xl anim-pop">🏁</span>
+            <span className="mb-3 grid h-16 w-16 place-items-center rounded-full text-3xl anim-pop"
+              style={{ background: 'var(--gold-soft)', boxShadow: '0 0 26px -6px rgba(var(--gold-glow-rgb),0.55)' }}>🏁</span>
             <span className="font-display text-base font-bold" style={{ color: 'var(--gold-bright)' }}>Henüz Skor Yok</span>
-            <span className="mt-1 text-xs" style={{ color: 'var(--text-dim)' }}>
+            <span className="mt-1 max-w-[16rem] text-xs" style={{ color: 'var(--text-dim)' }}>
               Bu modu oyna, tabelanın zirvesine adını ilk sen yaz.
+            </span>
+            <span className="mt-3 rounded-full border px-3 py-1 text-xs font-bold"
+              style={{ borderColor: 'var(--gold)', background: 'var(--gold-soft)', color: 'var(--gold-bright)' }}>
+              🥇 İlk sen ol
             </span>
           </div>
         ) : (
@@ -189,21 +217,26 @@ export default function Leaderboard({ onClose }: Props) {
                 {[{ e: entries[1], rank: 2 }, { e: entries[0], rank: 1 }, { e: entries[2], rank: 3 }].map(({ e, rank }) => {
                   const isMe = e.playerId === myId
                   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'
-                  const barH = rank === 1 ? 'h-16' : rank === 2 ? 'h-12' : 'h-10'
+                  const barH = rank === 1 ? 'h-20' : rank === 2 ? 'h-14' : 'h-11'
                   const val = String(e.score)
                   return (
                     <div key={`podium-${rank}`} className="anim-pop flex flex-col items-center">
-                      <span className={rank === 1 ? 'text-3xl' : 'text-2xl'}>{medal}</span>
+                      {/* 1.'liğe taç */}
+                      {rank === 1 && <span className="mb-0.5 text-sm" aria-hidden>👑</span>}
+                      <span className={rank === 1 ? 'text-3xl' : 'text-2xl'}
+                        style={rank === 1 ? { filter: 'drop-shadow(0 0 8px rgba(var(--gold-glow-rgb),0.6))' } : undefined}>{medal}</span>
                       <span className="mt-0.5 max-w-full truncate px-1 text-xs font-bold"
                         style={{ color: isMe ? 'var(--gold-bright)' : 'var(--text)' }}>
-                        {e.nick}
+                        {e.nick}{isMe && ' (Sen)'}
                       </span>
                       <span className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--gold)' }}>{val}</span>
-                      <div className={`mt-1 flex w-full items-start justify-center rounded-t-lg border-t border-x pt-1 ${barH}`}
+                      <div className={`mt-1 flex w-full items-start justify-center rounded-t-lg border-t border-x pt-1.5 ${barH}`}
                         style={{
                           borderColor: rank === 1 ? 'var(--gold)' : 'var(--border)',
-                          background: rank === 1 ? 'var(--gold-soft)' : 'var(--bg-input)',
-                          boxShadow: rank === 1 ? '0 0 22px -6px rgba(var(--gold-rgb), 0.5)' : 'none',
+                          background: rank === 1
+                            ? 'linear-gradient(180deg, var(--gold-soft), transparent)'
+                            : 'var(--bg-input)',
+                          boxShadow: rank === 1 ? '0 0 24px -6px rgba(var(--gold-rgb), 0.55)' : 'none',
                         }}>
                         <span className="font-display text-lg font-bold" style={{ color: rank === 1 ? 'var(--gold-bright)' : 'var(--text-dim)' }}>{rank}</span>
                       </div>
@@ -228,13 +261,16 @@ export default function Leaderboard({ onClose }: Props) {
                     const rank = (entries.length >= 3 ? 4 : 1) + index
                     const isMe = entry.playerId === myId
                     const rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`
+                    // Dönüşümlü satır zebra'sı — "Sen" satırı her zaman altın vurgulu
+                    const zebra = index % 2 === 1
 
                     return (
                       <tr key={`${entry.nick}-${index}`}
-                        className="border-b border-transparent transition-colors"
+                        className="lb-row border-b transition-colors"
                         style={{
-                          background: isMe ? 'var(--gold-soft)' : 'transparent',
-                          borderColor: isMe ? 'var(--gold)' : 'transparent',
+                          background: isMe ? 'var(--gold-soft)' : zebra ? 'rgba(255,255,255,0.02)' : 'transparent',
+                          borderColor: 'var(--border)',
+                          boxShadow: isMe ? 'inset 3px 0 0 var(--gold)' : 'none',
                         }}>
                         <td className="py-2 text-center font-bold tabular-nums" style={{ color: rank <= 3 ? 'inherit' : 'var(--text-dim)' }}>
                           {rankBadge}
@@ -245,7 +281,10 @@ export default function Leaderboard({ onClose }: Props) {
                         </td>
                         <td className="py-2 pr-3 text-right font-bold tabular-nums"
                           style={{ color: isMe ? 'var(--gold-bright)' : 'var(--gold)' }}>
-                          {tab === 'timed' ? `${entry.score} doğru` : `${entry.score} tahmin`}
+                          {entry.score}
+                          <span className="ml-1 text-[10px] font-normal" style={{ color: 'var(--text-dim)' }}>
+                            {tab === 'timed' ? 'doğru' : 'tahmin'}
+                          </span>
                         </td>
                       </tr>
                     )
@@ -256,9 +295,11 @@ export default function Leaderboard({ onClose }: Props) {
           </>
         )}
 
-        <p className="mt-3 text-center text-[10px]" style={{ color: 'var(--text-dim)' }}>
-          Ayarlar'daki takma adınla skorların otomatik olarak buraya kaydedilir.
-        </p>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[10px]" style={{ color: 'var(--text-dim)' }}>
+            <span aria-hidden>💾</span>
+            Ayarlar'daki takma adınla skorların otomatik olarak buraya kaydedilir.
+          </p>
+        </div>
       </div>
     </div>
   )

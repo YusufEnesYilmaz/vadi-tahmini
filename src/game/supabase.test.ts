@@ -1,7 +1,19 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { clearSubmitFailure, getSubmitFailure } from './supabase'
+import { LEADERBOARD_DIFFS } from './types'
 
 const FAIL_KEY = 'vt:lb:fail'
+
+describe('sıralamaya giren zorluklar', () => {
+  // Bu sabit hem Sıralama görünümünü hem gönderim kapısını (submitTimedScore)
+  // besler. Kolay/Normal geri eklenirse ikisi birden değişir — kilitli kalsın.
+  it('yalnız Zor + Aşırı Zor; Kolay/Normal DIŞARIDA', () => {
+    expect(LEADERBOARD_DIFFS).toContain('hard')
+    expect(LEADERBOARD_DIFFS).toContain('insane')
+    expect(LEADERBOARD_DIFFS).not.toContain('easy')
+    expect(LEADERBOARD_DIFFS).not.toContain('normal')
+  })
+})
 
 describe('sıralama gönderim hatası izi', () => {
   beforeEach(() => clearSubmitFailure())
