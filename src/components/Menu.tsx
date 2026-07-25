@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { CHAMPIONS, PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
@@ -406,22 +406,32 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button
                 onClick={onChampions}
-                className="menu-system-btn group card-btn flex items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2 sm:py-3"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
+                className="menu-system-btn group card-btn flex items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2.5 sm:py-3"
+                style={{ borderColor: 'var(--border)', color: 'var(--gold-bright)', '--sys-accent-rgb': 'var(--hextech-rgb)' } as CSSProperties}
               >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📖</span>
+                <span className="menu-system-badge grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-110" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+                    <path d="M12 6.6C10.4 5.2 7.6 4.7 4.7 5.4v12c2.9-.7 5.7-.2 7.3 1.2 1.6-1.4 4.4-1.9 7.3-1.2v-12C16.4 4.7 13.6 5.2 12 6.6Z" />
+                    <path d="M12 6.6v12.2" />
+                  </svg>
+                </span>
                 <span>Şampiyonlar</span>
               </button>
               <button
                 onClick={onSettings}
-                className="menu-system-btn group card-btn relative flex items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2 sm:py-3"
+                className="menu-system-btn group card-btn relative flex items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2.5 sm:py-3"
                 style={{
-                  background: 'var(--bg-card)',
                   borderColor: updateReady ? 'var(--gold)' : 'var(--border)',
                   color: 'var(--gold-bright)',
-                }}
+                  '--sys-accent-rgb': 'var(--gold-rgb)',
+                } as CSSProperties}
               >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">⚙️</span>
+                <span className="menu-system-badge grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-110" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+                    <circle cx="12" cy="12" r="3.1" />
+                    <path d="M12 3.4v2.4M12 18.2v2.4M20.6 12h-2.4M5.8 12H3.4M18.08 5.92l-1.7 1.7M7.62 16.38l-1.7 1.7M18.08 18.08l-1.7-1.7M7.62 7.62l-1.7-1.7" />
+                  </svg>
+                </span>
                 <span>Ayarlar</span>
                 {updateReady && (
                   <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5" aria-label="Yeni sürüm hazır" title="Yeni sürüm hazır">

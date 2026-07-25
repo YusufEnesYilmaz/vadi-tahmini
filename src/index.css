@@ -327,15 +327,15 @@ button { touch-action: manipulation; }
 .game-scene-bg {
   object-fit: cover;
   object-position: center;
-  filter: saturate(0.98) brightness(0.7) contrast(1.05);
+  filter: saturate(1) brightness(0.82) contrast(1.06);
   transform: scale(1.03);
 }
 
 .game-scene-overlay {
   background:
-    linear-gradient(180deg, rgba(var(--bg-rgb), 0.58) 0%, rgba(var(--bg-rgb), 0.44) 24%, rgba(var(--bg-rgb), 0.64) 100%),
-    linear-gradient(112deg, rgba(var(--bg-rgb), 0.48) 0%, rgba(var(--bg-rgb), 0.16) 42%, rgba(var(--bg-rgb), 0.54) 100%),
-    radial-gradient(ellipse 86% 68% at 50% 32%, rgba(var(--bg-rgb), 0.05) 0%, rgba(var(--bg-rgb), 0.12) 26%, rgba(var(--bg-rgb), 0.38) 68%, rgba(var(--bg-rgb), 0.7) 100%);
+    linear-gradient(180deg, rgba(var(--bg-rgb), 0.5) 0%, rgba(var(--bg-rgb), 0.36) 24%, rgba(var(--bg-rgb), 0.56) 100%),
+    linear-gradient(112deg, rgba(var(--bg-rgb), 0.42) 0%, rgba(var(--bg-rgb), 0.12) 42%, rgba(var(--bg-rgb), 0.48) 100%),
+    radial-gradient(ellipse 86% 68% at 50% 32%, rgba(var(--bg-rgb), 0.04) 0%, rgba(var(--bg-rgb), 0.1) 26%, rgba(var(--bg-rgb), 0.32) 68%, rgba(var(--bg-rgb), 0.64) 100%);
 }
 
 .game-scene-vignette {
@@ -795,9 +795,37 @@ button { touch-action: manipulation; }
 }
 
 .menu-system-btn {
+  --sys-accent-rgb: var(--hextech-rgb);
   background:
     linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.54)),
-    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.16), transparent 44%) !important;
+    radial-gradient(circle at 100% 0, rgba(var(--sys-accent-rgb), 0.18), transparent 44%) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-system-badge {
+  position: relative;
+  color: rgba(var(--sys-accent-rgb), 0.96);
+  border: 1px solid rgba(var(--sys-accent-rgb), 0.22);
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.14), transparent 36%),
+    linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.96), rgba(var(--bg-rgb), 0.9));
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--sys-accent-rgb), 0.16),
+    inset 0 8px 16px -14px rgba(255, 255, 255, 0.28),
+    0 0 18px -12px rgba(var(--sys-accent-rgb), 0.9);
+}
+
+.menu-system-badge svg {
+  filter: drop-shadow(0 1px 4px rgba(var(--sys-accent-rgb), 0.42));
+}
+
+@media (hover: hover) {
+  .menu-system-btn:hover {
+    border-color: rgba(var(--sys-accent-rgb), 0.5) !important;
+    box-shadow:
+      0 0 0 1px rgba(var(--sys-accent-rgb), 0.14),
+      0 0 26px -14px rgba(var(--sys-accent-rgb), 0.72);
+  }
 }
 
 .menu-subpanel {
@@ -1654,6 +1682,7 @@ button { touch-action: manipulation; }
   .menu-stat-strip,
   .menu-mini-shell,
   .menu-system-btn,
+  .menu-system-badge,
   .menu-subpanel,
   .menu-submode-card,
   .menu-tip-banner,
