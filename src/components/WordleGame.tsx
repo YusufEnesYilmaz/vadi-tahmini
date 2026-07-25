@@ -157,7 +157,7 @@ export default function WordleGame({ daily, onExit }: Props) {
   }
 
   return (
-    <GameShell>
+    <GameShell bg="/mg-wordle.png">
       {won && <WinConfetti />}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"
         style={{ borderColor: 'var(--border)' }}>

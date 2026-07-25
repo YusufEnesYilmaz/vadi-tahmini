@@ -147,7 +147,7 @@ export default function HuntGame({ daily = false, onExit }: Props) {
   }
 
   return (
-    <GameShell>
+    <GameShell bg="/mg-hunt.png">
       {won && <WinConfetti />}
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"

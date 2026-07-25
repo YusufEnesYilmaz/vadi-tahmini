@@ -210,7 +210,7 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
   // Başlangıç ekranı (günlük bitmişse atlanır — sonuç ekranına düşülür)
   if (!started && (!daily || (!over && !won))) {
     return (
-      <GameShell>
+      <GameShell bg="/mg-timeline.png">
         <div className="anim-pop w-full rounded-2xl border p-6 text-center"
           style={{ borderColor: 'var(--border)', background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)' }}>
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border text-3xl"
@@ -248,7 +248,7 @@ export default function TimelineGame({ daily = false, onExit }: TimelineGameProp
   }
 
   return (
-    <GameShell>
+    <GameShell bg="/mg-timeline.png">
       {won && <WinConfetti />}
       {/* Üst bar — mini oyun kalıbı (Kelime ile aynı ritim) */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"

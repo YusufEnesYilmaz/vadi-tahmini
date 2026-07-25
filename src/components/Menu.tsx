@@ -59,6 +59,12 @@ const MODE_CARD_ART: Record<ModeCardId, { src: string; artClassName: string; ove
   },
 }
 
+const TOP_MODE_BADGE: Record<TopMode, string> = {
+  endless: 'Serbest Akış',
+  daily: 'Aynı Bulmaca',
+  timed: 'Süre Baskısı',
+}
+
 function ModeCardBackdrop({ failed, mode, onError }: { failed: boolean; mode: ModeCardId; onError: (mode: ModeCardId) => void }) {
   if (failed) return null
 
@@ -96,6 +102,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
     timed: false,
   })
   const updateReady = useUpdateAvailable()
+  const topMode = top ? TOP_MODES.find((m) => m.id === top)! : null
 
   function pickDifficulty(d: Difficulty) {
     setDiff(d)
@@ -470,23 +477,22 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                           {g.desc}
                         </span>
                       </span>
-                      <span className="flex shrink-0 gap-1.5">
+                      <span className="menu-mini-actions flex shrink-0 rounded-lg border" style={{ borderColor: 'var(--border)' }}>
                         <button
                           onClick={() => onMiniGame(g.id, false)}
                           aria-label={`${g.name} sınırsız`}
-                          className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                          style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
+                          className="menu-seg min-w-[80px] rounded-l-lg px-2.5 py-1.5 text-center text-[11px] font-bold whitespace-nowrap"
+                          style={{ color: 'var(--gold)' }}
                         >
                           ♾️ Sınırsız
                         </button>
                         <button
                           onClick={() => onMiniGame(g.id, true)}
                           aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
-                          className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                          className={`menu-seg min-w-[80px] rounded-r-lg border-l px-2.5 py-1.5 text-center text-[11px] font-bold whitespace-nowrap${dailyDone ? ' menu-seg-done' : ''}`}
                           style={{
-                            borderColor: dailyDone ? 'var(--accent-done)' : 'var(--border)',
+                            borderColor: 'var(--border)',
                             color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
-                            background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
                           }}
                         >
                           {dailyDone ? '✓ Bitti' : '📅 Günlük'}
@@ -510,14 +516,14 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                       Ölçüte uyanları say · tek başına ya da odada
                     </span>
                   </span>
-                  <span className="flex shrink-0 gap-1.5">
+                  <span className="menu-mini-actions flex shrink-0 rounded-lg border" style={{ borderColor: 'var(--border)' }}>
                     <button onClick={onCounter} aria-label="Kaç Tane? sınırsız"
-                      className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                      className="menu-seg min-w-[80px] rounded-l-lg px-2.5 py-1.5 text-center text-[11px] font-bold whitespace-nowrap"
+                      style={{ color: 'var(--gold)' }}>
                       ♾️ Sınırsız
                     </button>
                     <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
-                      className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                      className="menu-seg min-w-[80px] rounded-r-lg border-l px-2.5 py-1.5 text-center text-[11px] font-bold whitespace-nowrap"
                       style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
                       👥 Multi
                     </button>
@@ -536,61 +542,78 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
         </div>
       ) : (
         // Alt mod seçimi odaklı bir akış — 5xl sahnede bile 3xl'de toplu kalır
-        <div className="stagger z-10 flex w-full lg:max-w-3xl flex-col gap-4">
+        <div className="stagger z-10 flex w-full lg:max-w-4xl flex-col gap-4">
           {/* Başlık: geri + üst modun kimliği (ikon + ad + kısa açıklama), ortalı */}
-          <div className="flex items-center gap-2">
-            <button onClick={() => setTop(null)} className="card-btn flex w-[72px] shrink-0 justify-center rounded-xl border px-3 py-1.5 text-sm font-semibold transition-all hover:scale-105"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
-              ← Geri
-            </button>
-            <div className="flex min-w-0 flex-1 items-center justify-center gap-2.5">
-              <span className="text-2xl">{TOP_MODES.find((m) => m.id === top)!.icon}</span>
-              <div className="min-w-0 text-center">
-                <div className="font-display text-lg font-bold leading-tight" style={{ color: 'var(--gold-bright)' }}>
-                  {TOP_MODES.find((m) => m.id === top)!.name}
-                </div>
-                <div className="truncate text-xs" style={{ color: 'var(--text-dim)' }}>
-                  {TOP_MODES.find((m) => m.id === top)!.desc}
+          <div className={`menu-subflow-header menu-subpanel menu-subflow-header-${top} rounded-[22px] border px-3.5 py-3 sm:px-4 sm:py-3.5`}>
+            <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
+              <button
+                onClick={() => setTop(null)}
+                className="menu-subflow-back card-btn flex shrink-0 items-center justify-center rounded-xl border px-3 py-2 text-sm font-semibold transition-all hover:scale-105"
+                style={{ borderColor: 'rgba(var(--hextech-rgb), 0.22)', color: 'var(--text)' }}
+              >
+                ← Geri
+              </button>
+              <div className="menu-subflow-title flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start">
+                <span className="menu-subflow-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl">
+                  {topMode!.icon}
+                </span>
+                <div className="min-w-0 text-center sm:text-left">
+                  <div className="font-display text-lg font-bold leading-tight" style={{ color: 'var(--gold-bright)' }}>
+                    {topMode!.name}
+                  </div>
+                  <div className="truncate text-xs" style={{ color: 'var(--text-dim)' }}>
+                    {topMode!.desc}
+                  </div>
                 </div>
               </div>
+              <span className="menu-subflow-badge shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]">
+                {TOP_MODE_BADGE[top]}
+              </span>
             </div>
-            {/* Başlık ortada kalsın diye geri butonuyla eş genişlik boşluk */}
-            <span className="w-[72px] shrink-0" aria-hidden />
           </div>
 
           {top === 'daily' && <DailyPanel />}
 
           {/* Zorluk — kendi kartında, "Zorluk" etiketi + sağda karşılaştırma anahtarı */}
           {top !== 'daily' && (
-            <div className="menu-subpanel hextech-frame rounded-xl border p-3" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>Zorluk</span>
-                <button onClick={() => setDiffInfo((v) => !v)}
-                  className="text-xs underline underline-offset-2" style={{ color: 'var(--gold)' }}>
-                  {diffInfo ? 'gizle' : 'Seviyeler ne değiştiriyor?'}
+            <div className="menu-subpanel menu-subpanel-difficulty hextech-frame rounded-[22px] border p-3 sm:p-4">
+              <div className="menu-subpanel-head mb-3 flex flex-wrap items-start justify-between gap-2.5">
+                <div className="min-w-0">
+                  <div className="font-display text-lg font-bold leading-tight" style={{ color: 'var(--gold-bright)' }}>
+                    Zorluk
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDiffInfo((v) => !v)}
+                  className="menu-subpanel-link rounded-full border px-3 py-1 text-xs font-semibold"
+                >
+                  {diffInfo ? 'Gizle' : 'Seviyeler ne değiştiriyor?'}
                 </button>
               </div>
-              <div className="flex w-full overflow-hidden rounded-lg border" style={{ borderColor: 'var(--border)' }}>
+              <div className="menu-difficulty-grid grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {DIFFICULTIES.map((d) => (
-                  <button key={d.id} onClick={() => pickDifficulty(d.id)}
-                    className="flex-1 px-1 py-2 text-xs font-bold transition-all sm:text-sm"
-                    style={{
-                      background: diff === d.id ? 'var(--gold)' : 'transparent',
-                      color: diff === d.id ? 'var(--on-gold)' : 'var(--text-dim)',
-                      boxShadow: diff === d.id ? 'inset 0 -2px 0 var(--gold-bright)' : 'none',
-                    }}>
-                    {d.name}
+                  <button
+                    key={d.id}
+                    onClick={() => pickDifficulty(d.id)}
+                    aria-pressed={diff === d.id}
+                    className={`menu-difficulty-chip menu-difficulty-chip-${d.id} card-btn rounded-xl border px-3 py-2.5 text-left ${diff === d.id ? 'is-active' : ''}`}
+                  >
+                    <span className="menu-difficulty-chip-label block text-sm font-bold sm:text-[15px]">
+                      {d.name}
+                    </span>
+                    <span className="menu-difficulty-chip-meta mt-1 block text-[11px]">
+                      {RULES[d.id].maxGuesses} hak · {RULES[d.id].timedSeconds} sn
+                    </span>
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-center text-xs" style={{ color: 'var(--text-dim)' }}>
+              <p className="menu-difficulty-note mt-3 text-sm" style={{ color: 'var(--text-dim)' }}>
                 {top === 'timed'
                   ? `İpuçları ve süre değişir (${RULES[diff].timedSeconds} sn) · skorlar seviye başına ayrı`
                   : 'İpuçlarının ne zaman açıldığını belirler · istatistikler seviye başına ayrı'}
               </p>
               {diffInfo && (
-                <div className="menu-subpanel anim-pop mt-2 rounded-lg border p-3"
-                  style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
+                <div className="menu-difficulty-table-shell menu-subpanel anim-pop mt-3 rounded-[20px] border p-3 sm:p-4">
                   <DifficultyTable />
                 </div>
               )}
@@ -601,12 +624,22 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
           {top !== 'daily' && <PoolFilterPicker value={filter} onChange={pickFilter} />}
 
           {/* Mod seçimi bölgesi */}
-          <div>
-            <div className="section-label hextech-divider mb-2">
-              <span>Ne tahmin edeceksin?</span>
+          <section className={`menu-subgrid-shell menu-subpanel menu-subgrid-shell-${top} rounded-[22px] border p-3 sm:p-4`}>
+            <div className="menu-subgrid-head mb-3 flex flex-wrap items-start justify-between gap-2.5">
+              <div className="min-w-0">
+                <div className="font-display text-lg font-bold leading-tight" style={{ color: 'var(--gold-bright)' }}>
+                  Ne tahmin edeceksin?
+                </div>
+              </div>
+              <p className="menu-subgrid-note max-w-[26rem] text-xs sm:text-sm" style={{ color: 'var(--text-dim)' }}>
+                {top === 'timed'
+                  ? 'Süre kısalır, ipuçları sertleşir. Her kart skor odaklı hızlı başlangıç yapar.'
+                  : top === 'daily'
+                    ? 'Bugünün sabit bulmacaları. Herkes aynı cevabı çözer, ilerleme gün sonunda sıfırlanır.'
+                    : 'Zorluk ve havuz filtresi her alt modu birlikte etkiler. Aynı seçimle tüm kartlarda devam edebilirsin.'}
+              </p>
             </div>
 
-            {/* Alt modlar — geniş ekranda ikişerli */}
             <div className="grid gap-2.5 sm:grid-cols-2">
               {(top === 'daily' ? DAILY_SUBS : SUB_MODES).map((m) => {
                 const dailyDone = top === 'daily' && getDailyState(m.id).done
@@ -620,24 +653,20 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                         ? `Seri: ${stats.currentStreak}`
                         : ''
                 return (
-                  <button key={m.id} onClick={() => onPlay(top, m.id, diff, filter)}
-                    className="menu-submode-card card-btn flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
-                    style={{
-                      background: 'var(--bg-card)',
-                      borderColor: dailyDone ? 'var(--correct)' : 'var(--border)',
-                    }}>
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl"
-                      style={{ background: 'var(--bg-input)' }}>{m.icon}</span>
+                  <button
+                    key={m.id}
+                    onClick={() => onPlay(top, m.id, diff, filter)}
+                    className={`menu-submode-card menu-submode-card-${top} card-btn group flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01] ${dailyDone ? 'is-done' : ''}`}
+                  >
+                    <span className="menu-submode-icon grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl">
+                      {m.icon}
+                    </span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-bold" style={{ color: 'var(--gold-bright)' }}>{m.name}</span>
                       <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>{m.desc}</span>
                     </span>
                     {info && (
-                      <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                        style={{
-                          background: dailyDone ? 'var(--gold-soft)' : 'var(--bg-input)',
-                          color: dailyDone ? 'var(--correct)' : 'var(--text-dim)',
-                        }}>
+                      <span className={`menu-submode-info shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${dailyDone ? 'is-done' : ''}`}>
                         {info}
                       </span>
                     )}
@@ -653,11 +682,13 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                 ? `En iyi: ${getBestScore('mix', diff)}`
                 : mixStats.played > 0 ? `Seri: ${mixStats.currentStreak}` : ''
               return (
-                <button onClick={() => onPlay(top, 'mix', diff, filter)}
-                  className="menu-submode-card menu-submode-card-mix card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
-                  style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}>
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl"
-                    style={{ background: 'var(--gold-soft)' }}>{MIX_MODE.icon}</span>
+                <button
+                  onClick={() => onPlay(top, 'mix', diff, filter)}
+                  className={`menu-submode-card menu-submode-card-${top} menu-submode-card-mix card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]`}
+                >
+                  <span className="menu-submode-icon menu-submode-icon-mix grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl">
+                    {MIX_MODE.icon}
+                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-bold" style={{ color: 'var(--gold-bright)' }}>{MIX_MODE.name}</span>
                     <span className="block text-xs" style={{ color: 'var(--text-dim)' }}>
@@ -665,15 +696,14 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                     </span>
                   </span>
                   {info && (
-                    <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style={{ background: 'var(--bg-input)', color: 'var(--text-dim)' }}>
+                    <span className="menu-submode-info shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold">
                       {info}
                     </span>
                   )}
                 </button>
               )
             })()}
-          </div>
+          </section>
         </div>
       )}
 

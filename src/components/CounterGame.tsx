@@ -6,6 +6,7 @@ import { copyToClipboard } from '../game/share'
 import { getTimedSecondsLeft } from '../game/timed'
 import CounterBoard from './CounterBoard'
 import ExitConfirm from './ExitConfirm'
+import GameBackdrop from './game/GameBackdrop'
 
 interface Props {
   onExit: () => void
@@ -137,7 +138,9 @@ export default function CounterGame({ onExit }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col items-center gap-4 px-3 pb-10">
+    <div className="relative isolate min-h-[100dvh] w-full overflow-x-hidden">
+      <GameBackdrop src="/mg-counter.png" />
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col items-center gap-4 px-3 pb-10">
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2" style={{ borderColor: 'var(--border)' }}>
         {/*
@@ -255,6 +258,7 @@ export default function CounterGame({ onExit }: Props) {
           {' '}Karar verirken <b style={{ color: 'var(--danger-text)' }}>süre akmaya devam ediyor.</b>
         </ExitConfirm>
       )}
+      </div>
     </div>
   )
 }

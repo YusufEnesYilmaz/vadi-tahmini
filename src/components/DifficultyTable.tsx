@@ -247,36 +247,38 @@ const SECTIONS: SectionDef[] = [
 
 export default function DifficultyTable() {
   return (
-    <div className="flex w-full flex-col gap-4">
-      {/* Üst Kartlar: 4 Zorluk Seviyesinin Hızlı Özeti */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="difficulty-table-shell flex w-full flex-col gap-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {DIFF_META.map((m) => (
           <div
             key={m.id}
-            className="flex flex-col items-center rounded-xl border p-2 text-center transition-transform hover:scale-[1.02]"
-            style={{ background: m.bgColor, borderColor: m.borderColor }}
+            className={`difficulty-overview-card difficulty-overview-card-${m.id} rounded-2xl border px-3 py-3 text-left`}
           >
-            <div className="flex items-center gap-1.5 font-bold text-sm" style={{ color: m.color }}>
-              <span>{m.icon}</span>
-              <span>{m.name}</span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 font-bold text-sm" style={{ color: m.color }}>
+                <span className="difficulty-overview-icon text-base">{m.icon}</span>
+                <span className="font-display text-base">{m.name}</span>
+              </div>
+              <span className="difficulty-overview-tag rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
+                {m.shortName}
+              </span>
             </div>
-            <span className="mt-1 text-[11px] font-medium opacity-90" style={{ color: 'var(--text)' }}>
+            <span className="mt-2 block text-[11px] font-medium leading-relaxed opacity-90" style={{ color: 'var(--text)' }}>
               {badgeText(m.id)}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Detaylı Kategorize Edilmiş Karşılaştırma Tablosu */}
-      <div className="w-full overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
-        <table className="w-full min-w-[500px] border-collapse text-left text-xs sm:text-xs">
+      <div className="difficulty-table-wrap w-full overflow-x-auto rounded-[22px] border">
+        <table className="difficulty-table w-full min-w-[560px] border-collapse text-left text-xs sm:text-xs">
           <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border)', background: 'rgba(255, 255, 255, 0.03)' }}>
-              <th className="w-[40%] p-2.5 text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
-                İpucu & Kural
+            <tr className="difficulty-table-head border-b">
+              <th className="w-[40%] px-3 py-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-dim)' }}>
+                İpuçları & Kurallar
               </th>
               {DIFF_META.map((m) => (
-                <th key={m.id} className="p-2.5 text-center font-bold text-xs" style={{ color: m.color }}>
+                <th key={m.id} className={`difficulty-table-col difficulty-table-col-${m.id} px-2 py-3 text-center font-bold text-xs`}>
                   {m.name}
                 </th>
               ))}
@@ -285,30 +287,24 @@ export default function DifficultyTable() {
           <tbody>
             {SECTIONS.map((sec) => (
               <React.Fragment key={sec.title}>
-                {/* Bölüm Başlığı */}
-                <tr style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
-                  <td colSpan={5} className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--gold-bright)' }}>
+                <tr className="difficulty-table-section">
+                  <td colSpan={5} className="px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--hextech)' }}>
                     {sec.title}
                   </td>
                 </tr>
-                {/* Bölüm Satırları */}
                 {sec.rows.map((row, idx) => (
                   <tr
                     key={row.label}
-                    className="border-b transition-colors hover:bg-white/[0.04]"
-                    style={{
-                      borderColor: 'rgba(255, 255, 255, 0.04)',
-                      background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)',
-                    }}
+                    className={`difficulty-table-row border-b transition-colors ${idx % 2 === 1 ? 'is-alt' : ''}`}
                   >
-                    <td className="px-3 py-2 text-xs font-medium" style={{ color: 'var(--text)' }}>
-                      <span className="mr-1.5">{row.icon}</span>
+                    <td className="difficulty-table-label px-3 py-2.5 text-xs font-medium" style={{ color: 'var(--text)' }}>
+                      <span className="mr-2 opacity-85">{row.icon}</span>
                       {row.label}
                     </td>
                     {DIFF_META.map((m) => {
                       const rules = RULES[m.id]
                       return (
-                        <td key={m.id} className="px-2 py-2 text-center text-xs">
+                        <td key={m.id} className={`difficulty-table-cell difficulty-table-cell-${m.id} px-2 py-2.5 text-center text-xs`}>
                           {row.render(rules)}
                         </td>
                       )
@@ -321,9 +317,8 @@ export default function DifficultyTable() {
         </table>
       </div>
 
-      {/* Alt Açıklama Bilgisi */}
-      <p className="text-[11px] leading-relaxed opacity-85" style={{ color: 'var(--text-dim)' }}>
-        💡 <b style={{ color: 'var(--text)' }}>Not:</b> Günlük bulmacalar her zaman <b style={{ color: 'var(--gold)' }}>Normal</b> zorluk seviyesinde oynanır. Zamana Karşı modunda tahmin hakkı sınırı yoktur, performans süreye dayanır.
+      <p className="difficulty-table-note text-[11px] leading-relaxed opacity-85" style={{ color: 'var(--text-dim)' }}>
+        <b style={{ color: 'var(--text)' }}>Not:</b> Günlük bulmacalar her zaman <b style={{ color: 'var(--gold)' }}>Normal</b> zorluk seviyesinde oynanır. Zamana Karşı modunda tahmin hakkı sınırı yoktur, performans süreye dayanır.
       </p>
     </div>
   )

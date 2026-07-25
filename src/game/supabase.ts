@@ -179,6 +179,32 @@ async function callLeaderboard(mode: string, date?: string): Promise<Leaderboard
   }
 }
 
+/**
+ * "Hata bildir" raporunu site üzerinden Supabase'e yazar (`vt_reports`).
+ * Kullanıcı raporu Supabase panelinden okur. `{ error }` OKUNUR (rpc exception
+ * atmaz). Başarıda `true`; Supabase yoksa/başarısızsa `false` → çağıran mailto
+ * yedeğine düşebilir.
+ */
+export async function submitReport(context: string, message: string, diagnostic: string): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase.rpc('submit_report', {
+      p_player_id: getPlayerId(),
+      p_context: context,
+      p_message: message,
+      p_diagnostic: diagnostic,
+    })
+    if (error) {
+      console.error('Report submit failed:', error.message)
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error('Report submit failed:', err instanceof Error ? err.message : err)
+    return false
+  }
+}
+
 /** Zamana Karşı sıralamasını getirir (yüksek skor üste) */
 export async function getTimedLeaderboard(sub: string, diff: string): Promise<LeaderboardLoadResult> {
   const mode = `timed:${sub}:${diff}`

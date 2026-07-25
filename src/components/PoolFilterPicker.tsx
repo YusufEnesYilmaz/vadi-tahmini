@@ -22,13 +22,13 @@ function Group({
 }) {
   const picked = selected(value, kind)
   return (
-    <div className="mt-3 first:mt-0">
-      <div className="mb-1.5 flex items-center gap-2">
-        <h4 className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
+    <div className="pool-filter-group rounded-2xl border p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <h4 className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--hextech)' }}>
           {title}
         </h4>
         {picked.length > 0 && (
-          <span className="text-xs" style={{ color: 'var(--gold)' }}>{picked.length} seçili</span>
+          <span className="pool-filter-picked text-[11px] font-semibold" style={{ color: 'var(--gold)' }}>{picked.length} seçili</span>
         )}
       </div>
       <div className="flex flex-wrap gap-2">
@@ -37,14 +37,13 @@ function Group({
           // Sayı: bu seçeneğe dokunursam havuz kaç olur (diğer gruplar hesaba katılır)
           const n = countWith(value, kind, o)
           return (
-            <button key={o} onClick={() => onChange(toggleValue(value, kind, o))}
-              className="card-btn rounded-md border px-2.5 py-1 text-xs font-semibold"
-              style={{
-                borderColor: active ? 'var(--gold)' : 'var(--border)',
-                background: active ? 'var(--gold)' : 'transparent',
-                color: active ? 'var(--on-gold)' : 'var(--text)',
-              }}>
-              {active && '✓ '}{o} <span style={{ opacity: 0.7 }}>{n}</span>
+            <button
+              key={o}
+              onClick={() => onChange(toggleValue(value, kind, o))}
+              aria-pressed={active}
+              className={`pool-filter-chip card-btn rounded-full border px-3 py-1.5 text-xs font-semibold ${active ? 'is-active' : ''}`}
+            >
+              {active && '✓ '}{o} <span className="pool-filter-chip-count">{n}</span>
             </button>
           )
         })}
@@ -64,50 +63,57 @@ export default function PoolFilterPicker({ value, onChange }: Props) {
   const count = poolCount(value)
 
   return (
-    <div>
-      <div className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2"
-        style={{ borderColor: isAll ? 'var(--border)' : 'var(--gold)', background: 'var(--bg-card)' }}>
-        <span className="min-w-0 truncate text-sm">
-          <span style={{ color: 'var(--text-dim)' }}>Havuz: </span>
-          <b style={{ color: isAll ? 'var(--text)' : 'var(--gold)' }}>{filterLabel(value)}</b>
-          <span className="text-xs" style={{ color: count === 0 ? 'var(--danger-text)' : 'var(--text-dim)' }}>
-            {' '}· {count} şampiyon
-          </span>
-        </span>
-        <div className="flex shrink-0 gap-2">
+    <div className="menu-subpanel pool-filter-shell rounded-[22px] border p-3 sm:p-4">
+      <div className="pool-filter-summary flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="font-display text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>Havuz Filtresi</span>
+            <span className={`pool-filter-count rounded-full border px-2.5 py-1 text-[11px] font-semibold ${count === 0 && !isAll ? 'is-empty' : ''}`}>
+              {count} şampiyon
+            </span>
+          </div>
+          <p className="mt-1 text-sm">
+            <span style={{ color: 'var(--text-dim)' }}>Seçim: </span>
+            <b style={{ color: isAll ? 'var(--text)' : 'var(--gold-bright)' }}>{filterLabel(value)}</b>
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
           {!isAll && (
-            <button onClick={() => onChange(ALL_FILTER)} className="text-xs underline underline-offset-2"
-              style={{ color: 'var(--text-dim)' }}>
-              sıfırla
+            <button
+              onClick={() => onChange(ALL_FILTER)}
+              className="pool-filter-summary-btn rounded-full border px-3 py-1 text-xs font-semibold"
+            >
+              Sıfırla
             </button>
           )}
-          <button onClick={() => setOpen((v) => !v)} className="text-xs underline underline-offset-2"
-            style={{ color: 'var(--gold)' }}>
-            {open ? 'gizle' : 'değiştir'}
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="pool-filter-summary-btn pool-filter-toggle rounded-full border px-3 py-1 text-xs font-semibold"
+          >
+            {open ? 'Filtreyi Gizle' : 'Filtreyi Aç'}
           </button>
         </div>
       </div>
 
       {open && (
-        <div className="anim-pop mt-2 rounded-xl border p-3"
-          style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
-          <Group title="Bölge" kind="region" options={regionOptions()} value={value} onChange={onChange} />
-          <Group title="Rol" kind="role" options={roleOptions()} value={value} onChange={onChange} />
-          <Group title="Koridor" kind="lane" options={laneOptions()} value={value} onChange={onChange} />
+        <div className="pool-filter-panel anim-pop mt-3 rounded-[20px] border p-3 sm:p-4">
+          <div className="grid gap-3 lg:grid-cols-3">
+            <Group title="Bölge" kind="region" options={regionOptions()} value={value} onChange={onChange} />
+            <Group title="Rol" kind="role" options={roleOptions()} value={value} onChange={onChange} />
+            <Group title="Koridor" kind="lane" options={laneOptions()} value={value} onChange={onChange} />
+          </div>
 
-          {/* Seçim havuzu boşaltırsa oyun tüm havuza döner — kullanıcı bunu bilsin */}
           {count === 0 && !isAll && (
-            <p className="mt-3 rounded-xl border px-3 py-2 text-xs"
-              style={{ borderColor: 'var(--danger-text)', color: 'var(--danger-text)' }}>
-              Bu kombinasyona uyan şampiyon yok — oyun filtreyi yok sayıp tüm havuzdan soracak.
+            <p className="pool-filter-warning mt-3 rounded-2xl border px-3 py-2 text-xs">
+              Bu kombinasyona uyan şampiyon yok. Oyun filtreyi yok sayıp tüm havuzdan soracak.
             </p>
           )}
 
-          <p className="mt-3 text-xs" style={{ color: 'var(--text-dim)' }}>
+          <p className="pool-filter-help mt-3 text-xs" style={{ color: 'var(--text-dim)' }}>
             Çoklu seçim yapabilirsin: aynı grupta birden fazla seçenek <b>veya</b> demektir
             (Noxus + Ionia = ikisinden biri), farklı gruplar <b>ve</b> ile birleşir
             (Noxus + Büyücü = Noxus'lu büyücüler). Seçiliye tekrar dokunmak kaldırır.
-            Günlük modda filtre yoktur — herkes aynı bulmacayı çözer. İstatistikler filtreye göre ayrılmaz.
+            Günlük modda filtre yoktur; herkes aynı bulmacayı çözer. İstatistikler filtreye göre ayrılmaz.
           </p>
         </div>
       )}

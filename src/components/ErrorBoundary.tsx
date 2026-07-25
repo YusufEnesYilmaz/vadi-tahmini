@@ -1,4 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { buildDiagnostic, reportMailtoUrl } from '../game/report'
+import { submitReport, isLeaderboardEnabled } from '../game/supabase'
 
 interface Props {
   children: ReactNode
@@ -6,6 +8,8 @@ interface Props {
 
 interface State {
   error: Error | null
+  stack?: string
+  reportStatus?: 'idle' | 'sending' | 'sent' | 'error'
 }
 
 /**
@@ -25,10 +29,26 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo) {
     // Konsola bas: kullanıcı hata mesajını bize iletebilsin
     console.error('Beklenmeyen hata:', error, info.componentStack)
+    // Stack'i sakla: rapora eklensin
+    this.setState({ stack: info.componentStack ?? undefined })
+  }
+
+  // Çökünce kullanıcı yazamaz — değer stack'te. Tek tıkla OTOMATİK gönder
+  // (site üzerinden Supabase'e); Supabase yoksa/başarısızsa mailto yedeği.
+  reportCrash = () => {
+    const { error, stack } = this.state
+    const detail = `${error?.message ?? ''}\n\n${stack ?? ''}`
+    if (!isLeaderboardEnabled) {
+      window.location.href = reportMailtoUrl('Çöküş', '(otomatik çöküş raporu)', detail)
+      return
+    }
+    this.setState({ reportStatus: 'sending' })
+    void submitReport('Çöküş', '(otomatik çöküş raporu)', buildDiagnostic('Çöküş', detail))
+      .then((ok) => this.setState({ reportStatus: ok ? 'sent' : 'error' }))
   }
 
   render() {
-    const { error } = this.state
+    const { error, stack, reportStatus } = this.state
     if (!error) return this.props.children
 
     return (
@@ -51,7 +71,22 @@ export default class ErrorBoundary extends Component<Props, State> {
             style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
             Sayfayı yenile
           </button>
+          <button onClick={this.reportCrash}
+            disabled={reportStatus === 'sending' || reportStatus === 'sent'}
+            className="card-btn rounded-xl border px-5 py-2.5 font-bold disabled:opacity-60"
+            style={{ borderColor: 'var(--border)', color: reportStatus === 'sent' ? 'var(--accent-done)' : 'var(--text-dim)' }}>
+            {reportStatus === 'sending' ? 'Gönderiliyor...' : reportStatus === 'sent' ? '✓ Gönderildi' : '🐛 Bu hatayı bildir'}
+          </button>
         </div>
+
+        {reportStatus === 'error' ? (
+          <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
+            Gönderilemedi.{' '}
+            <a href={reportMailtoUrl('Çöküş', '(otomatik çöküş raporu)', `${error.message}\n\n${stack ?? ''}`)} style={{ color: 'var(--gold)' }}>
+              E-posta ile bildir
+            </a>
+          </p>
+        ) : null}
 
         {/* Hata metni: kullanıcı ekran görüntüsüyle iletebilsin diye açık */}
         <details className="w-full text-left">

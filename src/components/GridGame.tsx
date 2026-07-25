@@ -188,7 +188,7 @@ export default function GridGame({ daily = false, onExit }: Props) {
     : null
 
   return (
-    <GameShell>
+    <GameShell bg="/mg-grid.png">
       {won && <WinConfetti />}
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"

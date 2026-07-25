@@ -21,6 +21,7 @@ import ClassicBoard from './ClassicBoard'
 import HowTo from './HowTo'
 import PuzzleView from './PuzzleView'
 import WinConfetti from './game/WinConfetti'
+import GameBackdrop from './game/GameBackdrop'
 import GameHeader from './game/GameHeader'
 
 interface Props {
@@ -477,7 +478,9 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
   const stats = getStats(top, sub, diff)
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl lg:max-w-4xl flex-col items-center gap-4 px-3 pb-10">
+    <div className="relative isolate min-h-[100dvh] w-full overflow-x-hidden">
+      <GameBackdrop src="/mg-main.png" />
+      <div className="relative z-10 mx-auto flex w-full max-w-3xl lg:max-w-4xl flex-col items-center gap-4 px-3 pb-10">
       {/* Ekran okuyucu duyurusu — görsel olarak gizli, tahmin sonucunu sesli okur */}
       <div className="sr-only" role="status" aria-live="polite">{announce}</div>
 
@@ -781,6 +784,7 @@ export default function GameScreen({ top, sub, diff, filter, onPlaySub, onExit }
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

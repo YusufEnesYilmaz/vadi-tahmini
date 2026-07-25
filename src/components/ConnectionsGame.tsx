@@ -221,7 +221,7 @@ export default function ConnectionsGame({ daily = false, onExit }: Props) {
   const unsolvedGroups = over && !won ? puzzle.groups.filter((g) => !solved.some((s) => s.id === g.id)) : []
 
   return (
-    <GameShell>
+    <GameShell bg="/mg-connections.png">
       {won && <WinConfetti />}
       {/* Üst bar */}
       <div className="flex w-full items-center justify-between gap-2 border-b pt-3 pb-2"

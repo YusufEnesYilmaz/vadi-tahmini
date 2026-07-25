@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ChangeEvent, type ReactNode } from 'react'
 import { applyBackup, clearProgress, downloadBackup } from '../game/backup'
 import { getNick, setNick, getPlayerId } from '../game/challenge'
 import { PATCH } from '../game/data'
+import ReportModal from './ReportModal'
 import { getDifficulty } from '../game/difficulty'
 import { godMode, godModeAvailable, setGodMode } from '../game/dev'
 import {
@@ -26,21 +27,26 @@ function SectionHead({
   icon,
   title,
   detail,
+  accentRgb = 'var(--gold-rgb)',
   right,
 }: {
-  icon: string
+  icon: ReactNode
   title: string
   detail?: string
+  accentRgb?: string
   right?: ReactNode
 }) {
   return (
-    <div className="flex items-start gap-3">
+    <div
+      className="settings-section-head flex items-start gap-3"
+      style={
+        {
+          '--sec-accent-rgb': accentRgb,
+        } as CSSProperties
+      }
+    >
       <span
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-xl"
-        style={{
-          background: 'linear-gradient(180deg, rgba(var(--gold-rgb), 0.18), rgba(var(--hextech-rgb), 0.14))',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 0 24px -14px rgba(var(--hextech-rgb), 0.9)',
-        }}
+        className="settings-section-badge grid h-11 w-11 shrink-0 place-items-center rounded-2xl"
         aria-hidden
       >
         {icon}
@@ -61,6 +67,70 @@ function SectionHead({
         </div>
       </div>
     </div>
+  )
+}
+
+/** Bölüm başlığı çizgi ikonları — emoji yerine (OS'e göre değişip sıkışık/tutarsız duruyordu).
+ *  Rozetin `color`'u accent olduğu için `stroke=currentColor` accent rengini alır. */
+const SECTION_GLYPHS = {
+  menu: (
+    <>
+      <rect x="4" y="4" width="7" height="7" rx="1.6" />
+      <rect x="13" y="4" width="7" height="7" rx="1.6" />
+      <rect x="4" y="13" width="7" height="7" rx="1.6" />
+      <rect x="13" y="13" width="7" height="7" rx="1.6" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="3.4" />
+      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+    </>
+  ),
+  volume: (
+    <>
+      <path d="M4 9.5v5h3l4.5 3.5v-12L7 9.5H4Z" />
+      <path d="M15.4 9.2a4 4 0 0 1 0 5.6" />
+      <path d="M18 6.6a7.5 7.5 0 0 1 0 10.8" />
+    </>
+  ),
+  save: (
+    <>
+      <path d="M5 4.5h10.4l3.1 3.1V19a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5Z" />
+      <path d="M8 4.5v4h6v-4" />
+      <rect x="8" y="12" width="8" height="5.5" rx="0.7" />
+    </>
+  ),
+  version: (
+    <>
+      <path d="M4.6 12a7.4 7.4 0 0 1 12.7-5.2L20 9" />
+      <path d="M20 4.6V9h-4.4" />
+      <path d="M19.4 12a7.4 7.4 0 0 1-12.7 5.2L4 15" />
+      <path d="M4 19.4V15h4.4" />
+    </>
+  ),
+  dev: (
+    <>
+      <path d="M9 8 5 12l4 4" />
+      <path d="M15 8l4 4-4 4" />
+      <path d="M13.2 5.5 10.8 18.5" />
+    </>
+  ),
+  image: (
+    <>
+      <rect x="3.5" y="5" width="17" height="14" rx="2" />
+      <circle cx="8.5" cy="10" r="1.6" />
+      <path d="M4 17.5 9.5 12l3.5 3.5L16 12l4 4.5" />
+    </>
+  ),
+} as const
+
+function SectionGlyph({ name }: { name: keyof typeof SECTION_GLYPHS }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}
+      strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      {SECTION_GLYPHS[name]}
+    </svg>
   )
 }
 
@@ -91,53 +161,122 @@ function Toggle({ on, onToggle, label }: { on: boolean; onToggle: () => void; la
   )
 }
 
+/** Menü hub kartlarının çizgi ikonları — emoji yerine (OS'e göre değişip düz duruyordu).
+ *  `currentColor` ile badge'in accent rengini alır. */
+const SHORTCUT_GLYPHS = {
+  howto: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.2 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.6 2.3-2.6 3.7" />
+      <circle cx="12" cy="17.3" r="0.9" fill="currentColor" stroke="none" />
+    </>
+  ),
+  stats: (
+    <>
+      <path d="M4 20h16" />
+      <rect x="6" y="12.5" width="3.2" height="5.5" rx="0.7" />
+      <rect x="10.4" y="7.5" width="3.2" height="10.5" rx="0.7" />
+      <rect x="14.8" y="10" width="3.2" height="8" rx="0.7" />
+    </>
+  ),
+  trophy: (
+    <>
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </>
+  ),
+  medal: (
+    <>
+      <circle cx="12" cy="9" r="6" />
+      <path d="M8.6 13.7 7 22l5-3 5 3-1.6-8.3" />
+      <path d="M12 6.2l1 2 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2L9 8.5l2-.3z" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
+      <path d="M3.5 9.5h17" />
+      <path d="M8 2.8v3.4" />
+      <path d="M16 2.8v3.4" />
+      <path d="M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2" />
+    </>
+  ),
+} as const
+
+function ShortcutGlyph({ name }: { name: keyof typeof SHORTCUT_GLYPHS }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}
+      strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      {SHORTCUT_GLYPHS[name]}
+    </svg>
+  )
+}
+
 function ShortcutCard({
   icon,
   title,
   desc,
-  accent,
+  accentRgb,
   onClick,
+  className = '',
 }: {
-  icon: string
+  icon: ReactNode
   title: string
   desc: string
-  accent: string
+  accentRgb: string
   onClick: () => void
+  className?: string
 }) {
   return (
     <button
       onClick={onClick}
-      className="card-btn settings-shortcut-card group flex h-full min-h-[144px] flex-col items-start justify-between rounded-[24px] border p-4 text-left"
-      style={{
-        borderColor: 'rgba(var(--gold-rgb), 0.16)',
-        background: `linear-gradient(160deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.72)), radial-gradient(circle at 100% 0, ${accent}, transparent 44%)`,
-      }}
+      className={`card-btn settings-shortcut-card group flex h-full min-h-[156px] flex-col items-start justify-between gap-5 rounded-[26px] border p-4 text-left sm:p-5 ${className}`}
+      style={
+        {
+          '--card-accent-rgb': accentRgb,
+        } as CSSProperties
+      }
     >
-      <span
-        className="grid h-12 w-12 place-items-center rounded-2xl text-2xl shadow-inner transition-transform duration-300 group-hover:scale-110"
-        style={{
-          background: 'rgba(var(--bg-rgb), 0.56)',
-          color: 'var(--gold-bright)',
-          border: '1px solid rgba(var(--gold-rgb), 0.16)',
-        }}
-        aria-hidden
-      >
-        {icon}
-      </span>
-      <span className="block min-w-0">
-        <span className="block text-base font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
-          {title}
+      <span className="flex w-full items-start gap-4">
+        <span className="settings-shortcut-badge grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[20px]" aria-hidden>
+          {icon}
         </span>
-        <span className="mt-1 block text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
-          {desc}
+        <span className="block min-w-0 flex-1 pt-0.5">
+          <span className="settings-shortcut-title block text-[1.02rem] font-bold tracking-tight">{title}</span>
+          <span className="settings-shortcut-desc mt-1.5 block text-sm leading-6">{desc}</span>
         </span>
       </span>
-      <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--hextech)' }}>
-        Aç →
+      <span className="settings-shortcut-card__cta inline-flex items-center gap-2 rounded-full px-3 py-2 text-[0.68rem] font-bold uppercase tracking-[0.22em]">
+        <span>Aç</span>
+        <span className="settings-shortcut-card__cta-arrow text-sm" aria-hidden>
+          →
+        </span>
       </span>
     </button>
   )
 }
+
+/** İndirilebilir Arcane duvar kağıtları — `public/`'teki üretilmiş arka planlar (hepsi yazı/karakter/watermark YOK). */
+const WALLPAPERS: { file: string; name: string; slug: string }[] = [
+  { file: '/mg-main.png', name: 'Hextech Arena', slug: 'hextech-arena' },
+  { file: '/arcane-menu-bg.png', name: 'Zaun & Piltover', slug: 'zaun-piltover' },
+  { file: '/card-endless.png', name: 'Sınırsız', slug: 'sinirsiz' },
+  { file: '/card-daily.png', name: 'Günlük', slug: 'gunluk' },
+  { file: '/card-timed.png', name: 'Zamana Karşı', slug: 'zamana-karsi' },
+  { file: '/mg-wordle.png', name: 'Kelime · Rün Arşivi', slug: 'kelime' },
+  { file: '/mg-bingo.png', name: 'Bingo', slug: 'bingo' },
+  { file: '/mg-timeline.png', name: 'Zaman Tüneli', slug: 'zaman-tuneli' },
+  { file: '/mg-hunt.png', name: 'Şampiyon Avı', slug: 'sampiyon-avi' },
+  { file: '/mg-grid.png', name: 'Dokuz Kare', slug: 'dokuz-kare' },
+  { file: '/mg-connections.png', name: 'Bağlantılar', slug: 'baglantilar' },
+  { file: '/mg-counter.png', name: 'Kaç Tane?', slug: 'kac-tane' },
+  { file: '/settings-bg.png', name: 'Hextech Atölye', slug: 'hextech-atolye' },
+  { file: '/menu-section-bg.png', name: 'Hextech Geçidi', slug: 'hextech-gecidi' },
+]
 
 export default function Settings({ onExit }: { onExit: () => void }) {
   const [sfx, setSfx] = useState(sfxEnabled)
@@ -152,6 +291,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [leaderboardOpen, setLeaderboardOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
   const [god, setGod] = useState(godMode)
   const updateReady = useUpdateAvailable()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -256,7 +396,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end">
             <div className="min-w-0">
-              <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: 'var(--gold-bright)' }}>
+              <h1 className="text-shimmer font-display text-3xl font-bold tracking-tight sm:text-4xl">
                 Ayarlar
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]" style={{ color: 'var(--text)' }}>
@@ -302,47 +442,53 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
           <div className="relative">
             <SectionHead
-            icon="🎮"
-            title="Menü"
-            detail="Nasıl Oynanır, İstatistikler, Başarımlar, Sıralama ve Takvim buradan açılır."
-          />
+              icon={<SectionGlyph name="menu" />}
+              title="Menü"
+              detail="Nasıl Oynanır, İstatistikler, Başarımlar, Sıralama ve Takvim buradan açılır."
+              accentRgb="var(--hextech-rgb)"
+            />
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <ShortcutCard
-              icon="❔"
-              title="Nasıl Oynanır"
-              desc="Modları, ipuçlarını ve mini oyun kurallarını yeniden gözden geçir."
-              accent="rgba(var(--gold-rgb), 0.18)"
-              onClick={() => setHowToOpen(true)}
-            />
-            <ShortcutCard
-              icon="📊"
-              title="İstatistikler"
-              desc="Serileri, rekorları ve mod bazlı performansını tek pencerede gör."
-              accent="rgba(var(--hextech-rgb), 0.22)"
-              onClick={() => setStatsOpen(true)}
-            />
-            <ShortcutCard
-              icon="🏆"
-              title="Başarımlar"
-              desc="Rozet vitrini, ilerleme çubuğu ve kategori bazlı tamamlanma durumu."
-              accent="rgba(var(--gold-glow-rgb), 0.2)"
-              onClick={() => setAchievementsOpen(true)}
-            />
-            <ShortcutCard
-              icon="🥇"
-              title="Sıralama"
-              desc="Günlük ve zamana karşı liderlik tablolarını aynı yerden aç."
-              accent="rgba(var(--accent-endless-rgb), 0.18)"
-              onClick={() => setLeaderboardOpen(true)}
-            />
-            <ShortcutCard
-              icon="📅"
-              title="Takvim"
-              desc="Geçmiş günlük cevapları ve tamamlama takibini hızlıca incele."
-              accent="rgba(var(--accent-done-rgb), 0.18)"
-              onClick={() => setCalendarOpen(true)}
-            />
+            <div className="mt-4 grid gap-3 md:grid-cols-6 lg:gap-4">
+              <ShortcutCard
+                className="md:col-span-2"
+                icon={<ShortcutGlyph name="howto" />}
+                title="Nasıl Oynanır"
+                desc="Modları, ipuçlarını ve mini oyun kurallarını yeniden gözden geçir."
+                accentRgb="var(--gold-rgb)"
+                onClick={() => setHowToOpen(true)}
+              />
+              <ShortcutCard
+                className="md:col-span-2"
+                icon={<ShortcutGlyph name="stats" />}
+                title="İstatistikler"
+                desc="Serileri, rekorları ve mod bazlı performansını tek pencerede gör."
+                accentRgb="var(--hextech-rgb)"
+                onClick={() => setStatsOpen(true)}
+              />
+              <ShortcutCard
+                className="md:col-span-2"
+                icon={<ShortcutGlyph name="trophy" />}
+                title="Başarımlar"
+                desc="Rozet vitrini, ilerleme çubuğu ve kategori bazlı tamamlanma durumu."
+                accentRgb="var(--gold-glow-rgb)"
+                onClick={() => setAchievementsOpen(true)}
+              />
+              <ShortcutCard
+                className="md:col-span-3"
+                icon={<ShortcutGlyph name="medal" />}
+                title="Sıralama"
+                desc="Günlük ve zamana karşı liderlik tablolarını aynı yerden aç."
+                accentRgb="var(--accent-endless-rgb)"
+                onClick={() => setLeaderboardOpen(true)}
+              />
+              <ShortcutCard
+                className="md:col-span-3"
+                icon={<ShortcutGlyph name="calendar" />}
+                title="Takvim"
+                desc="Geçmiş günlük cevapları ve tamamlama takibini hızlıca incele."
+                accentRgb="var(--accent-done-rgb)"
+                onClick={() => setCalendarOpen(true)}
+              />
             </div>
           </div>
         </section>
@@ -351,7 +497,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
           <div className="flex min-w-0 flex-col gap-4">
             <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
               <SectionHead
-                icon="👤"
+                icon={<SectionGlyph name="user" />}
                 title="Takma Ad"
                 detail="Meydan oku linkinde ve sıralamada görünür."
               />
@@ -377,9 +523,10 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
             <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
               <SectionHead
-                icon="🔊"
+                icon={<SectionGlyph name="volume" />}
                 title="Ses & Efektler"
                 detail="Tahmin, arayüz ve replik efektlerini yönet."
+                accentRgb="var(--gold-glow-rgb)"
                 right={
                   <Toggle
                     on={sfx}
@@ -434,9 +581,10 @@ export default function Settings({ onExit }: { onExit: () => void }) {
 
             <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
               <SectionHead
-                icon="💾"
+                icon={<SectionGlyph name="save" />}
                 title="İlerleme"
                 detail="Rozet, seri, rekor ve istatistikler yalnız bu cihazda saklanır. Cihaz değiştirmeden veya tarayıcı verisini temizlemeden önce yedek al."
+                accentRgb="var(--accent-endless-rgb)"
               />
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -483,9 +631,10 @@ export default function Settings({ onExit }: { onExit: () => void }) {
               style={{ borderColor: updateReady ? 'rgba(var(--gold-rgb), 0.48)' : undefined }}
             >
               <SectionHead
-                icon="⬆️"
+                icon={<SectionGlyph name="version" />}
                 title="Sürüm"
                 detail={updateReady ? 'Yeni sürüm arka planda hazır. İlerleme ve kayıtlar korunur.' : 'Yeni sürüm çıktığında burada ve menüdeki Ayarlar rozetinde bildirilir.'}
+                accentRgb="var(--accent-done-rgb)"
                 right={
                   !updateReady ? (
                     <span
@@ -539,18 +688,27 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                 >
                   {updating ? 'Önbellek temizleniyor...' : 'Elle denetle ve önbelleği temizle'}
                 </button>
+
+                <button
+                  onClick={() => setReportOpen(true)}
+                  className="card-btn w-full rounded-2xl border px-4 py-3 text-sm font-semibold"
+                  style={{ borderColor: 'rgba(var(--gold-rgb), 0.16)', color: 'var(--text-dim)' }}
+                >
+                  🐛 Hata bildir
+                </button>
               </div>
             </section>
 
             <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
               <SectionHead
-                icon="🛠"
+                icon={<SectionGlyph name="dev" />}
                 title="Geliştirici"
                 detail={
                   godModeAvailable
                     ? 'Açıkken Günlük, Kelime ve Bingo kilitlenmez; her giriş taze başlar.'
                     : 'Bu bölüm yalnız localhost geliştirme ortamında etkinleşir; canlıda kapalı kalır.'
                 }
+                accentRgb="var(--accent-timed-rgb)"
                 right={
                   godModeAvailable ? (
                     <Toggle
@@ -604,6 +762,47 @@ export default function Settings({ onExit }: { onExit: () => void }) {
           </div>
         </div>
 
+        <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
+          <SectionHead
+            icon={<SectionGlyph name="image" />}
+            title="Duvar Kağıtları"
+            detail="Oyunun Arcane temalı arka planlarını indir. Görseller çevrimiçi yüklenir."
+            accentRgb="var(--hextech-rgb)"
+          />
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {WALLPAPERS.map((w) => (
+              <a
+                key={w.file}
+                href={w.file}
+                download={`vadi-tahmini-${w.slug}.png`}
+                className="card-btn group relative block overflow-hidden rounded-2xl border"
+                style={{ borderColor: 'rgba(var(--gold-rgb), 0.18)' }}
+                aria-label={`${w.name} duvar kağıdını indir`}
+              >
+                <img
+                  src={w.file}
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                  className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <span
+                  className="pointer-events-none absolute inset-0 flex flex-col justify-end gap-1 p-3"
+                  style={{ background: 'linear-gradient(180deg, transparent 38%, rgba(var(--bg-rgb), 0.88))' }}
+                >
+                  <span className="text-sm font-bold" style={{ color: 'var(--gold-bright)' }}>
+                    {w.name}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--hextech)' }}>
+                    <span aria-hidden>↓</span> İndir
+                  </span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+
         <p className="px-1 text-center text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>
           Patch {PATCH} · Uygulama otomatik güncellenir.<br />
           Vadi Tahmini, Riot Games ile ilişkili değildir. Şampiyon verileri ve görseller Riot Games'in
@@ -616,6 +815,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         {achievementsOpen && <Achievements onClose={() => setAchievementsOpen(false)} />}
         {leaderboardOpen && <Leaderboard onClose={() => setLeaderboardOpen(false)} />}
         {calendarOpen && <CalendarModal onClose={() => setCalendarOpen(false)} />}
+        {reportOpen && <ReportModal context="Ayarlar" onClose={() => setReportOpen(false)} />}
       </div>
     </>
   )
