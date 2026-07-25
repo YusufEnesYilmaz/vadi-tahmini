@@ -1,17 +1,12 @@
 import { useMemo, useState } from 'react'
-import { CHAMPIONS, PATCH, splashUrl } from '../game/data'
+import { CHAMPIONS, PATCH } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
 import { getBestScore, getDailyHistory, getDailyState, getDailyStreak, getStats, isStreakAlive, normalizeEntry } from '../game/stats'
 import { DAILY_SUBS, DIFFICULTIES, MIX_MODE, SUB_MODES, TOP_MODES, type Difficulty, type PlaySub, type TopMode } from '../game/types'
 import DailyPanel from './DailyPanel'
 import DifficultyTable from './DifficultyTable'
-import HowTo from './HowTo'
-import Stats from './Stats'
-import Achievements from './Achievements'
 import PoolFilterPicker from './PoolFilterPicker'
-import Leaderboard from './Leaderboard'
-import CalendarModal from './CalendarModal'
 import RankModal from './RankModal'
 import Changelog from './Changelog'
 import { hasUnseenChangelog } from '../game/changelog'
@@ -35,18 +30,6 @@ interface Props {
   onCounterMulti: () => void
 }
 
-interface MenuCollageLayout {
-  key: string
-  top?: string
-  right?: string
-  bottom?: string
-  left?: string
-  width: string
-  rotate: string
-  objectPosition: string
-  opacity: number
-}
-
 const LOL_TIPS = [
   '💡 Jinx, Vi ve Ekko Zaun sokaklarında beraber büyümüştür.',
   '💡 Teemo’nun mantarları Vadide 5 dakika boyunca gizlenir.',
@@ -56,33 +39,49 @@ const LOL_TIPS = [
   '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
 ]
 
-const MENU_COLLAGE_LAYOUTS: readonly MenuCollageLayout[] = [
-  { key: 'left-top', top: '2%', left: '-6%', width: 'clamp(340px, 29vw, 560px)', rotate: '-9deg', objectPosition: '30% center', opacity: 0.4 },
-  { key: 'left-mid', top: '29%', left: '-8%', width: 'clamp(360px, 31vw, 590px)', rotate: '-4deg', objectPosition: '42% center', opacity: 0.36 },
-  { key: 'right-top', top: '-2%', right: '-5%', width: 'clamp(340px, 28vw, 550px)', rotate: '8deg', objectPosition: '58% center', opacity: 0.42 },
-  { key: 'right-mid', top: '26%', right: '-7%', width: 'clamp(370px, 31vw, 610px)', rotate: '6deg', objectPosition: '61% center', opacity: 0.38 },
-  { key: 'bottom-left', bottom: '-5%', left: '1%', width: 'clamp(320px, 27vw, 520px)', rotate: '7deg', objectPosition: '38% center', opacity: 0.34 },
-  { key: 'bottom-right', bottom: '-6%', right: '2%', width: 'clamp(330px, 27vw, 530px)', rotate: '-8deg', objectPosition: '62% center', opacity: 0.39 },
-  { key: 'left-low', top: '52%', left: '-5%', width: 'clamp(300px, 25vw, 500px)', rotate: '-5deg', objectPosition: '40% center', opacity: 0.4 },
-  { key: 'bottom-cl', bottom: '-3%', left: '22%', width: 'clamp(300px, 24vw, 470px)', rotate: '6deg', objectPosition: '50% center', opacity: 0.37 },
-  { key: 'bottom-cr', bottom: '-3%', right: '22%', width: 'clamp(300px, 24vw, 470px)', rotate: '-7deg', objectPosition: '52% center', opacity: 0.39 },
-] as const
+type ModeCardId = 'endless' | 'daily' | 'timed'
 
-/**
- * Menü arka plan kolajı için ELLE SEÇİLMİŞ kadro — sıra MENU_COLLAGE_LAYOUTS ile
- * birebir eşleşir (0:sol-üst, 1:sol-orta, 2:sağ-üst, 3:sağ-orta, 4:alt-sol, 5:alt-sağ).
- * Rastgele-günlük seçim yerine sabit kadro: kullanıcı hangi şampiyonların görüneceğini
- * kontrol etsin, sürpriz/istenmeyen splash gelmesin.
- */
-const MENU_COLLAGE_CHAMPIONS = ['Garen', 'Jinx', 'Seraphine', 'Ahri', 'Teemo', 'Yasuo', 'Jhin', 'Vi', 'Caitlyn'] as const
+const MODE_CARD_ART: Record<ModeCardId, { src: string; artClassName: string; overlayClassName: string }> = {
+  endless: {
+    src: '/card-endless.png',
+    artClassName: 'menu-mode-card-art-endless',
+    overlayClassName: 'menu-mode-card-darken-endless',
+  },
+  daily: {
+    src: '/card-daily.png',
+    artClassName: 'menu-mode-card-art-daily',
+    overlayClassName: 'menu-mode-card-darken-daily',
+  },
+  timed: {
+    src: '/card-timed.png',
+    artClassName: 'menu-mode-card-art-timed',
+    overlayClassName: 'menu-mode-card-darken-timed',
+  },
+}
+
+function ModeCardBackdrop({ failed, mode, onError }: { failed: boolean; mode: ModeCardId; onError: (mode: ModeCardId) => void }) {
+  if (failed) return null
+
+  const art = MODE_CARD_ART[mode]
+
+  return (
+    <>
+      <img
+        src={art.src}
+        alt=""
+        aria-hidden="true"
+        className={`menu-mode-card-art ${art.artClassName}`}
+        decoding="async"
+        draggable={false}
+        onError={() => onError(mode)}
+      />
+      <span aria-hidden="true" className={`menu-mode-card-darken ${art.overlayClassName}`} />
+    </>
+  )
+}
 
 export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCounter, onCounterMulti }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
-  const [howTo, setHowTo] = useState(false)
-  const [stats, setStats] = useState(false)
-  const [achievements, setAchievements] = useState(false)
-  const [leaderboard, setLeaderboard] = useState(false)
-  const [calendar, setCalendar] = useState(false)
   const [rank, setRank] = useState(false)
   const [changelog, setChangelog] = useState(false)
   // Kapanınca yeniden hesaplansın diye state — modal "görüldü" yazar, bant söner
@@ -91,7 +90,11 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
   const [soundOn, setSoundOn] = useState(sfxEnabled)
-  const [hiddenCollageSplashes, setHiddenCollageSplashes] = useState<Record<string, boolean>>({})
+  const [modeCardArtFailed, setModeCardArtFailed] = useState<Record<ModeCardId, boolean>>({
+    endless: false,
+    daily: false,
+    timed: false,
+  })
   const updateReady = useUpdateAvailable()
 
   function pickDifficulty(d: Difficulty) {
@@ -108,6 +111,10 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
     const next = !soundOn
     setSoundOn(next)
     setSfxEnabled(next)
+  }
+
+  function handleModeCardArtError(mode: ModeCardId) {
+    setModeCardArtFailed((current) => (current[mode] ? current : { ...current, [mode]: true }))
   }
 
   // Rastgele LoL Vadi İpucu
@@ -127,15 +134,6 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
   const totalAchCount = ACHIEVEMENTS.length
 
   const today = todayKey()
-  const menuCollageSplashes = useMemo(
-    () =>
-      MENU_COLLAGE_LAYOUTS.map((layout, i) => {
-        const id = MENU_COLLAGE_CHAMPIONS[i]
-        return { ...layout, id, src: splashUrl(id, 0) }
-      }),
-    [],
-  )
-
   const todayData = getDailyHistory()[today] ?? {}
   const todayDoneCount = DAILY_SUBS.filter((m) => {
     const entry = normalizeEntry(todayData[m.id])
@@ -155,43 +153,13 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
 
   return (
     // Masaüstünde geniş sahne (5xl) — ana menü iki kolona açılır; mobil tek kolon aynı
-    <div className="relative mx-auto flex w-full max-w-2xl lg:max-w-5xl flex-col items-center gap-3.5 sm:gap-5 px-3.5 sm:px-4 pb-8 pt-3 sm:pt-8">
+    <>
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
-        {menuCollageSplashes.map((splash) => (
-          hiddenCollageSplashes[splash.src]
-            ? null
-            : (
-              <div
-                key={`${splash.key}-${splash.id}`}
-                className="absolute"
-                style={{
-                  top: splash.top,
-                  right: splash.right,
-                  bottom: splash.bottom,
-                  left: splash.left,
-                  width: splash.width,
-                  aspectRatio: '1215 / 717',
-                  transform: `rotate(${splash.rotate})`,
-                }}
-              >
-                <img
-                  src={splash.src}
-                  alt=""
-                  className="menu-collage-splash h-full w-full object-cover"
-                  style={{ objectPosition: splash.objectPosition, opacity: splash.opacity }}
-                  decoding="async"
-                  loading="lazy"
-                  onError={() => {
-                    setHiddenCollageSplashes((prev) => (
-                      prev[splash.src] ? prev : { ...prev, [splash.src]: true }
-                    ))
-                  }}
-                />
-              </div>
-            )
-        ))}
-        <div className="menu-collage-vignette absolute inset-0" />
+        <div className="menu-scene-bg absolute inset-0" />
+        <div className="menu-scene-overlay absolute inset-0" />
       </div>
+
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl lg:max-w-5xl flex-col items-center gap-3.5 px-3.5 pb-8 pt-3 sm:gap-5 sm:px-4 sm:pt-8">
       {/* Ambient Glow Lights */}
       <div className="pointer-events-none absolute -top-16 inset-x-0 flex justify-between opacity-30 blur-3xl" aria-hidden>
         <div className="h-48 w-48 rounded-full" style={{ background: 'var(--gold)' }} />
@@ -277,7 +245,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
           {/* Dinamik Hızlı Başla Hero Banner (State Logic Redundancy Solved) */}
           <button
             onClick={quickPlay}
-            className="group hextech-card relative flex w-full items-center justify-between overflow-hidden rounded-xl border px-3.5 py-2.5 shadow-lg transition-all duration-300 active:scale-[0.99] sm:rounded-2xl sm:px-5 sm:py-3.5"
+            className={`group hextech-card menu-quickplay ${isDailyAllCompleted ? 'menu-quickplay-complete' : 'menu-quickplay-active'} relative flex w-full items-center justify-between overflow-hidden rounded-xl border px-3.5 py-2.5 shadow-lg transition-all duration-300 active:scale-[0.99] sm:rounded-2xl sm:px-5 sm:py-3.5`}
             style={{
               background: isDailyAllCompleted
                 ? 'linear-gradient(135deg, rgba(var(--accent-done-deep-rgb), 0.15), rgba(var(--accent-endless-rgb), 0.08))'
@@ -326,9 +294,10 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             {/* Sınırsız */}
             <button
               onClick={() => setTop('endless')}
-              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(var(--accent-endless-rgb),0.2)] sm:rounded-2xl sm:p-4"
+              className="group card-btn card-btn-lg hextech-card menu-mode-card menu-mode-card-endless relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-sky-400/60 hover:shadow-[0_0_24px_rgba(var(--accent-endless-rgb),0.2)] sm:rounded-2xl sm:p-4"
               style={{ background: 'linear-gradient(135deg, rgba(var(--accent-endless-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
+              <ModeCardBackdrop failed={modeCardArtFailed.endless} mode="endless" onError={handleModeCardArtError} />
               <div className="flex w-full items-center justify-between">
                 <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--accent-endless-rgb), 0.12)', color: 'var(--accent-endless)' }}>
                   ♾️
@@ -350,12 +319,13 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             {/* Günlük */}
             <button
               onClick={() => setTop('daily')}
-              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(var(--gold-glow-rgb),0.35)] sm:rounded-2xl sm:p-4"
+              className="group card-btn card-btn-lg hextech-card menu-mode-card menu-mode-card-daily relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_32px_rgba(var(--gold-glow-rgb),0.35)] sm:rounded-2xl sm:p-4"
               style={{
                 background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.12), rgba(255, 255, 255, 0.02))',
                 borderColor: isDailyAllCompleted ? 'var(--accent-done)' : 'rgba(var(--gold-glow-rgb), 0.4)',
               }}
             >
+              <ModeCardBackdrop failed={modeCardArtFailed.daily} mode="daily" onError={handleModeCardArtError} />
               <div className="flex w-full items-center justify-between">
                 <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--gold-glow-rgb), 0.2)' }}>
                   📅
@@ -383,9 +353,10 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             {/* Zamana Karşı */}
             <button
               onClick={() => setTop('timed')}
-              className="group card-btn card-btn-lg hextech-card relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(var(--accent-timed-rgb),0.2)] sm:rounded-2xl sm:p-4"
+              className="group card-btn card-btn-lg hextech-card menu-mode-card menu-mode-card-timed relative flex flex-col items-start justify-between overflow-hidden rounded-xl border p-3.5 text-left transition-all duration-300 hover:border-rose-400/70 hover:shadow-[0_0_24px_rgba(var(--accent-timed-rgb),0.2)] sm:rounded-2xl sm:p-4"
               style={{ background: 'linear-gradient(135deg, rgba(var(--accent-timed-rgb), 0.06), rgba(255, 255, 255, 0.01))', borderColor: 'var(--border)' }}
             >
+              <ModeCardBackdrop failed={modeCardArtFailed.timed} mode="timed" onError={handleModeCardArtError} />
               <div className="flex w-full items-center justify-between">
                 <span className="grid h-10 sm:h-12 w-10 sm:w-12 place-items-center rounded-xl text-2xl sm:text-3xl shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(var(--accent-timed-rgb), 0.12)', color: 'var(--accent-timed)' }}>
                   ⏱️
@@ -406,7 +377,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
           </div>
 
           {/* Kariyer & Sihirdar İlerleme Barı */}
-          <div className="hextech-frame flex items-center justify-around rounded-xl border px-3 py-2.5 text-center text-xs backdrop-blur-md sm:py-3" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-card)' }}>
+          <div className="menu-stat-strip hextech-frame flex items-center justify-around rounded-xl border px-3 py-2.5 text-center text-xs backdrop-blur-md sm:py-3" style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-card)' }}>
             <div>
               <span className="block font-extrabold text-sm" style={{ color: 'var(--gold-bright)', textShadow: '0 0 12px rgba(var(--gold-glow-rgb), 0.35)' }}>💎 {uniqueChampCount}/{totalChamps}</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider" style={{ color: 'var(--text-dim)' }}>Keşif</span>
@@ -423,42 +394,24 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             </div>
           </div>
 
-          {/* Sistem & Kariyer Butonları — SOL kolonda (2026-07-24 dengeleme: sağ kolon
-              7 mini oyunla uzayınca butonlar dibe gömülüyordu, sol altta boşluk vardı) */}
+          {/* Sistem butonları — ana ekran yalnız iki giriş bırakır; geri kalan hub Ayarlar'dadır */}
           <div className="flex flex-col gap-2 w-full">
-            {/* Üst Sıra: Sistem & Rehber */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
-              <button
-                onClick={() => setHowTo(true)}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-              >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">❓</span>
-                <span>Nasıl Oynanır</span>
-              </button>
-              <button
-                onClick={() => setStats(true)}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
-              >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📊</span>
-                <span>İstatistikler</span>
-              </button>
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button
                 onClick={onChampions}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                className="menu-system-btn group card-btn flex items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2 sm:py-3"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
               >
                 <span className="text-sm transition-transform duration-300 group-hover:scale-125">📖</span>
                 <span>Şampiyonlar</span>
               </button>
               <button
                 onClick={onSettings}
-                className="group card-btn relative flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200"
+                className="menu-system-btn group card-btn relative flex items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2 sm:py-3"
                 style={{
                   background: 'var(--bg-card)',
                   borderColor: updateReady ? 'var(--gold)' : 'var(--border)',
-                  color: updateReady ? 'var(--gold-bright)' : 'var(--text)',
+                  color: 'var(--gold-bright)',
                 }}
               >
                 <span className="text-sm transition-transform duration-300 group-hover:scale-125">⚙️</span>
@@ -469,34 +422,6 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                     <span className="relative inline-flex h-3.5 w-3.5 rounded-full border" style={{ background: 'var(--gold)', borderColor: 'var(--bg)' }} />
                   </span>
                 )}
-              </button>
-            </div>
-
-            {/* Alt Sıra: Kariyer & Rekabet */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-              <button
-                onClick={() => setAchievements(true)}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
-                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
-              >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">🏆</span>
-                <span>Başarımlar</span>
-              </button>
-              <button
-                onClick={() => setLeaderboard(true)}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
-                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
-              >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">🥇</span>
-                <span>Sıralama</span>
-              </button>
-              <button
-                onClick={() => setCalendar(true)}
-                className="group card-btn flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border py-2.5 sm:py-3 px-1.5 text-xs font-bold transition-all duration-200 hover:border-amber-400/50"
-                style={{ background: 'linear-gradient(135deg, rgba(var(--gold-glow-rgb), 0.05), transparent)', borderColor: 'var(--border)', color: 'var(--gold-bright)' }}
-              >
-                <span className="text-sm transition-transform duration-300 group-hover:scale-125">📅</span>
-                <span>Takvim</span>
               </button>
             </div>
           </div>
@@ -517,85 +442,87 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
               kartlar sağ kolonu upuzun yapıyordu (sol altta boşluk). Satır = ikon + ad +
               tek satır truncate açıklama (tam metin title'da) + sağda küçük buton çifti.
             */}
-            <div className="flex flex-col gap-2">
-              {[
-                { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
-                { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
-                { id: 'timeline' as const, icon: '🕰️', name: 'Zaman Tüneli', desc: '5 şampiyonu çıkış yılına göre sırala' },
-                { id: 'hunt' as const, icon: '🏹', name: 'Şampiyon Avı', desc: 'Alfabetik mesafe ipucuyla 8 denemede bul' },
-                { id: 'grid' as const, icon: '🔲', name: 'Dokuz Kare', desc: '3×3: iki kriteri sağlayan 9 farklı şampiyon' },
-                { id: 'connections' as const, icon: '🧩', name: 'Bağlantılar', desc: '16 şampiyonu 4\'lü gizli gruplara ayır' },
-              ].map((g) => {
-                const dailyDone = miniDailyDone(g.id)
-                return (
-                <div
-                  key={g.id}
-                  className="group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
-                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
-                >
+            <div className="menu-mini-shell rounded-2xl border p-2.5 sm:p-3" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex flex-col gap-2">
+                {[
+                  { id: 'wordle' as const, icon: '🔡', name: 'Kelime (Wordle)', desc: 'Şampiyon adını harf harf bul · 🟩 🟨 ⬛' },
+                  { id: 'bingo' as const, icon: '🎲', name: 'Bingo', desc: '90 saniyede 12 kutulu kartı doldur' },
+                  { id: 'timeline' as const, icon: '🕰️', name: 'Zaman Tüneli', desc: '5 şampiyonu çıkış yılına göre sırala' },
+                  { id: 'hunt' as const, icon: '🏹', name: 'Şampiyon Avı', desc: 'Alfabetik mesafe ipucuyla 8 denemede bul' },
+                  { id: 'grid' as const, icon: '🔲', name: 'Dokuz Kare', desc: '3×3: iki kriteri sağlayan 9 farklı şampiyon' },
+                  { id: 'connections' as const, icon: '🧩', name: 'Bağlantılar', desc: '16 şampiyonu 4\'lü gizli gruplara ayır' },
+                ].map((g) => {
+                  const dailyDone = miniDailyDone(g.id)
+                  return (
+                    <div
+                      key={g.id}
+                      className="menu-mini-entry group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+                      style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
+                        {g.icon}
+                      </span>
+                      <span className="min-w-0 flex-1" title={g.desc}>
+                        <span className="block truncate text-sm font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
+                          {g.name}
+                        </span>
+                        <span className="block truncate text-[11px]" style={{ color: 'var(--text-dim)' }}>
+                          {g.desc}
+                        </span>
+                      </span>
+                      <span className="flex shrink-0 gap-1.5">
+                        <button
+                          onClick={() => onMiniGame(g.id, false)}
+                          aria-label={`${g.name} sınırsız`}
+                          className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                          style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
+                        >
+                          ♾️ Sınırsız
+                        </button>
+                        <button
+                          onClick={() => onMiniGame(g.id, true)}
+                          aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
+                          className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
+                          style={{
+                            borderColor: dailyDone ? 'var(--accent-done)' : 'var(--border)',
+                            color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
+                            background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
+                          }}
+                        >
+                          {dailyDone ? '✓ Bitti' : '📅 Günlük'}
+                        </button>
+                      </span>
+                    </div>
+                  )
+                })}
+
+                {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi), aynı satır kalıbı */}
+                <div className="menu-mini-entry group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
+                  style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
-                    {g.icon}
+                    🔢
                   </span>
-                  <span className="min-w-0 flex-1" title={g.desc}>
+                  <span className="min-w-0 flex-1" title="Ölçüte uyan şampiyonları say · süre dolmadan kaç tane?">
                     <span className="block truncate text-sm font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
-                      {g.name}
+                      Kaç Tane?
                     </span>
                     <span className="block truncate text-[11px]" style={{ color: 'var(--text-dim)' }}>
-                      {g.desc}
+                      Ölçüte uyanları say · tek başına ya da odada
                     </span>
                   </span>
                   <span className="flex shrink-0 gap-1.5">
-                    <button
-                      onClick={() => onMiniGame(g.id, false)}
-                      aria-label={`${g.name} sınırsız`}
+                    <button onClick={onCounter} aria-label="Kaç Tane? sınırsız"
                       className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}
-                    >
+                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
                       ♾️ Sınırsız
                     </button>
-                    <button
-                      onClick={() => onMiniGame(g.id, true)}
-                      aria-label={dailyDone ? `${g.name} günlük — bugün tamamlandı, sonucu gör` : `${g.name} günlük`}
+                    <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
                       className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                      style={{
-                        borderColor: dailyDone ? 'var(--accent-done)' : 'var(--border)',
-                        color: dailyDone ? 'var(--accent-done)' : 'var(--gold)',
-                        background: dailyDone ? 'rgba(var(--accent-done-rgb), 0.08)' : undefined,
-                      }}
-                    >
-                      {dailyDone ? '✓ Bitti' : '📅 Günlük'}
+                      style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
+                      👥 Multi
                     </button>
                   </span>
                 </div>
-                )
-              })}
-
-              {/* Kaç Tane? — süreli sayım modu (Sınırsız + Multi), aynı satır kalıbı */}
-              <div className="group hextech-frame flex items-center gap-2.5 rounded-xl border p-2 pl-2.5 transition-all duration-300 hover:border-amber-500/50 hover:shadow-[0_0_16px_rgba(var(--gold-glow-rgb),0.10)]"
-                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg shadow-inner transition-transform duration-300 group-hover:scale-110" style={{ background: 'rgba(255, 255, 255, 0.04)' }}>
-                  🔢
-                </span>
-                <span className="min-w-0 flex-1" title="Ölçüte uyan şampiyonları say · süre dolmadan kaç tane?">
-                  <span className="block truncate text-sm font-bold tracking-tight" style={{ color: 'var(--gold-bright)' }}>
-                    Kaç Tane?
-                  </span>
-                  <span className="block truncate text-[11px]" style={{ color: 'var(--text-dim)' }}>
-                    Ölçüte uyanları say · tek başına ya da odada
-                  </span>
-                </span>
-                <span className="flex shrink-0 gap-1.5">
-                  <button onClick={onCounter} aria-label="Kaç Tane? sınırsız"
-                    className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                    ♾️ Sınırsız
-                  </button>
-                  <button onClick={onCounterMulti} aria-label="Kaç Tane? multiplayer — oda kur ya da koda katıl"
-                    className="card-btn rounded-lg border px-2.5 py-1.5 text-[11px] font-bold"
-                    style={{ borderColor: 'var(--border)', color: 'var(--gold)' }}>
-                    👥 Multi
-                  </button>
-                </span>
               </div>
             </div>
           </div>
@@ -603,7 +530,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
           </div>
 
           {/* Vadi İpucu Banner'ı — masaüstünde iki kolonun altında tam genişlik */}
-          <div className="lg:col-span-2 rounded-xl border p-2 sm:p-2.5 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md" style={{ background: 'rgba(var(--gold-glow-rgb), 0.03)', borderColor: 'rgba(var(--gold-glow-rgb), 0.15)', color: 'var(--text-dim)' }}>
+          <div className="menu-tip-banner lg:col-span-2 rounded-xl border p-2 text-center text-xs italic opacity-90 shadow-sm backdrop-blur-md sm:p-2.5" style={{ background: 'rgba(var(--gold-glow-rgb), 0.03)', borderColor: 'rgba(var(--gold-glow-rgb), 0.15)', color: 'var(--text-dim)' }}>
             {randomTip}
           </div>
         </div>
@@ -635,7 +562,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
 
           {/* Zorluk — kendi kartında, "Zorluk" etiketi + sağda karşılaştırma anahtarı */}
           {top !== 'daily' && (
-            <div className="rounded-xl border p-3" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
+            <div className="menu-subpanel hextech-frame rounded-xl border p-3" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>Zorluk</span>
                 <button onClick={() => setDiffInfo((v) => !v)}
@@ -662,7 +589,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                   : 'İpuçlarının ne zaman açıldığını belirler · istatistikler seviye başına ayrı'}
               </p>
               {diffInfo && (
-                <div className="anim-pop mt-2 rounded-lg border p-3"
+                <div className="menu-subpanel anim-pop mt-2 rounded-lg border p-3"
                   style={{ borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
                   <DifficultyTable />
                 </div>
@@ -694,7 +621,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                         : ''
                 return (
                   <button key={m.id} onClick={() => onPlay(top, m.id, diff, filter)}
-                    className="card-btn flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
+                    className="menu-submode-card card-btn flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
                     style={{
                       background: 'var(--bg-card)',
                       borderColor: dailyDone ? 'var(--correct)' : 'var(--border)',
@@ -727,7 +654,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                 : mixStats.played > 0 ? `Seri: ${mixStats.currentStreak}` : ''
               return (
                 <button onClick={() => onPlay(top, 'mix', diff, filter)}
-                  className="card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
+                  className="menu-submode-card menu-submode-card-mix card-btn mt-2.5 flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:scale-[1.01]"
                   style={{ background: 'var(--bg-card)', borderColor: 'var(--gold)' }}>
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-2xl"
                     style={{ background: 'var(--gold-soft)' }}>{MIX_MODE.icon}</span>
@@ -750,17 +677,13 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
         </div>
       )}
 
-      <footer className="mt-3 sm:mt-4 text-center text-xs opacity-75" style={{ color: 'var(--text-dim)' }}>
+      <footer className="relative z-10 mt-3 text-center text-xs opacity-75 sm:mt-4" style={{ color: 'var(--text-dim)' }}>
         Patch {PATCH} · Riot Games ile ilişkili değildir
       </footer>
 
-      {howTo && <HowTo onClose={() => setHowTo(false)} />}
-      {stats && <Stats initialDifficulty={diff} onClose={() => setStats(false)} />}
-      {achievements && <Achievements onClose={() => setAchievements(false)} />}
-      {leaderboard && <Leaderboard onClose={() => setLeaderboard(false)} />}
-      {calendar && <CalendarModal onClose={() => setCalendar(false)} />}
       {rank && <RankModal best={dailyStreak.best} current={activeStreak} onClose={() => setRank(false)} />}
       {changelog && <Changelog onClose={() => { setChangelog(false); setUnseenNews(hasUnseenChangelog()) }} />}
-    </div>
+      </div>
+    </>
   )
 }

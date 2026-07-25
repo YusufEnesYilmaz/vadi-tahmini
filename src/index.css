@@ -11,6 +11,8 @@
   --gold: #c8aa6e;
   --gold-bright: #f0e6d2;
   --blue: #0ac8b9;
+  --hextech: #29d3e0;
+  --hextech-rgb: 41, 211, 224;
   --text: #e5e7eb;
   --text-dim: #9ca3af;
   --correct: #16a34a;
@@ -22,6 +24,11 @@
   --overlay: rgba(4, 7, 15, 0.78); /* pencere arkası karartma */
   --gold-soft: rgba(200, 170, 110, 0.22); /* ilerleme dolgusu, takvim gölgesi */
   --on-gold: #0a0e1a; /* altın zemin üstündeki yazı */
+  --glass-bg: rgba(var(--bg-card-rgb), 0.64);
+  --glass-bg-strong: rgba(var(--bg-card-rgb), 0.74);
+  --glass-edge: rgba(var(--gold-rgb), 0.18);
+  --glass-edge-hextech: rgba(var(--hextech-rgb), 0.28);
+  --glass-blur: 16px;
 
   /*
    * Vurgu renkleri — üst modların kimliği (menü kartları) ve durum renkleri.
@@ -56,10 +63,30 @@
   --danger-text-rgb: 248, 113, 113;
 
   /* Derinlik: kartlara/pencerelere yumuşak gölge + üst kenar ışığı (premium his) */
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.28);
-  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--gold-soft), 0 0 26px -6px rgba(200, 170, 110, 0.4);
-  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 28px 70px rgba(0, 0, 0, 0.6);
-  --shadow-gold: 0 4px 14px rgba(200, 170, 110, 0.3);
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.58),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 10px 24px rgba(0, 0, 0, 0.32),
+    0 0 18px -12px rgba(var(--hextech-rgb), 0.28);
+  --shadow-card-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.68),
+    0 14px 32px rgba(0, 0, 0, 0.44),
+    0 0 0 1px rgba(var(--gold-rgb), 0.18),
+    0 0 30px -10px rgba(var(--hextech-rgb), 0.62),
+    0 0 26px -14px rgba(var(--gold-rgb), 0.46);
+  --shadow-panel:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.6),
+    0 28px 58px rgba(0, 0, 0, 0.56),
+    0 0 38px -20px rgba(var(--hextech-rgb), 0.38);
+  --shadow-gold:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(82, 56, 18, 0.34),
+    0 12px 28px rgba(200, 170, 110, 0.28),
+    0 0 22px -8px rgba(var(--hextech-rgb), 0.56),
+    0 0 0 1px rgba(var(--hextech-rgb), 0.12);
 
   /*
    * Başlık fontu: dışarıdan font ÇEKMİYORUZ (PWA çevrimdışı çalışmalı, CDN yok).
@@ -118,15 +145,25 @@ button { touch-action: manipulation; }
  * box-shadow/transform'a dokunmuyor, o yüzden bu sınıf her kartta çalışıyor.
  */
 .card-btn {
-  transition: border-color 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease, filter 0.18s ease;
   box-shadow: var(--shadow-card);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.08);
 }
 @media (hover: hover) {
   .card-btn:hover {
-    border-color: var(--gold);
+    border-color: rgba(var(--gold-rgb), 0.8);
     transform: translateY(-2px);
     box-shadow: var(--shadow-card-hover);
+    filter: saturate(1.05) brightness(1.03);
   }
+}
+.card-btn:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.68),
+    0 0 0 1px rgba(var(--gold-rgb), 0.24),
+    0 0 24px -8px rgba(var(--hextech-rgb), 0.62);
 }
 .card-btn:active { transform: scale(0.985); box-shadow: var(--shadow-card); }
 
@@ -150,6 +187,37 @@ button { touch-action: manipulation; }
 @media (hover: hover) {
   .card-btn-lg:hover { transform: translateY(-5px); }
 }
+.card-btn-lg {
+  position: relative;
+  isolation: isolate;
+}
+.card-btn-lg::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--hextech-rgb), 0.08) 18%,
+    rgba(var(--hextech-rgb), 0.5) 46%,
+    rgba(var(--gold-rgb), 0.26) 72%,
+    transparent
+  );
+  opacity: 0.78;
+  pointer-events: none;
+  transform: scaleX(0.96);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+@media (hover: hover) {
+  .card-btn-lg:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
 .card-btn-lg:active { transform: scale(0.975); }
 
 /*
@@ -159,38 +227,79 @@ button { touch-action: manipulation; }
 .btn-gold {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--gold-bright) -40%, var(--gold) 65%);
+  border: 1px solid rgba(var(--gold-rgb), 0.76);
+  background: linear-gradient(180deg, #faf0dc -16%, var(--gold-bright) 14%, #d8ba80 58%, #9f7a49 100%);
   color: var(--on-gold);
   box-shadow: var(--shadow-gold);
-  transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(var(--hextech-rgb), 0.18);
 }
 /* Hover'da soldan sağa ışık süpürmesi — dokunmatikte tetiklenmez, temiz kalır */
 .btn-gold::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  background: linear-gradient(110deg, transparent 26%, rgba(255, 255, 255, 0.42) 48%, rgba(var(--hextech-rgb), 0.26) 58%, transparent 74%);
   transform: translateX(-130%);
   pointer-events: none;
 }
 @media (hover: hover) {
-  .btn-gold:hover { filter: brightness(1.05); box-shadow: 0 8px 24px rgba(200, 170, 110, 0.45); transform: translateY(-1px); }
+  .btn-gold:hover {
+    filter: brightness(1.06) saturate(1.02);
+    border-color: rgba(var(--gold-rgb), 0.98);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(82, 56, 18, 0.4),
+      0 14px 30px rgba(200, 170, 110, 0.36),
+      0 0 0 1px rgba(var(--hextech-rgb), 0.24),
+      0 0 30px -10px rgba(var(--hextech-rgb), 0.74);
+    transform: translateY(-1px);
+  }
   .btn-gold:hover::after { animation: shimmerSweep 0.7s ease; }
 }
 .btn-gold:active { transform: scale(0.98); box-shadow: var(--shadow-gold); }
 
 /* Açılır pencereler için derin gölge (opt-in) */
-.panel { box-shadow: var(--shadow-panel); }
+.panel {
+  background: linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.9)) !important;
+  border-color: rgba(var(--gold-rgb), 0.2) !important;
+  box-shadow: var(--shadow-panel);
+}
 
 /* LoL/Hextech yüzeyleri — köşe filigranı ve hafif zemin dokusu seçili noktalarda kullanılır */
-:where(.menu-hero, .panel, .hextech-frame, .hextech-card) {
+:where(.menu-hero, .panel, .hextech-frame, .hextech-card, .menu-quickplay, .menu-mode-card, .menu-stat-strip, .menu-mini-shell, .menu-system-btn, .menu-subpanel, .menu-submode-card, .menu-tip-banner, .menu-mini-entry) {
   position: relative;
   isolation: isolate;
 }
 
-:where(.menu-hero, .panel, .hextech-frame, .hextech-card) > * {
+:where(.menu-hero, .panel, .hextech-frame, .hextech-card, .menu-quickplay, .menu-mode-card, .menu-stat-strip, .menu-mini-shell, .menu-system-btn, .menu-subpanel, .menu-submode-card, .menu-tip-banner, .menu-mini-entry) > * {
   position: relative;
   z-index: 1;
+}
+
+:where(.menu-hero, .panel, .menu-quickplay, .menu-mode-card, .menu-stat-strip, .menu-mini-shell, .menu-system-btn, .menu-subpanel, .menu-submode-card, .menu-tip-banner, .menu-mini-entry)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 24%, rgba(0, 0, 0, 0.1) 100%),
+    radial-gradient(circle at 14% 2%, rgba(var(--gold-rgb), 0.12), transparent 30%),
+    radial-gradient(circle at 88% 8%, rgba(var(--hextech-rgb), 0.18), transparent 24%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(var(--hextech-rgb), 0.14);
 }
 
 :where(.menu-hero, .panel)::after {
@@ -201,55 +310,282 @@ button { touch-action: manipulation; }
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(circle at 18% 18%, rgba(var(--gold-glow-rgb), 0.12), transparent 24%),
-    radial-gradient(circle at 82% 14%, rgba(var(--gold-rgb), 0.08), transparent 18%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='104' viewBox='0 0 180 104'%3E%3Cg fill='none' stroke='%23c8aa6e' stroke-opacity='0.18' stroke-width='1'%3E%3Cpath d='M30 1L58 17v32L30 65 2 49V17L30 1Z'/%3E%3Cpath d='M90 1l28 16v32L90 65 62 49V17L90 1Z'/%3E%3Cpath d='M150 1l28 16v32l-28 16-28-16V17l28-16Z'/%3E%3Cpath d='M60 39l28 16v32L60 103 32 87V55l28-16Z'/%3E%3Cpath d='M120 39l28 16v32l-28 16-28-16V55l28-16Z'/%3E%3C/g%3E%3C/svg%3E");
-  background-position: left top, right top, center;
-  background-size: auto, auto, 200px 116px;
-  mix-blend-mode: screen;
-  opacity: 0.1;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 26%, rgba(0, 0, 0, 0.08) 100%),
+    radial-gradient(circle at 14% 2%, rgba(var(--gold-rgb), 0.08), transparent 30%),
+    radial-gradient(circle at 88% 8%, rgba(var(--hextech-rgb), 0.08), transparent 24%);
+}
+
+.menu-scene-bg {
+  background-image: url('/arcane-menu-bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(0.96) brightness(0.84) contrast(1.04);
+  transform: scale(1.015);
+}
+
+.menu-scene-overlay {
+  background:
+    linear-gradient(180deg, rgba(var(--bg-rgb), 0.7) 0%, rgba(var(--bg-rgb), 0.62) 24%, rgba(var(--bg-rgb), 0.78) 100%),
+    radial-gradient(ellipse 78% 62% at 50% 34%, rgba(var(--bg-rgb), 0.36) 0%, rgba(var(--bg-rgb), 0.2) 28%, rgba(var(--bg-rgb), 0.08) 54%, transparent 76%),
+    radial-gradient(ellipse 132% 110% at 50% 50%, transparent 26%, rgba(var(--bg-rgb), 0.18) 58%, rgba(var(--bg-rgb), 0.66) 100%);
+}
+
+.settings-scene-bg {
+  background-image: url('/settings-bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(0.94) brightness(0.66) contrast(1.06);
+  transform: scale(1.02);
+}
+
+.settings-scene-overlay {
+  background:
+    linear-gradient(180deg, rgba(var(--bg-rgb), 0.8) 0%, rgba(var(--bg-rgb), 0.72) 24%, rgba(var(--bg-rgb), 0.88) 100%),
+    radial-gradient(ellipse 82% 62% at 50% 34%, rgba(var(--bg-rgb), 0.14) 0%, rgba(var(--bg-rgb), 0.2) 22%, rgba(var(--bg-rgb), 0.52) 68%, rgba(var(--bg-rgb), 0.82) 100%),
+    radial-gradient(ellipse 140% 120% at 50% 52%, transparent 24%, rgba(var(--bg-rgb), 0.2) 52%, rgba(var(--bg-rgb), 0.72) 100%);
+}
+
+.settings-shell {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(calc(var(--glass-blur) + 2px)) saturate(1.06);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 2px)) saturate(1.06);
+  background:
+    linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.76), rgba(var(--bg-rgb), 0.84)) !important;
+  border-color: rgba(var(--gold-rgb), 0.22) !important;
+}
+
+.settings-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 28%, rgba(0, 0, 0, 0.12) 100%),
+    radial-gradient(circle at 14% 0, rgba(var(--gold-rgb), 0.12), transparent 30%),
+    radial-gradient(circle at 84% 10%, rgba(var(--hextech-rgb), 0.16), transparent 24%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(var(--hextech-rgb), 0.08);
+  z-index: 0;
+}
+
+.settings-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-menu-scene-bg {
+  background-image: url('/menu-section-bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(0.9) brightness(0.52) contrast(1.08);
+  transform: scale(1.04);
+}
+
+.settings-menu-scene-overlay {
+  background:
+    linear-gradient(180deg, rgba(var(--bg-rgb), 0.76) 0%, rgba(var(--bg-rgb), 0.7) 24%, rgba(var(--bg-rgb), 0.86) 100%),
+    linear-gradient(110deg, rgba(var(--bg-rgb), 0.74) 0%, rgba(var(--bg-rgb), 0.28) 42%, rgba(var(--bg-rgb), 0.78) 100%),
+    radial-gradient(circle at 82% 18%, rgba(var(--hextech-rgb), 0.16), transparent 24%),
+    radial-gradient(ellipse 132% 108% at 50% 52%, transparent 18%, rgba(var(--bg-rgb), 0.18) 48%, rgba(var(--bg-rgb), 0.74) 100%);
+}
+
+.settings-shortcut-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.54),
+    0 14px 32px rgba(0, 0, 0, 0.34),
+    0 0 24px -16px rgba(var(--hextech-rgb), 0.42);
+}
+
+.settings-input::placeholder {
+  color: var(--text-dim);
+}
+
+.settings-input:focus-visible {
+  outline: none;
+  border-color: rgba(var(--gold-rgb), 0.62) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--gold-rgb), 0.3),
+    0 0 24px -10px rgba(var(--hextech-rgb), 0.56);
+}
+
+.settings-slider {
+  filter: drop-shadow(0 0 10px rgba(var(--hextech-rgb), 0.14));
 }
 
 .menu-hero {
-  background: linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.92));
-  border-color: rgba(var(--gold-rgb), 0.26);
+  backdrop-filter: blur(calc(var(--glass-blur) + 2px)) saturate(1.08);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 2px)) saturate(1.08);
+  background: linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.72), rgba(var(--bg-rgb), 0.84)) !important;
+  border-color: rgba(var(--gold-rgb), 0.24) !important;
   box-shadow: var(--shadow-panel);
 }
 
-/* Pencere arkası: karartma + buzlu cam (arka içerik hafifçe bulanır → odak öne gelir) */
-.menu-collage-splash {
-  filter: brightness(0.72) saturate(0.94) blur(0.8px);
-  -webkit-mask-image:
-    radial-gradient(ellipse at center, #000 34%, rgba(0, 0, 0, 0.9) 68%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, #000 10%, #000 90%, transparent 100%),
-    linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
-  -webkit-mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-composite: source-in;
-  mask-image:
-    radial-gradient(ellipse at center, #000 38%, rgba(0, 0, 0, 0.86) 60%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%),
-    linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-composite: intersect;
+.hextech-frame {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(3, 8, 18, 0.52),
+    0 0 0 1px rgba(var(--hextech-rgb), 0.08);
 }
 
-.menu-collage-vignette {
-  background: radial-gradient(
-    ellipse 74% 60% at 50% 38%,
-    rgba(var(--bg-rgb), 0.92) 0%,
-    rgba(var(--bg-rgb), 0.84) 18%,
-    rgba(var(--bg-rgb), 0.66) 34%,
-    rgba(var(--bg-rgb), 0.38) 50%,
-    rgba(var(--bg-rgb), 0.12) 64%,
-    transparent 78%
-  );
+.menu-quickplay,
+.menu-mode-card,
+.menu-stat-strip,
+.menu-mini-shell,
+.menu-system-btn,
+.menu-subpanel,
+.menu-submode-card,
+.menu-tip-banner,
+.menu-mini-entry,
+.panel {
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.08);
 }
 
-.ovl { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.menu-quickplay-active {
+  background:
+    linear-gradient(145deg, rgba(var(--bg-card-rgb), 0.68), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 100% 0, rgba(var(--gold-glow-rgb), 0.22), transparent 42%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.14), transparent 46%) !important;
+}
+
+.menu-quickplay-complete {
+  background:
+    linear-gradient(145deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.52)),
+    radial-gradient(circle at 100% 0, rgba(var(--accent-done-rgb), 0.18), transparent 42%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.14), transparent 48%) !important;
+}
+
+.menu-mode-card-art,
+.menu-mode-card-darken {
+  position: absolute !important;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.menu-mode-card-art {
+  z-index: -2 !important;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0.88;
+  filter: saturate(0.9) brightness(0.74) contrast(1.06);
+  transform: scale(1.03);
+}
+
+.menu-mode-card-darken {
+  --menu-mode-card-overlay-accent:
+    radial-gradient(circle at 24% 20%, rgba(var(--hextech-rgb), 0.12), transparent 28%);
+  z-index: -1 !important;
+  background:
+    linear-gradient(180deg, rgba(var(--bg-rgb), 0.14) 0%, rgba(var(--bg-rgb), 0.44) 42%, rgba(var(--bg-rgb), 0.82) 100%),
+    linear-gradient(118deg, rgba(var(--bg-rgb), 0.62) 0%, rgba(var(--bg-rgb), 0.18) 44%, rgba(var(--bg-rgb), 0.58) 100%),
+    var(--menu-mode-card-overlay-accent);
+}
+
+.menu-mode-card-art-endless { object-position: 44% center; }
+
+.menu-mode-card-art-daily { object-position: 58% center; }
+
+.menu-mode-card-art-timed { object-position: 68% center; }
+
+.menu-mode-card-darken-endless {
+  --menu-mode-card-overlay-accent:
+    radial-gradient(circle at 32% 38%, rgba(var(--accent-endless-rgb), 0.2), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(var(--hextech-rgb), 0.12), transparent 24%);
+}
+
+.menu-mode-card-darken-daily {
+  --menu-mode-card-overlay-accent:
+    radial-gradient(circle at 78% 22%, rgba(var(--gold-glow-rgb), 0.18), transparent 32%),
+    radial-gradient(circle at 18% 72%, rgba(var(--hextech-rgb), 0.08), transparent 24%);
+}
+
+.menu-mode-card-darken-timed {
+  --menu-mode-card-overlay-accent:
+    radial-gradient(circle at 78% 34%, rgba(var(--accent-timed-rgb), 0.16), transparent 28%),
+    radial-gradient(circle at 82% 78%, rgba(var(--gold-glow-rgb), 0.16), transparent 22%);
+}
+
+.menu-mode-card-endless {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 100% 0, rgba(var(--accent-endless-rgb), 0.2), transparent 44%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.16), transparent 48%) !important;
+}
+
+.menu-mode-card-daily {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.68), rgba(var(--bg-rgb), 0.56)),
+    radial-gradient(circle at 100% 0, rgba(var(--gold-glow-rgb), 0.22), transparent 42%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.12), transparent 48%) !important;
+}
+
+.menu-mode-card-timed {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 100% 0, rgba(var(--accent-timed-rgb), 0.18), transparent 42%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.14), transparent 48%) !important;
+}
+
+.menu-stat-strip {
+  background:
+    linear-gradient(150deg, rgba(var(--bg-card-rgb), 0.68), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 50% 0, rgba(var(--hextech-rgb), 0.18), transparent 58%) !important;
+}
+
+.menu-mini-shell {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.62), rgba(var(--bg-rgb), 0.5)),
+    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.14), transparent 46%) !important;
+}
+
+.menu-system-btn {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.16), transparent 44%) !important;
+}
+
+.menu-subpanel {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.68), rgba(var(--bg-rgb), 0.56)),
+    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.16), transparent 46%) !important;
+}
+
+.menu-submode-card {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.68), rgba(var(--bg-rgb), 0.56)),
+    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.16), transparent 42%) !important;
+}
+
+.menu-submode-card-mix {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.7), rgba(var(--bg-rgb), 0.58)),
+    radial-gradient(circle at 100% 0, rgba(var(--gold-glow-rgb), 0.18), transparent 42%),
+    radial-gradient(circle at 0 100%, rgba(var(--hextech-rgb), 0.16), transparent 46%) !important;
+}
+
+.menu-mini-entry {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.66), rgba(var(--bg-rgb), 0.54)),
+    radial-gradient(circle at 100% 0, rgba(var(--hextech-rgb), 0.12), transparent 44%) !important;
+}
+
+.menu-tip-banner {
+  background:
+    linear-gradient(155deg, rgba(var(--bg-card-rgb), 0.58), rgba(var(--bg-rgb), 0.48)),
+    radial-gradient(circle at 18% 0, rgba(var(--gold-rgb), 0.1), transparent 42%),
+    radial-gradient(circle at 86% 0, rgba(var(--hextech-rgb), 0.12), transparent 38%) !important;
+}
+
+.ovl { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
 /* Metin seçimi ve kaydırma çubuğu — küçük ama her yerde görünen dokunuşlar */
 ::selection { background: var(--gold-soft); color: var(--gold-bright); }
@@ -477,7 +813,9 @@ button { touch-action: manipulation; }
     color: var(--gold-bright);
   }
   .card-btn,
-  .btn-gold { transition: none; }
+  .card-btn-lg::after,
+  .btn-gold,
+  .btn-gold::before { transition: none; }
   .card-btn:hover,
   .card-btn:active,
   .card-btn-lg:hover,
@@ -486,12 +824,35 @@ button { touch-action: manipulation; }
   .btn-gold:active {
     transform: none !important;
   }
-  .btn-gold:hover { filter: none; }
+  .card-btn:hover,
+  .card-btn:focus-visible,
+  .btn-gold:hover {
+    filter: none;
+  }
+  .card-btn-lg::after {
+    transform: none;
+    opacity: 0.78;
+  }
   .guide-search-shell,
   .guide-chip,
   .guide-card-halo,
   .guide-card-ring,
-  .guide-card-portrait {
+  .guide-card-portrait,
+  .menu-hero,
+  .panel,
+  .menu-quickplay,
+  .menu-mode-card,
+  .menu-stat-strip,
+  .menu-mini-shell,
+  .menu-system-btn,
+  .menu-subpanel,
+  .menu-submode-card,
+  .menu-tip-banner,
+  .menu-mini-entry,
+  .settings-shell,
+  .settings-shortcut-card,
+  .settings-input,
+  .settings-slider {
     transition: none;
   }
   .guide-chip:hover,
