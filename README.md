@@ -14,7 +14,7 @@
 League of Legends şampiyonlarını ve eşyalarını çeşitli ipuçlarıyla tahmin etmeye çalıştığın,  
 arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tabanlı tahmin oyunu.
 
-**9 alt mod** · **7 mini oyun** · **3 oyun modu** · **4 zorluk seviyesi** · **111 başarım rozeti** · **Küresel sıralama** · **Canlı multiplayer**
+**9 alt mod** · **7 mini oyun** · **3 oyun modu** · **4 zorluk seviyesi** · **109 başarım rozeti** · **Küresel sıralama** · **Canlı multiplayer**
 
 [🎮 **Oyna**](https://vadi-tahmini.vercel.app) · [🐛 Hata Bildir](https://github.com/YusufEnesYilmaz/vadi-tahmini/issues)
 
@@ -28,6 +28,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 - [Oyun Modları](#-oyun-modları)
 - [Alt Modlar](#-alt-modlar-ne-tahmin-edilir)
 - [Mini Oyunlar](#-mini-oyunlar)
+- [Rehber ve Yardım](#-rehber-ve-yardım)
 - [Başarım Sistemi](#-başarım-sistemi)
 - [Zorluk Seviyeleri](#-zorluk-seviyeleri)
 - [Teknik Mimari](#%EF%B8%8F-teknik-mimari)
@@ -48,9 +49,14 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 | 🎯 | **9 Farklı Alt Mod** | Klasik, Yetenek, Görsel, Kostüm, Replik, Emoji, Eşya, Silüet, Hikâye |
 | 🕹️ | **7 Mini Oyun** | Kelime, Bingo, Zaman Tüneli, Şampiyon Avı, Dokuz Kare, Bağlantılar, Kaç Tane? |
 | 👥 | **Canlı Multiplayer** | "Kaç Tane?" modunda oda kur, arkadaşlarınla aynı anda gerçek zamanlı yarış |
-| 🎖 | **111 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
+| 🎖 | **109 Başarım Rozeti** | Detaylı başarım ve ilerleme sistemi |
 | 📅 | **Günlük Bulmaca** | Her gün herkese aynı soru, takvim takibi |
+| 📚 | **Oyuncu Rehberi** | Şampiyon ve eşya ansiklopedisi + tam kural anlatımı, sekmelerle tek merkezde |
+| 👋 | **İlk Giriş Öğreticisi** | Siteye ilk kez girene 3 adımlık kısa tanıtım (bir kez gösterilir) |
+| 🎖️ | **Sihirdar Unvanları** | En uzun günlük seriye göre 10 kademeli lig (Demir → Şampiyon), unvan düşmez |
 | 📊 | **Detaylı İstatistik** | Mod bazlı kazanma oranları, seriler ve grafikler |
+| 💾 | **Yedek Al / Yükle** | İlerlemeni JSON olarak indir, başka cihaza taşı |
+| 🖼️ | **35 Duvar Kağıdı** | Oyun için üretilmiş Arcane temalı arka planlar — büyük gör ve indir |
 | 🔒 | **Güvenli** | CSP, X-Frame-Options ve modern güvenlik başlıkları |
 | ♿ | **4 Zorluk Seviyesi** | Kolay'dan Aşırı Zor'a herkes için uygun |
 
@@ -89,7 +95,7 @@ arkadaşlarınla veya tek başına oynayabileceğin **tamamen Türkçe** web tab
 
 | Mod | İkon | Nasıl Oynanır? |
 | :--- | :---: | :--- |
-| **Klasik** | 🎯 | Şampiyonun özelliklerine *(Cinsiyet, Koridor, Kaynak, Menzil Tipi, Bölge, Çıkış Yılı)* göre tahmin yürüt. Her tahminde hangi özelliklerin eşleştiğini gör. |
+| **Klasik** | 🎯 | Şampiyonun özelliklerine *(Cinsiyet, Tür, Koridor, Kaynak, Menzil Tipi, Bölge, Çıkış Yılı)* göre tahmin yürüt. Her tahminde hangi özelliklerin eşleştiğini gör. |
 | **Yetenek** | ✨ | Yetenek ikonundan şampiyonu bul. Doğru bildikten sonra **"Bu hangi tuş?"** *(Q / W / E / R / Pasif)* bonus sorusu sorulur. |
 | **Görsel** | 🖼️ | Kırpılmış Splash Art'tan şampiyonu tahmin et. Yanıldıkça kamera uzaklaşır ve daha fazla alan görünür. |
 | **Kostüm** | 🎭 | Görselden şampiyonun hangi kostümü olduğunu bul. |
@@ -129,9 +135,26 @@ Oda kur, 4 haneli kodu arkadaşlarına gönder (2–8 kişi). Herkes **aynı öl
 
 ---
 
+## 📚 Rehber ve Yardım
+
+Oyunu ilk kez açan ya da şampiyonları/eşyaları tanımayan oyuncular için ayrı bir bilgi katmanı vardır.
+
+| Bölüm | Nerede? | İçerik |
+| :--- | :--- | :--- |
+| **İlk Giriş Öğreticisi** | Siteye ilk girişte otomatik | 3 adımlık kısa tanıtım: oyun nedir, modlar ve zorluk, mini oyunlar + rehber. Son adımda takma ad sorulur *(zorunlu değil)*. Yalnız **bir kez** gösterilir; atlanabilir. |
+| **Şampiyon Rehberi** | Ana menü → Oyuncu Rehberi | Tüm şampiyonlar; ada göre ara, bölge/rol/koridor/çıkış yılına göre süz. Bir şampiyona dokun → hikâyesi, yetenekleri ve künyesi *(bölge, rol, tür, cinsiyet…)*. |
+| **Eşya Rehberi** | Ana menü → Oyuncu Rehberi | Tüm SR eşyaları; ada göre ara, özelliğine ya da fiyat bandına göre süz. Bir eşyaya dokun → ne yaptığı, hangi parçalardan çıktığı ve nelere yükseltildiği. |
+| **Nasıl Oynanır** | Ana menü → Oyuncu Rehberi, oyun içi **?** | Renklerin anlamı, her alt modun ve mini oyunun kuralları. Oyun içinden açıldığında yalnız o modun anlatımı gösterilir. |
+| **Yenilikler** | Ana menü bandı + Ayarlar | Sürüm notları. Menüdeki 🆕 bandı **yalnız görülmemiş girdi varken** yanar. |
+| **Geri Bildirim** | Ayarlar → Sürüm | Site üzerinden **🐛 Hata bildir** ve **💡 Öneri gönder**. Sürüm/cihaz bilgisi otomatik eklenir; sunucuya ulaşılamazsa e-posta yedeğine düşer. |
+
+> Üç rehber de tam ekran açılır ve üstteki sekmelerden birbirine tek dokunuşla geçilir.
+
+---
+
 ## 🎖 Başarım Sistemi
 
-İstatistiklerden beslenen ve oyuncunun ilerlemesini ödüllendiren **111 adet benzersiz başarım rozeti** bulunur. Başarımlar **10 farklı kategoride** organize edilmiş olup canlı ilerleme çubukları ile takip edilir:
+İstatistiklerden beslenen ve oyuncunun ilerlemesini ödüllendiren **109 adet benzersiz başarım rozeti** bulunur. Başarımlar **10 farklı kategoride** organize edilmiş olup canlı ilerleme çubukları ile takip edilir:
 
 | Kategori | Rozet Örnekleri | Açıklama |
 | :--- | :--- | :--- |
@@ -144,7 +167,7 @@ Oda kur, 4 haneli kodu arkadaşlarına gönder (2–8 kişi). Herkes **aynı öl
 | ☠️ **Zorluk** | Gözü Kara, Zor Bela, Demir İrade, Zor Ustası, Delilik Efsanesi | Zor ve Aşırı Zor zorluk seviyelerindeki toplam galibiyetler |
 | 📚 **Koleksiyon** | Kaşif, Avcı, Ansiklopedi, Arcane Efsaneleri, Demacia Adaleti | Bölge tamamlama, koridor ustalıkları ve özel şampiyon başarımları |
 | ⚔️ **Sosyal** | Meydan Okuyucu, Rakip, Gladyatör, Şampiyon, Haberci | "Kaç Tane?" Multi tur galibiyetleri ve sonuç paylaşma |
-| 🕹️ **Mini Oyunlar** | Zaman Yolcusu, Usta Avcı, Kusursuz Dokuz, Dört Dörtlük, Mini Oyun Üstadı | 7 mini oyundaki galibiyet, kusursuzluk ve meta ustalık rozetleri |
+| 🕹️ **Mini Oyunlar** | Zaman Yolcusu, Usta Avcı, Kusursuz Dokuz, Dört Dörtlük, Mini Oyun Üstadı | Kelime, Bingo, Zaman Tüneli, Şampiyon Avı, Dokuz Kare ve Bağlantılar'daki galibiyet, kusursuzluk ve meta ustalık rozetleri *("Kaç Tane?" galibiyetleri Sosyal kategoriyi besler)* |
 
 ### 🌟 Öne Çıkan Özel Başarım Mekanizmaları
 
@@ -199,7 +222,8 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 │   │  DDragon   → Şampiyon/Eşya     │             │
 │   │  CDragon   → Türkçe Replikler  │             │
 │   │  Meraki    → Detaylı Bilgi     │             │
-│   │  Supabase  → Küresel Sıralama  │             │
+│   │  Supabase  → Sıralama, Geri    │             │
+│   │              Bildirim, Realtime│             │
 │   └────────────────────────────────┘             │
 │                                                  │
 │   ┌────────────────────────────────┐             │
@@ -222,7 +246,7 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 | **Bundler** | Vite 8 | HMR ile hızlı geliştirme |
 | **Stil** | Tailwind CSS v4 + Vanilla CSS | Utility-first + özel animasyonlar |
 | **PWA** | vite-plugin-pwa | Çevrimdışı destek, yüklenebilirlik |
-| **Backend** | Supabase | Küresel sıralama tablosu (RLS & SECURITY DEFINER RPC ile doğrulanmış) |
+| **Backend** | Supabase | Küresel sıralama + geri bildirim tabloları (RLS & SECURITY DEFINER RPC ile doğrulanmış) ve multiplayer için Realtime kanalları |
 | **Lint** | oxlint | Hızlı ve modern linting |
 | **Test** | Vitest | Unit testler |
 | **Hosting** | Vercel | Otomatik dağıtım, CDN, güvenlik başlıkları |
@@ -242,7 +266,7 @@ Sınırsız ve Zamana Karşı modlarında 4 farklı zorluk seviyesi seçilebilir
 
 ### Gereksinimler
 
-- [Node.js](https://nodejs.org) v18+
+- [Node.js](https://nodejs.org) **v20.19+** ya da **v22.12+** *(Vite 8 gereksinimi)*
 - npm v9+
 
 ### Hızlı Başlangıç
@@ -305,24 +329,35 @@ vadi-tahmini/
 │   ├── components/          # React bileşenleri
 │   │   ├── GameScreen.tsx   #   Ana oyun ekranı
 │   │   ├── Menu.tsx         #   Ana menü
+│   │   ├── Onboarding.tsx   #   İlk girişe özel öğretici
+│   │   ├── PlayerGuide.tsx  #   Oyuncu Rehberi girişi
+│   │   ├── ChampionGuide.tsx / ItemGuide.tsx / HowTo.tsx  # Rehber ekranları
 │   │   ├── Achievements.tsx #   Başarım sistemi
 │   │   ├── Leaderboard.tsx  #   Küresel sıralama
 │   │   ├── Stats.tsx        #   İstatistikler
-│   │   ├── Settings.tsx     #   Ayarlar
+│   │   ├── Settings.tsx     #   Ayarlar (ses, yedek, duvar kağıtları, geri bildirim)
+│   │   ├── ReportModal.tsx  #   Hata bildir / Öneri gönder
 │   │   └── ...
 │   ├── data/                # Üretilmiş JSON veri dosyaları
-│   ├── game/                # Oyun mantığı ve yardımcı modüller
+│   ├── game/                # Oyun mantığı + yanında `*.test.ts` birim testleri
 │   │   ├── types.ts         #   Tip tanımlamaları
 │   │   ├── achievements.ts  #   Başarım hesaplama
 │   │   ├── challenge.ts     #   Oyuncu kimliği + takma ad
 │   │   ├── counterRoom.ts   #   Multiplayer oda (Supabase Realtime)
 │   │   ├── hunt.ts / grid.ts / connections.ts / timeline.ts  # Mini oyun mantığı
+│   │   ├── championGuide.ts / itemGuide.ts  # Rehber arama & filtreleme
+│   │   ├── onboarding.ts    #   İlk giriş bayrağı
+│   │   ├── report.ts        #   Geri bildirim türleri + tanı metni
+│   │   ├── changelog.ts     #   "Yenilikler" içeriği
+│   │   ├── rank.ts          #   Sihirdar unvanları (ligler)
+│   │   ├── backup.ts        #   İlerleme yedekleme
+│   │   ├── filter.ts        #   Havuz filtreleri (bölge/rol/koridor)
 │   │   ├── puzzle.ts        #   Bulmaca üretimi
 │   │   ├── stats.ts         #   İstatistik yönetimi
 │   │   ├── difficulty.ts    #   Zorluk sistemi
 │   │   ├── rng.ts           #   Deterministik rastgele sayı
 │   │   └── ...
-│   ├── test/                # Test dosyaları
+│   ├── test/                # Test altyapısı (setup + yardımcılar)
 │   ├── App.tsx              # Kök uygulama bileşeni
 │   ├── main.tsx             # Giriş noktası
 │   └── index.css            # Global stiller
