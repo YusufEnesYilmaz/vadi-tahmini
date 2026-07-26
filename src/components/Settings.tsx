@@ -270,9 +270,29 @@ interface Wallpaper {
 const WALLPAPERS: Wallpaper[] = [
   // Şampiyon esintili özel duvar kağıtları (bu oyun için üretildi)
   { file: '/hero-roster-test.png', name: 'Vadi Kadrosu', slug: 'vadi-kadrosu' },
+  // Şövalye · Ezgi · Kâşif üçlüsü — her birinin 3 farklı kompozisyonu
   { file: '/wp-garen.png', name: 'Adaletin Kalkanı', slug: 'adaletin-kalkani' },
+  { file: '/wp-garen-2.png', name: 'Şafak Muhafızı', slug: 'safak-muhafizi' },
+  { file: '/wp-garen-3.png', name: 'Kılıç Yemini', slug: 'kilic-yemini' },
   { file: '/wp-seraphine.png', name: 'Yıldızların Ezgisi', slug: 'yildizlarin-ezgisi' },
+  { file: '/wp-seraphine-2.png', name: 'Kristal Nota', slug: 'kristal-nota' },
+  { file: '/wp-seraphine-3.png', name: 'Sahne Işıkları', slug: 'sahne-isiklari' },
   { file: '/wp-teemo.png', name: 'Orman Kâşifi', slug: 'orman-kasifi' },
+  { file: '/wp-teemo-2.png', name: 'Mantar Tarlası', slug: 'mantar-tarlasi' },
+  { file: '/wp-teemo-3.png', name: 'Küçük İzci', slug: 'kucuk-izci' },
+  // Arcane esintili kadro (11 karakter, her birine 1 duvar kağıdı)
+  { file: '/wp-jinx.png', name: 'Kaos Havai Fişeği', slug: 'kaos-havai-fisegi' },
+  { file: '/wp-vi.png', name: 'Demir Yumruk', slug: 'demir-yumruk' },
+  { file: '/wp-caitlyn.png', name: 'Keskin Nişan', slug: 'keskin-nisan' },
+  { file: '/wp-ekko.png', name: 'Zaman Kıvılcımı', slug: 'zaman-kivilcimi' },
+  { file: '/wp-jayce.png', name: 'Hextech Çekiç', slug: 'hextech-cekic' },
+  { file: '/wp-viktor.png', name: 'Çelik Evrim', slug: 'celik-evrim' },
+  { file: '/wp-heimerdinger.png', name: 'Mucit Atölyesi', slug: 'mucit-atolyesi' },
+  { file: '/wp-singed.png', name: 'Zehirli Duman', slug: 'zehirli-duman' },
+  { file: '/wp-warwick.png', name: 'Gölge Avcısı', slug: 'golge-avcisi' },
+  { file: '/wp-ambessa.png', name: 'Savaş Lordu', slug: 'savas-lordu' },
+  { file: '/wp-mel.png', name: 'Altın Işıltı', slug: 'altin-isilti' },
+  // Oyun ekranlarının arka planları
   { file: '/mg-main.png', name: 'Hextech Arena', slug: 'hextech-arena' },
   { file: '/arcane-menu-bg.png', name: 'Zaun & Piltover', slug: 'zaun-piltover' },
   { file: '/card-endless.png', name: 'Sınırsız', slug: 'sinirsiz' },
