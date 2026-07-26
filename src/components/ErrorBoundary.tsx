@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { buildDiagnostic, reportMailtoUrl } from '../game/report'
+import { buildDiagnostic, reportContext, reportMailtoUrl } from '../game/report'
 import { submitReport, isLeaderboardEnabled } from '../game/supabase'
 
 interface Props {
@@ -38,12 +38,14 @@ export default class ErrorBoundary extends Component<Props, State> {
   reportCrash = () => {
     const { error, stack } = this.state
     const detail = `${error?.message ?? ''}\n\n${stack ?? ''}`
+    // Çöküş her hâlükârda HATA — kayıt türü de öyle damgalanır ("Hata · Çöküş")
+    const ctx = reportContext('bug', 'Çöküş')
     if (!isLeaderboardEnabled) {
-      window.location.href = reportMailtoUrl('Çöküş', '(otomatik çöküş raporu)', detail)
+      window.location.href = reportMailtoUrl(ctx, '(otomatik çöküş raporu)', detail)
       return
     }
     this.setState({ reportStatus: 'sending' })
-    void submitReport('Çöküş', '(otomatik çöküş raporu)', buildDiagnostic('Çöküş', detail))
+    void submitReport(ctx, '(otomatik çöküş raporu)', buildDiagnostic(ctx, detail))
       .then((ok) => this.setState({ reportStatus: ok ? 'sent' : 'error' }))
   }
 
@@ -82,7 +84,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         {reportStatus === 'error' ? (
           <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
             Gönderilemedi.{' '}
-            <a href={reportMailtoUrl('Çöküş', '(otomatik çöküş raporu)', `${error.message}\n\n${stack ?? ''}`)} style={{ color: 'var(--gold)' }}>
+            <a href={reportMailtoUrl(reportContext('bug', 'Çöküş'), '(otomatik çöküş raporu)', `${error.message}\n\n${stack ?? ''}`)} style={{ color: 'var(--gold)' }}>
               E-posta ile bildir
             </a>
           </p>

@@ -3,6 +3,7 @@ import { applyBackup, clearProgress, downloadBackup } from '../game/backup'
 import { getNick, setNick, getPlayerId } from '../game/challenge'
 import { PATCH } from '../game/data'
 import ReportModal from './ReportModal'
+import type { ReportKind } from '../game/report'
 import { getDifficulty } from '../game/difficulty'
 import { godMode, godModeAvailable, setGodMode } from '../game/dev'
 import {
@@ -401,6 +402,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
+  const [reportKind, setReportKind] = useState<ReportKind>('bug')
   const [preview, setPreview] = useState<Wallpaper | null>(null)
   const [god, setGod] = useState(godMode)
   const updateReady = useUpdateAvailable()
@@ -788,13 +790,22 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                   {updating ? 'Önbellek temizleniyor...' : 'Elle denetle ve önbelleği temizle'}
                 </button>
 
-                <button
-                  onClick={() => setReportOpen(true)}
-                  className="card-btn w-full rounded-2xl border px-4 py-3 text-sm font-semibold"
-                  style={{ borderColor: 'rgba(var(--gold-rgb), 0.16)', color: 'var(--text-dim)' }}
-                >
-                  🐛 Hata bildir
-                </button>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    onClick={() => { setReportKind('bug'); setReportOpen(true) }}
+                    className="card-btn w-full rounded-2xl border px-4 py-3 text-sm font-semibold"
+                    style={{ borderColor: 'rgba(var(--gold-rgb), 0.16)', color: 'var(--text-dim)' }}
+                  >
+                    🐛 Hata bildir
+                  </button>
+                  <button
+                    onClick={() => { setReportKind('idea'); setReportOpen(true) }}
+                    className="card-btn w-full rounded-2xl border px-4 py-3 text-sm font-semibold"
+                    style={{ borderColor: 'rgba(var(--hextech-rgb), 0.24)', color: 'var(--hextech)' }}
+                  >
+                    💡 Öneri gönder
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -895,7 +906,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         {achievementsOpen && <Achievements onClose={() => setAchievementsOpen(false)} />}
         {leaderboardOpen && <Leaderboard onClose={() => setLeaderboardOpen(false)} />}
         {calendarOpen && <CalendarModal onClose={() => setCalendarOpen(false)} />}
-        {reportOpen && <ReportModal context="Ayarlar" onClose={() => setReportOpen(false)} />}
+        {reportOpen && <ReportModal context="Ayarlar" kind={reportKind} onClose={() => setReportOpen(false)} />}
         {preview && <WallpaperPreview wallpaper={preview} onClose={() => setPreview(null)} />}
       </div>
     </>

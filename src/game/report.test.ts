@@ -1,6 +1,27 @@
 import { describe, it, expect } from 'vitest'
-import { buildDiagnostic, reportMailtoUrl } from './report'
+import { REPORT_KINDS, buildDiagnostic, reportContext, reportMailtoUrl } from './report'
 import { PATCH } from './data'
+
+describe('geri bildirim türü', () => {
+  // Tür ayrı KOLON değil, `context` öneki olarak taşınıyor (şema değişmesin diye).
+  it('context önekini türe göre yazar', () => {
+    expect(reportContext('bug', 'Ayarlar')).toBe('Hata · Ayarlar')
+    expect(reportContext('idea', 'Ayarlar')).toBe('Öneri · Ayarlar')
+  })
+
+  it('önek `submit_report` context sınırına (80) rahat sığar', () => {
+    expect(reportContext('idea', 'Ayarlar').length).toBeLessThanOrEqual(80)
+  })
+
+  it('her tür için metinler dolu (modal başlık/placeholder tek kaynak)', () => {
+    for (const meta of Object.values(REPORT_KINDS)) {
+      expect(meta.label.length).toBeGreaterThan(0)
+      expect(meta.title.length).toBeGreaterThan(0)
+      expect(meta.placeholder.length).toBeGreaterThan(0)
+      expect(meta.sentTitle.length).toBeGreaterThan(0)
+    }
+  })
+})
 
 describe('buildDiagnostic', () => {
   it('context, sürüm ve tarih içerir', () => {
@@ -38,6 +59,14 @@ describe('reportMailtoUrl (yedek)', () => {
     expect(body).toContain('skor kaydolmadı')
     expect(body).toContain('Ekran: Ayarlar')
     expect(body).toContain(`Patch ${PATCH}`)
+  })
+
+  it('öneri bağlamında konu "Öneri" der, hata yolunda eski metin korunur', () => {
+    const idea = new URL(reportMailtoUrl(reportContext('idea', 'Ayarlar'), 'şu mod eklensin'))
+    expect(decodeURIComponent(idea.searchParams.get('subject') ?? '')).toContain('Öneri')
+
+    const bug = new URL(reportMailtoUrl(reportContext('bug', 'Ayarlar'), 'skor kaydolmadı'))
+    expect(decodeURIComponent(bug.searchParams.get('subject') ?? '')).toContain('Hata bildirimi')
   })
 
   it('mesaj boşsa yer tutucu yazılır', () => {
