@@ -30,6 +30,17 @@ export interface ChangelogEntry {
 /** En yeni EN ÜSTTE */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: 'rehberler-duvar-kagitlari',
+    date: '2026-07-26',
+    title: 'Oyuncu Rehberi, Eşya Rehberi ve 17 yeni duvar kağıdı',
+    items: [
+      { icon: '📚', text: 'Ana menüye "Oyuncu Rehberi" geldi: Şampiyonlar, Eşyalar ve Nasıl Oynanır artık tek yerde. Üçü de tam ekran açılıyor ve üstteki sekmelerden birbirine tek dokunuşla geçiyorsun.' },
+      { icon: '🗡️', text: 'Eşya Rehberi yeni: Vadi\'nin bütün eşyalarını ada göre ara, özelliğine ya da fiyatına göre süz. Bir eşyaya dokun → ne yaptığı, hangi parçalardan çıktığı ve nelere yükseltildiği açılır.' },
+      { icon: '🖼️', text: 'Duvar kağıdı arşivi 18\'den 35\'e çıktı: Arcane esintili 11 yeni karakter, ayrıca şövalye, ezgi ve kâşif için 2\'şer yeni kompozisyon. Ayarlar > Duvar Kağıtları\'nda.' },
+      { icon: '⤢', text: 'Duvar kağıdına dokununca artık dosya hemen inmiyor — önce tam boy açılıyor, kırpılmadan bakıyorsun, beğenirsen oradan indiriyorsun.' },
+    ],
+  },
+  {
     id: 'sampiyon-rehberi-menu-gorseli',
     date: '2026-07-24',
     title: 'Şampiyon Rehberi + menü yenilendi',

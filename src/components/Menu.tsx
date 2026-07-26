@@ -18,6 +18,8 @@ import { cryptoRandInt, todayKey } from '../game/rng'
 import { miniDailyDone } from '../game/miniDaily'
 import RankEmblem from './RankEmblem'
 import PlayerGuide from './PlayerGuide'
+import Onboarding from './Onboarding'
+import { needsOnboarding } from '../game/onboarding'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
@@ -110,6 +112,9 @@ export default function Menu({ onPlay, onSettings, onChampions, onItems, onHowTo
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
   const [soundOn, setSoundOn] = useState(sfxEnabled)
   const [playerGuideOpen, setPlayerGuideOpen] = useState(false)
+  // İlk girişe özel öğretici — bayrak yazıldıktan sonra bir daha çıkmaz.
+  // Menüde tutuluyor çünkü açılışta ekran ZATEN menü (App.initialScreen).
+  const [onboarding, setOnboarding] = useState(needsOnboarding)
   const [modeCardArtFailed, setModeCardArtFailed] = useState<Record<ModeCardId, boolean>>({
     endless: false,
     daily: false,
@@ -778,6 +783,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onItems, onHowTo
 
       {rank && <RankModal best={dailyStreak.best} current={activeStreak} onClose={() => setRank(false)} />}
       {changelog && <Changelog onClose={() => { setChangelog(false); setUnseenNews(hasUnseenChangelog()) }} />}
+      {onboarding && <Onboarding onClose={() => setOnboarding(false)} />}
       </div>
     </>
   )
