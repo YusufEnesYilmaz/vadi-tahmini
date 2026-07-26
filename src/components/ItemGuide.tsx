@@ -16,7 +16,6 @@ interface Props {
 }
 
 const TAG_OPTIONS = itemTagOptions(ITEMS)
-const TOTAL_ITEMS = ITEMS.length
 
 function toggleTag(tags: string[], tag: string): string[] {
   return tags.includes(tag) ? tags.filter((value) => value !== tag) : [...tags, tag]
@@ -197,20 +196,6 @@ export default function ItemGuide({ onExit, onNavigate }: Props) {
               </div>
             )}
 
-            <span
-              className="ml-auto inline-flex min-w-[7rem] items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-sm font-bold tabular-nums sm:min-w-[7.75rem]"
-              style={{
-                borderColor: 'rgba(var(--gold-rgb), 0.34)',
-                background: 'linear-gradient(180deg, rgba(var(--gold-rgb), 0.2), rgba(var(--gold-rgb), 0.1))',
-                color: 'var(--gold-bright)',
-                boxShadow: '0 0 24px -10px rgba(var(--gold-glow-rgb), 0.6)',
-              }}
-            >
-              <span className="section-label text-[10px]" style={{ color: 'var(--gold)' }}>
-                Gösterilen
-              </span>
-              <span>{shownItems.length}/{TOTAL_ITEMS}</span>
-            </span>
           </div>
 
           <div className="mt-4 sm:mt-5">

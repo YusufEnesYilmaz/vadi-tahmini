@@ -21,6 +21,7 @@ import CalendarModal from './CalendarModal'
 import Changelog from './Changelog'
 import Leaderboard from './Leaderboard'
 import Stats from './Stats'
+import { useModalFocusTrap } from './useModalFocusTrap'
 
 function SectionHead({
   icon,
@@ -260,7 +261,13 @@ function ShortcutCard({
 }
 
 /** İndirilebilir Arcane duvar kağıtları — `public/`'teki üretilmiş arka planlar (hepsi yazı/karakter/watermark YOK). */
-const WALLPAPERS: { file: string; name: string; slug: string }[] = [
+interface Wallpaper {
+  file: string
+  name: string
+  slug: string
+}
+
+const WALLPAPERS: Wallpaper[] = [
   // Şampiyon esintili özel duvar kağıtları (bu oyun için üretildi)
   { file: '/hero-roster-test.png', name: 'Vadi Kadrosu', slug: 'vadi-kadrosu' },
   { file: '/wp-garen.png', name: 'Adaletin Kalkanı', slug: 'adaletin-kalkani' },
@@ -282,6 +289,85 @@ const WALLPAPERS: { file: string; name: string; slug: string }[] = [
   { file: '/menu-section-bg.png', name: 'Hextech Geçidi', slug: 'hextech-gecidi' },
 ]
 
+/**
+ * Duvar kağıdı büyük önizlemesi. Izgaradaki kart görseli `object-cover` ile kırpıyor;
+ * burada `object-contain` — amacı görselin TAMAMINI göstermek. İndirme bağlantısı da burada
+ * (karttan buraya taşındı) ki tek tık indirmek yerine oyuncu önce görüp karar verebilsin.
+ */
+function WallpaperPreview({ wallpaper, onClose }: { wallpaper: Wallpaper; onClose: () => void }) {
+  const dialogRef = useModalFocusTrap<HTMLDivElement>()
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="ovl fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-5"
+      style={{ background: 'var(--overlay)' }}
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        className="panel anim-pop my-auto w-full max-w-4xl rounded-[24px] border p-3 sm:p-4"
+        style={{ background: 'var(--bg-card)', borderColor: 'rgba(var(--gold-rgb), 0.24)' }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${wallpaper.name} duvar kağıdı önizlemesi`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display truncate text-lg font-bold" style={{ color: 'var(--gold-bright)' }}>
+            {wallpaper.name}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="card-btn shrink-0 rounded-lg border px-2.5 py-1 text-xs"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}
+          >
+            Kapat
+          </button>
+        </div>
+
+        {failed ? (
+          <p
+            className="mt-3 rounded-2xl border px-4 py-8 text-center text-sm"
+            style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}
+          >
+            Görsel yüklenemedi. Duvar kağıtları çevrimiçi yüklenir — bağlantını kontrol edip tekrar dene.
+          </p>
+        ) : (
+          <img
+            src={wallpaper.file}
+            alt={`${wallpaper.name} duvar kağıdı`}
+            decoding="async"
+            onError={() => setFailed(true)}
+            className="mt-3 max-h-[74vh] w-full rounded-2xl border object-contain"
+            style={{ borderColor: 'rgba(var(--gold-rgb), 0.14)', background: 'rgba(var(--bg-rgb), 0.6)' }}
+          />
+        )}
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[11px]" style={{ color: 'var(--text-dim)' }}>
+            vadi-tahmini-{wallpaper.slug}.png
+          </span>
+          <a
+            href={wallpaper.file}
+            download={`vadi-tahmini-${wallpaper.slug}.png`}
+            className="btn-gold inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold"
+          >
+            <span aria-hidden>↓</span> İndir
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Settings({ onExit }: { onExit: () => void }) {
   const [sfx, setSfx] = useState(sfxEnabled)
   const [vol, setVolState] = useState(() => Math.round(getVolume() * 100))
@@ -295,6 +381,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
+  const [preview, setPreview] = useState<Wallpaper | null>(null)
   const [god, setGod] = useState(godMode)
   const updateReady = useUpdateAvailable()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -404,7 +491,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]" style={{ color: 'var(--text)' }}>
                 Rehber, istatistikler, başarımlar, sıralama ve takvim artık burada tek sahnede toplanır.
-                Aşağıda menü; altında ise hesap, ses, ilerleme, sürüm ve geliştirici ayarları var.
+                Aşağıda menü; altında ise hesap, ses, ilerleme ve sürüm ayarları var.
               </p>
             </div>
 
@@ -563,9 +650,6 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                     onChange={(event) => changeVolume(Number(event.target.value))}
                     className="settings-slider mt-4 w-full cursor-pointer accent-amber-400"
                   />
-                  <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
-                    Kaydırıcı hareket ettikçe aktif Garen efekti aynı anda güncellenir.
-                  </p>
                 </div>
               ) : (
                 <p className="mt-4 rounded-[24px] border px-4 py-3 text-sm" style={{ borderColor: 'rgba(var(--gold-rgb), 0.14)', color: 'var(--text-dim)' }}>
@@ -743,19 +827,19 @@ export default function Settings({ onExit }: { onExit: () => void }) {
           <SectionHead
             icon={<SectionGlyph name="image" />}
             title="Duvar Kağıtları"
-            detail="Oyunun Arcane temalı arka planlarını indir. Görseller çevrimiçi yüklenir."
+            detail="Karta dokun, duvar kağıdını büyük gör ve indir. Görseller çevrimiçi yüklenir."
             accentRgb="var(--hextech-rgb)"
           />
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {WALLPAPERS.map((w) => (
-              <a
+              <button
                 key={w.file}
-                href={w.file}
-                download={`vadi-tahmini-${w.slug}.png`}
-                className="card-btn group relative block overflow-hidden rounded-2xl border"
+                type="button"
+                onClick={() => setPreview(w)}
+                className="card-btn group relative block overflow-hidden rounded-2xl border text-left"
                 style={{ borderColor: 'rgba(var(--gold-rgb), 0.18)' }}
-                aria-label={`${w.name} duvar kağıdını indir`}
+                aria-label={`${w.name} duvar kağıdını büyük göster`}
               >
                 <img
                   src={w.file}
@@ -772,10 +856,10 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                     {w.name}
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--hextech)' }}>
-                    <span aria-hidden>↓</span> İndir
+                    <span aria-hidden>⤢</span> Büyüt
                   </span>
                 </span>
-              </a>
+              </button>
             ))}
           </div>
         </section>
@@ -792,6 +876,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         {leaderboardOpen && <Leaderboard onClose={() => setLeaderboardOpen(false)} />}
         {calendarOpen && <CalendarModal onClose={() => setCalendarOpen(false)} />}
         {reportOpen && <ReportModal context="Ayarlar" onClose={() => setReportOpen(false)} />}
+        {preview && <WallpaperPreview wallpaper={preview} onClose={() => setPreview(null)} />}
       </div>
     </>
   )

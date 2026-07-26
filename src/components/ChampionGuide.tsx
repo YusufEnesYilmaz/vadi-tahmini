@@ -25,7 +25,6 @@ const LANE_OPTIONS = laneOptions()
 const YEAR_OPTIONS = Array.from(
   new Set(CHAMPIONS.map((champion) => champion.year).filter((year): year is number => year != null)),
 ).sort((a, b) => b - a)
-const TOTAL_CHAMPIONS = CHAMPIONS.length
 const FILTER_GROUPS: { title: string; kind: FilterKind; options: string[] }[] = [
   { title: 'Bölge', kind: 'region', options: REGION_OPTIONS },
   { title: 'Rol', kind: 'role', options: ROLE_OPTIONS },
@@ -234,20 +233,6 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
               </div>
             )}
 
-            <span
-              className="ml-auto inline-flex min-w-[7rem] items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-sm font-bold tabular-nums sm:min-w-[7.75rem]"
-              style={{
-                borderColor: 'rgba(var(--gold-rgb), 0.34)',
-                background: 'linear-gradient(180deg, rgba(var(--gold-rgb), 0.2), rgba(var(--gold-rgb), 0.1))',
-                color: 'var(--gold-bright)',
-                boxShadow: '0 0 24px -10px rgba(var(--gold-glow-rgb), 0.6)',
-              }}
-            >
-              <span className="section-label text-[10px]" style={{ color: 'var(--gold)' }}>
-                Gösterilen
-              </span>
-              <span>{shownChampions.length}/{TOTAL_CHAMPIONS}</span>
-            </span>
           </div>
 
           <div className="mt-4 sm:mt-5">
