@@ -40,6 +40,8 @@ export interface Item {
   gold: number // toplam altın
   img: string // ikon dosyası ("3153.png")
   tags: string[] // TR stat etiketleri — ipucu
+  desc?: string // uzun açıklama/pasif metni — rehber
+  plain?: string // kısa özet — rehber
   from: string[] // bileşen id'leri — ipucu (ikonları gösterilir)
 }
 
@@ -50,6 +52,7 @@ export interface Item {
 export interface ItemPart {
   name: string
   img: string
+  gold?: number
 }
 
 export interface ItemData {
@@ -103,7 +106,10 @@ export function subMeta(id: PlaySub): { id: PlaySub; name: string; desc: string;
 export const TOP_MODES: { id: TopMode; name: string; desc: string; icon: string }[] = [
   { id: 'endless', name: 'Sınırsız', desc: 'Arka arkaya oyna, bekleme yok', icon: '∞' },
   { id: 'daily', name: 'Günlük', desc: 'Herkese aynı bulmaca, günde 1', icon: '📅' },
-  { id: 'timed', name: 'Zamana Karşı', desc: '60 saniyede kaç doğru?', icon: '⏱' },
+  // ⚠ Süre SABİT DEĞİL — zorluğa göre 90/60/45/30 (`RULES[diff].timedSeconds`).
+  // Bu yüzden açıklamada sayı YAZILMAZ; yazılırsa Kolay/Zor oynayana yalan söyler
+  // (aynı hata `share.ts`'te "60 saniyede" olarak bir kez yaşandı, 2026-07-23).
+  { id: 'timed', name: 'Zamana Karşı', desc: 'Süre dolmadan kaç doğru?', icon: '⏱' },
 ]
 
 /**

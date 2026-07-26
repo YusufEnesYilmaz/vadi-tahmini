@@ -3,6 +3,8 @@ import GameScreen from './components/GameScreen'
 import Menu from './components/Menu'
 import Settings from './components/Settings'
 import ChampionGuide from './components/ChampionGuide'
+import ItemGuide from './components/ItemGuide'
+import HowTo from './components/HowTo'
 import WordleGame from './components/WordleGame'
 import BingoGame from './components/BingoGame'
 import TimelineGame from './components/TimelineGame'
@@ -11,6 +13,7 @@ import GridGame from './components/GridGame'
 import ConnectionsGame from './components/ConnectionsGame'
 import CounterGame from './components/CounterGame'
 import CounterMulti from './components/CounterMulti'
+import type { GuideKey } from './components/GuideTabs'
 import type { PoolFilter } from './game/filter'
 import type { Difficulty, PlaySub, TopMode } from './game/types'
 
@@ -19,6 +22,8 @@ type Screen =
   | { name: 'game'; top: TopMode; sub: PlaySub; diff: Difficulty; filter: PoolFilter }
   | { name: 'settings' }
   | { name: 'champions' }
+  | { name: 'items' }
+  | { name: 'howto' }
   | { name: 'wordle'; daily: boolean }
   | { name: 'bingo'; daily: boolean }
   | { name: 'timeline'; daily: boolean }
@@ -71,6 +76,8 @@ export default function App() {
     }
   }
 
+  const navigateGuide = (key: GuideKey) => navigateTo({ name: key })
+
   if (screen.name === 'game') {
     return (
       <GameScreen
@@ -113,13 +120,21 @@ export default function App() {
     return <Settings onExit={navigateMenu} />
   }
   if (screen.name === 'champions') {
-    return <ChampionGuide onExit={navigateMenu} />
+    return <ChampionGuide onExit={navigateMenu} onNavigate={navigateGuide} />
+  }
+  if (screen.name === 'items') {
+    return <ItemGuide onExit={navigateMenu} onNavigate={navigateGuide} />
+  }
+  if (screen.name === 'howto') {
+    return <HowTo variant="page" onClose={navigateMenu} onNavigate={navigateGuide} />
   }
   return (
     <Menu
       onPlay={(top, sub, diff, filter) => navigateTo({ name: 'game', top, sub, diff, filter })}
       onSettings={() => navigateTo({ name: 'settings' })}
       onChampions={() => navigateTo({ name: 'champions' })}
+      onItems={() => navigateTo({ name: 'items' })}
+      onHowTo={() => navigateTo({ name: 'howto' })}
       onMiniGame={(g, d) => {
         if (g === 'wordle') navigateTo({ name: 'wordle', daily: d })
         else if (g === 'bingo') navigateTo({ name: 'bingo', daily: d })

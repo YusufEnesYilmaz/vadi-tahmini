@@ -980,7 +980,6 @@ button { touch-action: manipulation; }
     0 14px 24px rgba(0, 0, 0, 0.28);
 }
 
-.menu-subflow-badge,
 .menu-subpanel-link,
 .pool-filter-count,
 .pool-filter-summary-btn,
@@ -990,16 +989,35 @@ button { touch-action: manipulation; }
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.72)) saturate(1.08);
 }
 
-.menu-subflow-badge {
-  color: var(--menu-top-accent);
-  border-color: rgba(var(--menu-top-accent-rgb), 0.28);
-  background:
-    linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.42), rgba(var(--bg-rgb), 0.34)),
-    radial-gradient(circle at 20% 18%, rgba(var(--hextech-rgb), 0.16), transparent 44%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(var(--hextech-rgb), 0.08),
-    0 0 22px -14px rgba(var(--menu-top-accent-rgb), 0.56);
+/* Hero kadrosu — şampiyon sanatı içeriğin ARKASINDA, iki kenardan içeri doğru erir.
+   Not: bu depoda foreground şampiyon dekoru 3 kez reddedildi; kabul edilen dil
+   "karanlık zeminde erimiş" olması → opaklık düşük + maske ile sönümlü + orta bölge boş. */
+/* Kadro TEK ŞERİT hâlinde hero'nun tamamını kaplar: solda Garen+Seraphine,
+   ortada Arcane kadrosu, sağda Teemo. Ortadaki figürler başlığın arkasına denk
+   geldiği için ELİPTİK maskeyle sönümlenir — "Vadi Tahmini" okunur kalır. */
+.menu-hero-cast {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  gap: 1px;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 52% 130% at 50% 50%, transparent 26%, rgba(0, 0, 0, 0.4) 54%, rgba(0, 0, 0, 0.92) 82%, #000 100%);
+  mask-image: radial-gradient(ellipse 52% 130% at 50% 50%, transparent 26%, rgba(0, 0, 0, 0.4) 54%, rgba(0, 0, 0, 0.92) 82%, #000 100%);
+}
+
+.menu-hero-cast img {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.32;
+  filter: saturate(0.94) contrast(1.05);
+}
+
+/* Dar ekranda kadro daha da geri çekilir — başlık ve slogan asla yarışmasın */
+@media (max-width: 640px) {
+  .menu-hero-cast img { opacity: 0.2; }
 }
 
 .menu-subflow-back,

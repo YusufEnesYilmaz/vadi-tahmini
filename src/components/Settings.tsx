@@ -19,7 +19,6 @@ import { applyUpdate, useUpdateAvailable } from '../game/pwaUpdate'
 import Achievements from './Achievements'
 import CalendarModal from './CalendarModal'
 import Changelog from './Changelog'
-import HowTo from './HowTo'
 import Leaderboard from './Leaderboard'
 import Stats from './Stats'
 
@@ -262,6 +261,11 @@ function ShortcutCard({
 
 /** İndirilebilir Arcane duvar kağıtları — `public/`'teki üretilmiş arka planlar (hepsi yazı/karakter/watermark YOK). */
 const WALLPAPERS: { file: string; name: string; slug: string }[] = [
+  // Şampiyon esintili özel duvar kağıtları (bu oyun için üretildi)
+  { file: '/hero-roster-test.png', name: 'Vadi Kadrosu', slug: 'vadi-kadrosu' },
+  { file: '/wp-garen.png', name: 'Adaletin Kalkanı', slug: 'adaletin-kalkani' },
+  { file: '/wp-seraphine.png', name: 'Yıldızların Ezgisi', slug: 'yildizlarin-ezgisi' },
+  { file: '/wp-teemo.png', name: 'Orman Kâşifi', slug: 'orman-kasifi' },
   { file: '/mg-main.png', name: 'Hextech Arena', slug: 'hextech-arena' },
   { file: '/arcane-menu-bg.png', name: 'Zaun & Piltover', slug: 'zaun-piltover' },
   { file: '/card-endless.png', name: 'Sınırsız', slug: 'sinirsiz' },
@@ -286,7 +290,6 @@ export default function Settings({ onExit }: { onExit: () => void }) {
   const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [updating, setUpdating] = useState(false)
   const [changelog, setChangelog] = useState(false)
-  const [howToOpen, setHowToOpen] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [leaderboardOpen, setLeaderboardOpen] = useState(false)
@@ -444,21 +447,13 @@ export default function Settings({ onExit }: { onExit: () => void }) {
             <SectionHead
               icon={<SectionGlyph name="menu" />}
               title="Menü"
-              detail="Nasıl Oynanır, İstatistikler, Başarımlar, Sıralama ve Takvim buradan açılır."
+              detail="İstatistikler, Başarımlar, Sıralama ve Takvim buradan açılır."
               accentRgb="var(--hextech-rgb)"
             />
 
             <div className="mt-4 grid gap-3 md:grid-cols-6 lg:gap-4">
               <ShortcutCard
-                className="md:col-span-2"
-                icon={<ShortcutGlyph name="howto" />}
-                title="Nasıl Oynanır"
-                desc="Modları, ipuçlarını ve mini oyun kurallarını yeniden gözden geçir."
-                accentRgb="var(--gold-rgb)"
-                onClick={() => setHowToOpen(true)}
-              />
-              <ShortcutCard
-                className="md:col-span-2"
+                className="md:col-span-3"
                 icon={<ShortcutGlyph name="stats" />}
                 title="İstatistikler"
                 desc="Serileri, rekorları ve mod bazlı performansını tek pencerede gör."
@@ -466,7 +461,7 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                 onClick={() => setStatsOpen(true)}
               />
               <ShortcutCard
-                className="md:col-span-2"
+                className="md:col-span-3"
                 icon={<ShortcutGlyph name="trophy" />}
                 title="Başarımlar"
                 desc="Rozet vitrini, ilerleme çubuğu ve kategori bazlı tamamlanma durumu."
@@ -699,18 +694,19 @@ export default function Settings({ onExit }: { onExit: () => void }) {
               </div>
             </section>
 
-            <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
-              <SectionHead
-                icon={<SectionGlyph name="dev" />}
-                title="Geliştirici"
-                detail={
-                  godModeAvailable
-                    ? 'Açıkken Günlük, Kelime ve Bingo kilitlenmez; her giriş taze başlar.'
-                    : 'Bu bölüm yalnız localhost geliştirme ortamında etkinleşir; canlıda kapalı kalır.'
-                }
-                accentRgb="var(--accent-timed-rgb)"
-                right={
-                  godModeAvailable ? (
+            {/*
+              Geliştirici bölümü YALNIZ yerel dev'de RENDER EDİLİR — canlıda kabuğu bile yok.
+              `godModeAvailable` üretimde sabit `false` olduğu için bu blok ölü kod olarak elenir
+              ve içindeki metinler pakete hiç girmez (dist grep ile doğrulandı).
+            */}
+            {godModeAvailable && (
+              <section className="settings-shell panel rounded-[28px] border p-4 sm:p-5">
+                <SectionHead
+                  icon={<SectionGlyph name="dev" />}
+                  title="Geliştirici"
+                  detail="Açıkken Günlük, Kelime ve Bingo kilitlenmez; her giriş taze başlar."
+                  accentRgb="var(--accent-timed-rgb)"
+                  right={
                     <Toggle
                       on={god}
                       label="Geliştirici modu"
@@ -720,45 +716,26 @@ export default function Settings({ onExit }: { onExit: () => void }) {
                         setGodMode(next)
                       }}
                     />
-                  ) : (
-                    <span
-                      className="rounded-full border px-3 py-1 text-xs font-semibold"
-                      style={{
-                        borderColor: 'rgba(var(--gold-rgb), 0.16)',
-                        background: 'rgba(var(--bg-rgb), 0.48)',
-                        color: 'var(--text-dim)',
-                      }}
-                    >
-                      Kilitli
-                    </span>
-                  )
-                }
-              />
+                  }
+                />
 
-              <div
-                className="mt-4 rounded-[24px] border p-4 text-sm leading-relaxed"
-                style={{
-                  borderColor: god && godModeAvailable ? 'rgba(var(--gold-rgb), 0.34)' : 'rgba(var(--gold-rgb), 0.14)',
-                  background: 'linear-gradient(180deg, rgba(var(--bg-rgb), 0.54), rgba(var(--bg-card-rgb), 0.72))',
-                  color: 'var(--text)',
-                }}
-              >
-                {godModeAvailable ? (
-                  <>
-                    <p>
-                      Yalnız <b>localhost</b>'ta görünür ve canlıya çıkmaz.
-                    </p>
-                    <p className="mt-2" style={{ color: 'var(--text-dim)' }}>
-                      Durum: <b style={{ color: god ? 'var(--gold-bright)' : 'var(--text)' }}>{god ? 'Açık' : 'Kapalı'}</b>
-                    </p>
-                  </>
-                ) : (
-                  <p style={{ color: 'var(--text-dim)' }}>
-                    Yerel geliştirme sunucusuna geçildiğinde günlük kilitlerini gevşeten geçici anahtar burada görünür.
+                <div
+                  className="mt-4 rounded-[24px] border p-4 text-sm leading-relaxed"
+                  style={{
+                    borderColor: god ? 'rgba(var(--gold-rgb), 0.34)' : 'rgba(var(--gold-rgb), 0.14)',
+                    background: 'linear-gradient(180deg, rgba(var(--bg-rgb), 0.54), rgba(var(--bg-card-rgb), 0.72))',
+                    color: 'var(--text)',
+                  }}
+                >
+                  <p>
+                    Yalnız <b>localhost</b>'ta görünür ve canlıya çıkmaz.
                   </p>
-                )}
-              </div>
-            </section>
+                  <p className="mt-2" style={{ color: 'var(--text-dim)' }}>
+                    Durum: <b style={{ color: god ? 'var(--gold-bright)' : 'var(--text)' }}>{god ? 'Açık' : 'Kapalı'}</b>
+                  </p>
+                </div>
+              </section>
+            )}
           </div>
         </div>
 
@@ -810,7 +787,6 @@ export default function Settings({ onExit }: { onExit: () => void }) {
         </p>
 
         {changelog && <Changelog onClose={() => setChangelog(false)} />}
-        {howToOpen && <HowTo onClose={() => setHowToOpen(false)} />}
         {statsOpen && <Stats initialDifficulty={getDifficulty()} onClose={() => setStatsOpen(false)} />}
         {achievementsOpen && <Achievements onClose={() => setAchievementsOpen(false)} />}
         {leaderboardOpen && <Leaderboard onClose={() => setLeaderboardOpen(false)} />}

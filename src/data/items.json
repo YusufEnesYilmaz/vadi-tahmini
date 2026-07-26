@@ -12,6 +12,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "35\n Yetenek Gücü\n%10\n İyileştirme ve Kalkan Gücü\n%125\n Taban Mana Yenilenmesi\n10\n Yetenek Hızı\n\nCoşkun Akıntı\n\nBir takım arkadaşını iyileştirmek veya ona kalkan vermek, her ikinize de 6 saniyeliğine 40 Yetenek Gücü ve 15 Yetenek Hızı\n sağlar.",
+   "plain": "İyileştirme ve kalkan etkilerin, kitle kontrolü etkilerini azaltır ve hareket hızı sağlar.",
    "from": [
     "3108",
     "3114"
@@ -28,6 +30,8 @@
     "Vuruşta",
     "Sağlamlık"
    ],
+   "desc": "%50\n Saldırı Hızı\n45\n Büyü Direnci\n%20\n Sıvışma\n\nArbede\n\nSaldırılar isabet halinde ilave büyü hasarı verir.",
+   "plain": "Büyü direnci kazan ve dişinle tırnağınla kazıyarak hayata dön.",
    "from": [
     "1043",
     "1057",
@@ -44,6 +48,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "55\n Saldırı Gücü\n18\n Zırh Deşme\n20\n Yetenek Hızı\n\nAkı\n\nSon 3 saniye içinde hasar verdiğin bir şampiyon katledilirse ultinin toplam bekleme süresinin bir kısmı iade edilir.",
    "from": [
     "2020",
     "3133"
@@ -61,6 +66,7 @@
     "Mana",
     "Mana Yenilenmesi"
    ],
+   "desc": "45\n Yetenek Gücü\n350\n Can\n500\n Mana\n\nEbediyet\n\nBu eşya her 60 saniyede bir 10 Can, 30 Mana ve 3 Yetenek Gücü kazanır. Bu etki en fazla 10 defa birikir. Azami yüke ulaştığında bir seviye atlarsın.\n\nAntik Dönüşüm\n\nŞampiyonlardan hasar almak, alınan hasarın %10 kadarına eşdeğer miktarda mana yeniler.\nBir yetenek kullanmak harcanan mananın %25 kadarına eşdeğer miktarda can yeniler.",
    "from": [
     "1026",
     "3803"
@@ -79,6 +85,7 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "200\n Can\n15\n Yetenek Hızı\n20\n Zırh\n20\n Büyü Direnci\n\nBorazan Alayı\n\nBir rakip şampiyonu yavaşlatmak veya hareketsiz bırakmak 0 saniye boyunca Borazan Alayı kazandırır. Borazan Alayı 20 Hareket Hızı kazandırır. Borazan Alayı'na sahip olduğun sürece yakınındaki takım arkadaşlarınla birlikte 0 Saldırı Hızı kazanırsın.",
    "from": [
     "3067",
     "1029",
@@ -94,6 +101,8 @@
     "Büyü Direnci",
     "Yetenek Gücü"
    ],
+   "desc": "105\n Yetenek Gücü\n40\n Büyü Direnci\n\nFeshet\n\nBir sonraki rakip yeteneğini engelleyen bir büyü kalkanı kazandırır.",
+   "plain": "Rakip yeteneklerini belli aralıklarla engellemeni sağlar",
    "from": [
     "1058",
     "4632"
@@ -109,6 +118,8 @@
     "Mana",
     "Yetenek Hızı"
    ],
+   "desc": "70\n Yetenek Gücü\n600\n Mana\n25\n Yetenek Hızı\n\nHaşmet\n\nİlave mananın %1 kadarına eşdeğer miktarda yetenek gücü sağlar.\n\nMana Akışı\n (8 sn., en fazla 5 yük)\nYetenek isabet ettirmek 5 Azami Mana kazandırır. Şampiyonlara karşı iki katı ilave sağlar.\n360 Azami Mana biriktirmek bu eşyayı Seraph'ın Şefkati'ne dönüştürür.",
+   "plain": "Yetenek Gücü değerini azami Mana değerine bağlı olarak arttırır",
    "from": [
     "3070",
     "3802",
@@ -125,6 +136,8 @@
     "Saldırı Hızı",
     "Hareket Hızı"
    ],
+   "desc": "%35\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n%4\n Hareket Hızı\n\nKeskin Nişancı\n\nEnerji Dolu saldırılar 40 İlave Büyü Hasarı verir ve %35 İlave Saldırı Menzili kazanır.",
+   "plain": "Hareket etmek, devreye girdiğinde kuşatma desteği veren yükler biriktirir",
    "from": [
     "3086",
     "3144"
@@ -143,6 +156,8 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "300\n Can\n50\n Zırh\n15\n Yetenek Hızı\n\nBüyülükılıç\n\nBir yetenek kullandıktan sonraki saldırın isabet halinde ilave fiziksel hasar verir ve 2 saniyeliğine yavaşlatan bir buz alanı oluşturur.",
+   "plain": "Yüksek miktarda büyü direnci sağlar. Yakınındaki rakipleri pasif olarak yavaşlatır. Yakınında yetenek kullanıldığında rakiplere hasar veren ve onları yavaşlatan bir enerji dalgası saçar.",
    "from": [
     "3057",
     "1028",
@@ -162,6 +177,7 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "50\n Saldırı Gücü\n20\n Yetenek Hızı\n%25\n Kritik Vuruş İhtimali\n\nBüyülükılıç\n\nBir yetenek kullandıktan sonraki saldırın ilave fiziksel hasar verir ve isabet halinde mana kazandırır.",
    "from": [
     "3057",
     "3133",
@@ -179,6 +195,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "350\n Can\n45\n Büyü Direnci\n15\n Yetenek Hızı\n\nTuz Buz Et\n\nYakındaki rakip şampiyonlar %12 daha fazla büyü hasarı alır.",
    "from": [
     "3067",
     "1057"
@@ -197,6 +214,8 @@
     "Hareket Hızı",
     "Sağlamlık"
    ],
+   "desc": "50\n Saldırı Gücü\n35\n Büyü Direnci\n%10\n Can Çalma\n\nAKTİF\n\nCıva\n\nBütün kitle kontrolü etkilerini (havaya savurma hariç) kaldırırsın ve hareket hızı kazanırsın.",
+   "plain": "Etkinleştirdiğinde tüm kitle kontrol zayıflatmalarını kaldırır ve muazzam Hareket Hızı verir",
    "from": [
     "3140",
     "1037",
@@ -212,6 +231,8 @@
     "Can",
     "Can Yenilenmesi"
    ],
+   "desc": "900\n Can\n%100\n Taban Can Yenilenmesi\n\nDevasa Tüketim\n Hedef başına (0 sn.)\nBirkaç saniye boyunca bir rakip şampiyonun yakınında bulunursan o şampiyona yönelik sonraki saldırın 70 artı azami canının %6 kadarına eşdeğer miktarda ilave fiziksel hasar verir ve sana hasarın %10 kadarına eşdeğer miktarda azami can kazandırır.\n\nKallavi\n\nHer 1000 Azami Can başına en fazla %30 olacak şekilde %3 boyut artışı sağlar.",
+   "plain": "Katletme veya asistte Can yeniler",
    "from": [
     "1011",
     "3801",
@@ -227,6 +248,7 @@
     "Can",
     "Zırh"
    ],
+   "desc": "150\n Can\n75\n Zırh\n\nDiken\n\nBir saldırıdan isabet almak saldıran rakibe büyü hasarı verir ve bu birim bir şampiyonsa 3 saniyeliğine %40 etkili Yara uygular.",
    "from": [
     "3076",
     "1031",
@@ -246,6 +268,8 @@
     "Aktif Kullanım",
     "Yetenek Hızı"
    ],
+   "desc": "200\n Can\n30\n Zırh\n30\n Büyü Direnci\n10\n Yetenek Hızı\n\nBağlılık\n\nYakınındaki takım arkadaşlarına 2.5 saniye içinde azalarak kaybolacak şekilde 290 ila 360 Kalkan sağlarsın.",
+   "plain": "Etkinleştirildiğinde yakındaki takım arkadaşlarını hasardan korur",
    "from": [
     "3067",
     "1029",
@@ -265,6 +289,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "40\n Saldırı Gücü\n%20\n Saldırı Hızı\n450\n Can\n\nHexyüklü\n\n30 Ulti Hızı kazanırsın.\n\nAşırı Hız\n\nUltini kullandıktan sonra 8 saniyeliğine %0 Saldırı Hızı ve %0 Hareket Hızı kazandırır.",
+   "plain": "Mana harcanırken azami Mana değerini arttırır",
    "from": [
     "2021",
     "1042",
@@ -283,6 +309,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "25\n Yetenek Gücü\n200\n Can\n20\n Yetenek Hızı\n%125\n Taban Mana Yenilenmesi\n\nYıldız Işığı\n\nBir takım arkadaşına sağladığın iyileştirme veya kalkan, kendin hariç başka bir takım arkadaşına sekerek ona asıl miktarın %30 kadarına eşdeğer miktarda iyileştirme veya %35 kadarına eşdeğer miktarda kalkan kazandırır.",
+   "plain": "İyileştirme ve kalkan etkilerinin bekleme süreleri azalır ve bunlar düşük canlı takım arkadaşları üstünde daha etkili hale gelir.",
    "from": [
     "3067",
     "4642"
@@ -298,6 +326,8 @@
     "Büyü Direnci",
     "Hareket Hızı"
    ],
+   "desc": "400\n Can\n55\n Büyü Direnci\n%4\n Hareket Hızı\n\nSarsılmaz\n\nŞampiyonlardan 8 defa büyü hasarı aldıktan sonra 70 Büyü Direnci ve %6 İlave Hareket Hızı kazandırır.",
+   "plain": "Hareket hızı, büyü direnci ve azami can yenilenmesi",
    "from": [
     "1057",
     "1028",
@@ -314,6 +344,8 @@
     "Kritik",
     "Zırh Delme"
    ],
+   "desc": "35\n Saldırı Gücü\n%35\n Zırh Delme\n%25\n Kritik Vuruş İhtimali\n\nDev Katili\n\nRakip şampiyonlara, sahip oldukları ilave can değerine göre en fazla %15 İlave Hasar vermeni sağlar. Azami hasar ilavesine 1500 İlave Canda ulaşır.",
+   "plain": "Yüksek can ve zırh değerlerine sahip rakiplerin üstesinden gelir",
    "from": [
     "3035",
     "6670"
@@ -331,6 +363,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "75\n Zırh\n400\n Mana\n20\n Yetenek Hızı\n\nKışın Sinesi\n\nYakındaki şampiyonların saldırı hızını %20 azaltır.",
+   "plain": "Zırh değerini muazzam miktarda arttırır ve rakiplerin normal saldırılarını yavaşlatır",
    "from": [
     "3082",
     "3024"
@@ -348,6 +382,8 @@
     "Aura",
     "Yetenek Hızı"
    ],
+   "desc": "400\n Can\n40\n Büyü Direnci\n10\n Yetenek Hızı\n%100\n Taban Can Yenilenmesi\n\nAlev Kusan\n\nHasar aldıktan veya verdikten sonraki 3 saniye boyunca yakınındaki rakiplere her saniye büyü hasarı verir.\n\nHarap\n\nBir rakibi katletmek onun etrafına büyü hasarı verir.",
+   "plain": "Kalkan kazanmak için bir rakibi hareketsiz bırak. Rakiplere doğru daha hızlı koşmak için etkinleştir.",
    "from": [
     "6660",
     "3211"
@@ -365,6 +401,7 @@
     "Sağlamlık",
     "Yetenek Hızı"
    ],
+   "desc": "65\n Saldırı Gücü\n%5\n Mutlak Sömürü\n%20\n Sıvışma\n\nKıtlık\n\nİlave saldırı gücüne bağlı olarak yetenek hızı kazandırır.\n\nZiyafet\n\nYakın zamanda hasar verdiğin bir şampiyon katledilirse orta uzunlukta bir süreliğine mutlak sömürü kazandırır.",
    "from": [
     "3133",
     "1037",
@@ -380,6 +417,8 @@
     "Kritik",
     "Saldırı Gücü"
    ],
+   "desc": "75\n Saldırı Gücü\n%25\n Kritik Vuruş İhtimali\n%30\n Kritik Vuruş Hasarı",
+   "plain": "Kritik vuruşları büyük ölçüde güçlendirir",
    "from": [
     "1038",
     "1037",
@@ -398,6 +437,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "55\n Saldırı Gücü\n10\n Zırh Deşme\n10\n Yetenek Hızı\n\nAdrenalin Şoku\n\nRakip şampiyona bir yetenekle hasar vermek, hazırsa Enerji Dolu etkisini tetikler.\n\nGökkubbe\n\nEnerji Dolu saldırın hedefin mevcut canının belli bir yüzdesine eşdeğer miktarda ilave fiziksel hasar verir ve sana 4 saniyeliğine ilave zırh deşme kazandırır.",
    "from": [
     "2020",
     "1036",
@@ -414,6 +454,8 @@
     "Kritik",
     "Zırh Delme"
    ],
+   "desc": "35\n Saldırı Gücü\n%30\n Zırh Delme\n%25\n Kritik Vuruş İhtimali\n\nAğır Yara\n\nFiziksel hasar vermek rakip şampiyonlara 3 saniyeliğine %40 etkili Yara uygular.",
+   "plain": "Can kazancı ve Zırh değeri yüksek rakiplerin üstesinden gelir",
    "from": [
     "3123",
     "3035",
@@ -431,6 +473,8 @@
     "Saldırı Hızı",
     "Hareket Hızı"
    ],
+   "desc": "50\n Saldırı Gücü\n%20\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n\nEnerji Dolu\n\nHareket etmek ve saldırmak Enerji Dolu bir saldırı üretir.\n\nŞimşek\n\nEnerji Dolu saldırılar 0 İlave Büyü Hasarı verir ve 1.5 saniyeliğine %45 Hareket Hızı kazandırır.",
+   "plain": "Belirli aralıklarla rakip minyonları katlederek yakındaki bir takım arkadaşının iyileşmesini ve altın kazanmasını sağlar",
    "from": [
     "1038",
     "1018",
@@ -447,6 +491,7 @@
     "Mana",
     "Mana Yenilenmesi"
    ],
+   "desc": "200\n Can\n%8\n İyileştirme ve Kalkan Gücü\n%75\n Taban Mana Yenilenmesi\n300\n Mana\n\nAhenk\n\n%0 İyileştirme ve Kalkan Gücü kazandırır.\n\nMana Akışı\n (8 saniye, en fazla 5 yük)\nİsabet ettirilen yetenekler 4 Azami Mana kazandırır. Şampiyonlara karşı iki kat mana sağlar.\n360 Azami Mana sınırına ulaştığında Ezgi Diyademi'ne dönüşür.",
    "from": [
     "3114",
     "1028",
@@ -463,6 +508,8 @@
     "Saldırı Gücü",
     "Zırh Delme"
    ],
+   "desc": "50\n Saldırı Gücü\n15\n Zırh Deşme\n250\n Can\n\nFeshet\n\nBir sonraki rakip yeteneğini engelleyen bir büyü kalkanı kazandırır.",
+   "plain": "Rakip yeteneklerini belli aralıklarla engellemeni sağlar.",
    "from": [
     "3134",
     "2021"
@@ -478,6 +525,7 @@
     "Mana",
     "Yetenek Hızı"
    ],
+   "desc": "90\n Yetenek Gücü\n300\n Mana\n10\n Yetenek Hızı\n\nÇok Manalı\n (0 sn.)\n8 saniyeliğine mananı güçlendirirsin. Manan güçlenmişken 0 Yetenek Hasarı ile İyileştirme ve Kalkan Gücü kazanırsın. Ayrıca temel yeteneklerinin bekleme süreleri %30 daha hızlı dolar ama yeteneklerinin mana bedeli %100 artar.",
    "from": [
     "3802",
     "1026"
@@ -492,6 +540,7 @@
     "Yetenek Gücü",
     "Büyü Delme"
    ],
+   "desc": "110\n Yetenek Gücü\n15\n Büyü Nüfuzu\n\nKor Çiçeği\n\nBüyü hasarı ve gerçek hasar, canı %40 değerinin altındaki rakiplere kritik vuruş yaparak\n %20 daha fazla hasar verir.",
    "from": [
     "3145",
     "1058"
@@ -508,6 +557,7 @@
     "Yetenek Gücü",
     "Vuruşta"
    ],
+   "desc": "30\n Saldırı Gücü\n30\n Yetenek Gücü\n%25\n Saldırı Hızı\n\nGazap\n\nSaldırılar isabet halinde 30 İlave Büyü Hasarı verir.\n\nYakan Saldırı\n\nSaldırılar 3 saniyeliğine %8 Saldırı Hızı kazandırır. Bu etki 4 defa birikebilir.\nTam yüke sahipken her üçüncü saldırın isabet halinde etkilerini iki kez uygular.",
    "from": [
     "1052",
     "1043",
@@ -525,6 +575,8 @@
     "Aura",
     "Yetenek Hızı"
    ],
+   "desc": "350\n Can\n50\n Zırh\n10\n Yetenek Hızı\n\nAlev Kusan\n\nHasar aldıktan veya verdikten sonraki 3 saniye boyunca yakınındaki rakiplere her saniye büyü hasarı verir.",
+   "plain": "Yüksek zırh sağlar. Yakındaki rakiplere sürekli hasar verir. Hasar veren alevler saçmak için rakipleri hareketsiz bırak.",
    "from": [
     "6660",
     "1031",
@@ -543,6 +595,7 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "300\n Can\n60\n Yetenek Gücü\n20\n Yetenek Hızı\n%20\n Saldırı Hızı\n\nBüyülükılıç\n (0 sn.)\nBir yetenek kullandıktan sonraki saldırın 0 İlave Büyü Hasarı verir ve isabet halinde seni 0 Can iyileştirir. Ardından isabet halinde etkilerini bir kez daha uygular.",
    "from": [
     "3057",
     "1026",
@@ -560,6 +613,8 @@
     "Mana",
     "Yetenek Hızı"
    ],
+   "desc": "90\n Yetenek Gücü\n600\n Mana\n15\n Yetenek Hızı\n\nTahkir\n\n20 Ulti Hızı kazandırır.\n\nHaset Sisi\n\nUltinle bir şampiyona hasar vermek onun bulunduğu konumu 3 saniyeliğine yakarak büyü direncini azaltır ve ona her saniye büyü hasarı verir.",
+   "plain": "Bir takım arkadaşıyla ortak olarak karşılıklı koruma sağlar.",
    "from": [
     "3802",
     "1026"
@@ -576,6 +631,8 @@
     "Saldırı Gücü",
     "Vuruşta"
    ],
+   "desc": "40\n Saldırı Gücü\n600\n Can\n\nBiç\n\nSaldırılar isabet halinde ve hedefin arkasındaki rakiplere fiziksel hasar verir.\nHaşmetli Hilal\n\nSıradaki Biç\n etkin güçlenerek isabet halinde ilave fiziksel hasar ve hedefin arkasındaki rakiplere ilave fiziksel hasar verir.",
+   "plain": "Sahibinin canına bağlı olarak alan etkili hasar verir.",
    "from": [
     "3077",
     "2021",
@@ -592,6 +649,8 @@
     "Saldırı Hızı",
     "Hareket Hızı"
    ],
+   "desc": "%65\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n%10\n Hareket Hızı\n\nHortlak Valsi\n\nHayalet etkisi sağlar.",
+   "plain": "Rakiplere saldırırken daha hızlı hareket edersin ve canın azaldığında bir kalkan kazanırsın.",
    "from": [
     "1042",
     "3086",
@@ -610,6 +669,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "35\n Yetenek Gücü\n200\n Can\n20\n Yetenek Hızı\n%125\n Taban Mana Yenilenmesi\n\nRuh Sömürüsü\n\nŞampiyonlara, hasar azaltma etkileri devreye girmeden önceki verilen hasarın %30 kadarını ruh yükü olarak kazanırsın. Bir takım arkadaşına iyileştirme veya kalkan sağlamak tüm ruh yüklerini\n tüketerek can yeniler.",
+   "plain": "Yakınındaki rakiplere hasar veren ve onları yavaşlatan, lanetli bir patlama tetiklemek için düşük canlı rakiplere hasar ver.",
    "from": [
     "3067",
     "4642"
@@ -624,6 +685,7 @@
     "Saldırı Gücü",
     "Kritik"
    ],
+   "desc": "55\n Saldırı Gücü\n%25\n Kritik Vuruş İhtimali\n\nYakınlaştırma\n\nRakibin ne kadar uzakta olduğuna bağlı olarak en fazla %10 İlave Hasar vermeni sağlar. 500 menzilde azami ilave hasara ulaşır.\n\nSihirli Nişan\n\nSon 3 saniye içinde hasar verdiğin bir şampiyon katledilirse 8 saniyeliğine 100 İlave Saldırı Menzili kazandırır.",
    "from": [
     "1037",
     "6670",
@@ -643,6 +705,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Yetenek Gücü\n350\n Can\n20\n Yetenek Hızı\n\nSes Patlaması\n\nHedef yöne atılarak büyü hasarı veren atışlar fırlatırsın.",
+   "plain": "Etkinleştirildiğinde ileri atılıp rakipleri yakan bir patlama gerçekleştirmeni sağlar",
    "from": [
     "3145",
     "3067",
@@ -661,6 +725,8 @@
     "Aktif Kullanım",
     "Büyü Emme"
    ],
+   "desc": "80\n Yetenek Gücü\n40\n Saldırı Gücü\n%10\n Mutlak Sömürü\n\nAKTİF\n (0 sn.)\nYıldırım Oku\n\nHedef alınan rakip şampiyona yıldırım göndererek 0 Büyü Hasarı verir ve onu 1.5 saniyeliğine %25 yavaşlatır.",
+   "plain": "Saldırı ve Yetenek Gücünü arttırır, etkinleştirildiğinde hedefi yavaşlatır",
    "from": [
     "1053",
     "3145",
@@ -678,6 +744,7 @@
     "Saldırı Hızı",
     "Yavaşlatma"
    ],
+   "desc": "40\n Saldırı Gücü\n%25\n Saldırı Hızı\n450\n Can\n\nBiç\n\nSaldırılar yakınındaki rakiplere fiziksel hasar verir.\nÇökerten Şok Dalgası\n\nYakınındaki rakiplere fiziksel hasar verirsin ve onları %35 yavaşlatırsın.\nİsabet alan şampiyon başına 3 saniye içinde azalarak kaybolacak şekilde %35 Hareket Hızı kazanırsın.",
    "from": [
     "3077",
     "3044",
@@ -693,6 +760,8 @@
     "Büyü Delme",
     "Yetenek Gücü"
    ],
+   "desc": "95\n Yetenek Gücü\n%40\n Büyü Nüfuzu",
+   "plain": "Büyü hasarını arttırır",
    "from": [
     "4630",
     "1026"
@@ -708,6 +777,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "55\n Saldırı Gücü\n22\n Zırh Deşme\n15\n Yetenek Hızı\n\nPlanlı Hücum\n (0 sn.)\nBir şampiyona veya destansı canavara yetenek hasarı vermek ilave 0 Gerçek Hasar verir.\n\nSabotaj\n\nSon 3 saniye içinde hasar verdiğin bir rakip şampiyonu alt ettiğinde 90 saniyeliğine Sabotaj kazanırsın. Sabotaj etkisine sahipken bir kule veya destansı canavara gerçekleştireceğin ilk saldırı 3 saniye boyunca fazladan 0 Gerçek Hasar verir.",
    "from": [
     "2020",
     "3134"
@@ -724,6 +794,7 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "%45\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n%4\n Hareket Hızı\n\nGece Nöbeti\n\n30 Ulti Hızı kazanırsın.\n\nÖncü Yaylım\n\nUltini kullandıktan sonraki 3 normal saldırın 8 saniyeliğine %50 Saldırı Hızı kazanır ve normal kritik vuruş hasarının %80 kadarı oranda kritik vuruş yapar. Saldırı zaten kritik vuruş yapacaksa bunun yerine %15 İlave Gerçek Hasar verir.",
    "from": [
     "3086",
     "3144"
@@ -740,6 +811,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Yetenek Gücü\n15\n Yetenek Hızı\n%150\n Taban Mana Yenilenmesi\n\nKontrol\n\nHareketsiz bırakma etkilerine sahip yeteneklerin 20 Yetenek Hızı kazanır.\n\nKomut\n\nBir rakip şampiyonu hareketsiz bırakmak onu 4 saniyeliğine %7 Savunmasız olarak işaretler.",
+   "plain": "Hasarı daha sonraya erteler.",
    "from": [
     "1052",
     "4642",
@@ -758,6 +831,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "55\n Saldırı Gücü\n18\n Zırh Deşme\n10\n Yetenek Hızı\n\nBiç\n\nSaldırılar yakınındaki rakiplere fiziksel hasar verir.\nİtikatsız Saldırı\n\nEtrafındaki rakiplere fiziksel hasar verirsin.",
    "from": [
     "3077",
     "2020"
@@ -772,6 +846,8 @@
     "Saldırı Gücü",
     "Can Çalma"
    ],
+   "desc": "80\n Saldırı Gücü\n%15\n Can Çalma\n\nİrinkalkan\n\nCan çalma etkisiyle elde ettiğin fazlalık iyileştirmeyi kalkana dönüştürür.",
+   "plain": "Saldırı Gücü ile Can Çalma verir ve çalınan Can fazladan iyileştirme yapar",
    "from": [
     "1038",
     "1037",
@@ -789,6 +865,7 @@
     "Bekleme Süresi",
     "Büyü Delme"
    ],
+   "desc": "65\n Yetenek Gücü\n400\n Can\n15\n Yetenek Hızı\n\nMenfur Bozunum\n\nŞampiyonlara yeteneklerle veya pasiflerle büyü hasarı vermek onların büyü direncini 6 saniyeliğine %7.5 azaltır. (Bu etki 4 defa birikebilir.)",
    "from": [
     "3147",
     "3108"
@@ -808,6 +885,8 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "40\n Saldırı Gücü\n400\n Can\n20\n Yetenek Hızı\n\nKes\n\nŞampiyonlara fiziksel hasar vermek 6 saniyeliğine hedefin zırhını %6 azaltır. (Bu etki 5 defa birikebilir.)\n\nSavaş Şevki\n\nFiziksel hasar vermek 2 saniyeliğine 20 Hareket Hızı kazandırır.",
+   "plain": "Rakip şampiyonlara fiziksel hasar vermek Zırh değerlerinin düşmesine yol açar",
    "from": [
     "3044",
     "3067",
@@ -824,6 +903,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Saldırı Gücü\n15\n Yetenek Hızı\n\nBatmaz Ay\n\nBir şampiyona 2 saniye içinde 2 farklı saldırı veya yetenek isabet ettirmek sana 2 saniyeliğine kalkan kazandırır.",
    "from": [
     "3133",
     "1037",
@@ -841,6 +921,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "30\n Yetenek Gücü\n15\n Yetenek Hızı\n%100\n Taban Mana Yenilenmesi\n%10\n İyileştirme ve Kalkan Gücü\n\nMüdahale\n\n2,5 saniye sonra dost birimleri 150 ila 350 Can iyileştirirsin ve rakip şampiyonlara azami canlarının %10 kadarına eşdeğer miktarda gerçek hasar verirsin.",
+   "plain": "Aktif hale getirildiğinde takım arkadaşlarını iyileştirip bölgedeki rakiplere hasar verir",
    "from": [
     "3108",
     "3114"
@@ -857,6 +939,8 @@
     "Mana Yenilenmesi",
     "Hareket Hızı"
    ],
+   "desc": "45\n Yetenek Gücü\n%10\n İyileştirme ve Kalkan Gücü\n%125\n Taban Mana Yenilenmesi\n%4\n Hareket Hızı\n\nKutsa\n\nBir takım arkadaşını iyileştirmek veya ona kalkan vermek her ikinizi de 6 saniyeliğine güçlendirerek %25 Saldırı Hızı ve isabet halinde 20 Büyü Hasarı kazandırır.",
+   "plain": "Başka birimlere sağlanan kalkan ve iyileştirme etkileri ikinize de saldırı hızı kazandırır ve hedef birimlerin saldırıları isabet halinde fazladan büyü hasarı verir.",
    "from": [
     "3113",
     "3114"
@@ -874,6 +958,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "55\n Saldırı Gücü\n18\n Zırh Deşme\n10\n Yetenek Hızı\n\nYücelik\n\nSon 3 saniye içinde hasar verdiğin bir şampiyon katledildiğinde 90 saniyeliğine 12 artı katlettiğin şampiyon başına 3 Saldırı Gücü kazandırır.",
    "from": [
     "3134",
     "3133"
@@ -888,6 +973,8 @@
     "Zırh",
     "Saldırı Gücü"
    ],
+   "desc": "55\n Saldırı Gücü\n45\n Zırh\n\nYeniden Doğuş\n\nÖlümcül hasar aldığında 4 saniyeliğine zamanı durdurduktan sonra taban canının %50 kadarını ve azami mananın %100 kadarını yeniler.",
+   "plain": "Şampiyon öldüğünde periyodik olarak diriltir",
    "from": [
     "2019",
     "1038"
@@ -904,6 +991,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "70\n Yetenek Gücü\n350\n Can\n25\n Yetenek Hızı\n%4\n Hareket Hızı\n\nBüyülüdans\n\nŞampiyonlara büyü hasarı veya gerçek hasar vermek 4 saniyeliğine hareket hızı kazandırır.",
+   "plain": "Bekleme sürelerinde yüksek miktarda azalma sağlar.",
    "from": [
     "3067",
     "3113",
@@ -921,6 +1010,7 @@
     "Vuruşta",
     "Hareket Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n%40\n Saldırı Hızı\n%4\n Hareket Hızı\n\nDiz Çöktür\n\nHer üçüncü saldırın isabet halinde ilave fiziksel hasar verir. Bu hasar hedefin eksik canına bağlı olarak artar.",
    "from": [
     "6690",
     "3051",
@@ -937,6 +1027,7 @@
     "Büyü Direnci",
     "Can Yenilenmesi"
    ],
+   "desc": "400\n Can\n80\n Büyü Direnci\n%100\n Taban Can Yenilenmesi\n\nBüyüboğan\n\n15 saniye boyunca büyü hasarı almazsan Büyü Kalkanı kazandırır.",
    "from": [
     "3211",
     "1057"
@@ -951,6 +1042,8 @@
     "Can",
     "Yetenek Gücü"
    ],
+   "desc": "60\n Yetenek Gücü\n300\n Can\n\nEziyet\n\nHasar veren yetenekler rakipleri 3 saniyeliğine yakarak onlara her saniye azami canlarının %2 kadarına eşdeğer miktarda büyü hasarı verir.\n\nCefa\n\nRakip şampiyonlarla çatışmada geçirilen her saniye başına %2 İlave Hasar kazandırır. Bu oran en fazla %6 olabilir.",
+   "plain": "Zamanla yüksek miktarda hasar vermek için çatışmada güç topla. Özellikle de dayanıklı rakiplere karşı etkili.",
    "from": [
     "3147",
     "2508"
@@ -967,6 +1060,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "100\n Yetenek Gücü\n%6\n Hareket Hızı\n10\n Yetenek Hızı\n\nBüyülükılıç\n\nBir yetenek kullandıktan sonraki saldırın isabet halinde ilave büyü hasarı verir.",
+   "plain": "Bir yetenek kullanıldıktan sonraki ilk saldırıya bonus verir",
    "from": [
     "3057",
     "3113",
@@ -984,6 +1079,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "100\n Yetenek Gücü\n600\n Mana\n10\n Yetenek Hızı\n\nYankı\n\nHasar veren yetenekler 6 yankı göndererek hedefe ve yakındaki rakiplere ilave büyü hasarı verir. Kalan yankılar ana hedefe gönderilerek %20 Hasar verir.",
+   "plain": "Yüksek miktarda anlık hasar verir. Dayanıksız rakiplere karşı etkili.",
    "from": [
     "3802",
     "3145"
@@ -999,6 +1096,8 @@
     "Yetenek Gücü",
     "Aktif Kullanım"
    ],
+   "desc": "40\n Yetenek Gücü\n25\n Zırh\n\nDon!\n (Tek Kullanımlık)\n2.5 saniyeliğine zamanı durdurursun.",
+   "plain": "Etkinleştirdiğinde zarar görmez hale gelir ama hareket edemezsin",
    "from": [
     "1052",
     "1029",
@@ -1017,6 +1116,8 @@
     "Yavaşlatma",
     "Vuruşta"
    ],
+   "desc": "40\n Saldırı Gücü\n%25\n Saldırı Hızı\n%10\n Can Çalma\n\nSisin Ağzı\n\nSaldırılar isabet halinde rakibin mevcut canının belli bir yüzdesine eşdeğer miktarda ilave fiziksel hasar verir.\n\nGölgelerin Pençesi\n\nBir şampiyona 3 defa saldırmak onu 1 saniyeliğine %30 yavaşlatır.",
+   "plain": "Rakibin can değerine bağlı olarak hasar verir, rakipten hareket hızı çalabilir",
    "from": [
     "1053",
     "1043",
@@ -1033,6 +1134,8 @@
     "Büyü Delme",
     "Yetenek Hızı"
    ],
+   "desc": "75\n Yetenek Gücü\n%30\n Büyü Nüfuzu\n20\n Yetenek Hızı\n\nÖlümden Gelen Yaşam\n\nSon 3 saniye içinde hasar verdiğin bir şampiyon katledilirse cesedinden can yenileyen bir hare yayılır.",
+   "plain": "Etkinleştirdiğinde tüm zayıflatma etkilerini kaldırır ve muazzam Hareket Hızı verir",
    "from": [
     "4630",
     "3108",
@@ -1051,6 +1154,8 @@
     "Büyü Emme",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Saldırı Gücü\n15\n Yetenek Hızı\n40\n Büyü Direnci\n\nCan Simidi\n\nCanını %30 değerinin altına düşürecek miktarda büyü hasarı almak 3 saniyeliğine büyü hasarı soğuran bir kalkan ve çatışma sona erene dek - %10 Mutlak Sömürü sağlar.",
+   "plain": "Can değeri düşükken ilave Saldırı Gücü verir",
    "from": [
     "3155",
     "3133"
@@ -1068,6 +1173,8 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "35\n Saldırı Gücü\n500\n Mana\n15\n Yetenek Hızı\n\nHaşmet\n\n0 İlave Saldırı Gücü sağlar.\n\nMana Akışı\n (8 sn., en fazla 4 yük)\nSaldırı ve yetenek isabet ettirmek 3 Azami Mana kazandırır. Şampiyonlara karşı iki katı ilave sağlar.\n360 Azami Mana biriktirmek bu eşyayı Muramana'ya dönüştürür.",
+   "plain": "Saldırı Gücü değerini azami Mana değerine bağlı olarak arttırır",
    "from": [
     "3070",
     "3133",
@@ -1087,6 +1194,8 @@
     "Sağlamlık",
     "Yetenek Hızı"
    ],
+   "desc": "250\n Can\n%100\n Taban Mana Yenilenmesi\n%12\n İyileştirme ve Kalkan Gücü\n15\n Yetenek Hızı\n\nArınma\n\nBir takım arkadaşının üstündeki tüm kitle kontrolü etkilerini (havaya savurma ve sindirme hariç) kaldırırsın ve onu 100 ila 250 Can iyileştirirsin.",
+   "plain": "Etkinleştirildiğinde bir takım arkadaşının üzerindeki tüm zayıflatma etkilerini kaldırır",
    "from": [
     "3067",
     "3114"
@@ -1103,6 +1212,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "75\n Yetenek Gücü\n350\n Can\n15\n Yetenek Hızı\n\nAğır Yara\n\nRakip şampiyonlara büyü hasarı vermek 3 saniyeliğine %40 etkili Yara uygular.",
+   "plain": "Büyü hasarını arttırır.",
    "from": [
     "3916",
     "1026",
@@ -1120,6 +1231,8 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "80\n Yetenek Gücü\n%50\n Saldırı Hızı\n15\n Yetenek Hızı\n\nIcathia Isırığı\n\nSaldırılar isabet halinde ilave büyü hasarı verir.",
+   "plain": "Saldırı Hızı ve Yetenek Gücünü artırır, Bekleme Süresinde Azalma sağlar",
    "from": [
     "1043",
     "1026",
@@ -1136,6 +1249,7 @@
     "Saldırı Hızı",
     "Hareket Hızı"
    ],
+   "desc": "%40\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n%4\n Hareket Hızı\n\nYükseliş\n\nSaldırılar, temel yeteneklerin kalan bekleme sürelerini %15\n azaltır.",
    "from": [
     "1042",
     "3086",
@@ -1152,6 +1266,7 @@
     "Saldırı Gücü",
     "Hareket Hızı"
    ],
+   "desc": "40\n Saldırı Gücü\n500\n Can\n%4\n Hareket Hızı\n\nKaptan\n\nŞampiyonlara ve destansı canavarlara yönelik her beşinci saldırı, ilave fiziksel hasar verir. Bu hasar yapılara karşı artar.\n\nYağmacı Ekip\n\nYakındaki dost kuşatma minyonları ve süper minyonlar zırh ve büyü direnci kazanır.",
    "from": [
     "2021",
     "3066",
@@ -1169,6 +1284,8 @@
     "Yavaşlatma",
     "Hareket Hızı"
    ],
+   "desc": "350\n Can\n55\n Zırh\n%4\n Hareket Hızı\n\nGemibatıran\n\nHareket etmek en fazla 20 İlave Hareket Hızı kazanmanı sağlar. Bir sonraki saldırın biriktirilen hareket hızını tüketerek ilave fiziksel hasar verir.\n\nBatmaz\n\nYavaşlatma etkilerinin gücünü %15 azaltır.",
+   "plain": "Etrafta dolaşarak ivme kazanıp rakiplerini dümdüz et.",
    "from": [
     "3066",
     "1028",
@@ -1184,6 +1301,7 @@
     "Saldırı Gücü",
     "Kritik"
    ],
+   "desc": "55\n Saldırı Gücü\n%25\n Kritik Vuruş İhtimali\n\nCan Simidi\n\nCanını %30 değerinin altına düşürecek miktarda hasar almak 3 saniyeliğine kalkan sağlar.",
    "from": [
     "1037",
     "6670"
@@ -1199,6 +1317,7 @@
     "Saldırı Gücü",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Saldırı Gücü\n50\n Zırh\n15\n Yetenek Hızı\n\nSık Dişini\n\nAlınan hasarın yüzdelik bir kısmını 3 saniyeye yayar.\n\nKarşı Koy\n\n3 saniye içinde hasar verdiğin bir şampiyon katledildiğinde Sık Dişini\n etkisinin kalan hasarını kaldırır ve 2 saniye boyunca can yeniler.",
    "from": [
     "2019",
     "1037",
@@ -1211,6 +1330,8 @@
    "gold": 1600,
    "img": "2421.png",
    "tags": [],
+   "desc": "40\n Yetenek Gücü\n25\n Zırh\n\nParçalanmış Zaman\n\nPazubent parçalanmış ama hâlâ geliştirilebilir.\n\nBir Pazubent parçalandıktan sonra dükkândan yalnızca Parçalanmış Pazubent alınabilir.",
+   "plain": "Kronometre'ye geliştirilir.",
    "from": [
     "1052",
     "1029",
@@ -1228,6 +1349,7 @@
     "Sağlamlık",
     "Yetenek Hızı"
    ],
+   "desc": "600\n Can\n20\n Yetenek Hızı\n\nCan Simidi\n (0 sn.)\nCanını %30 değerinin altına düşürecek miktarda hasar aldığında 5 saniyeliğine 0 Azami Can kazanır ve bu süre boyunca 0 Can yeniler. Can yenilerken %15 boyut artışı, %10 Hareket Hızı ve %25 Sıvışma kazandırır.",
    "from": [
     "3067",
     "1011"
@@ -1241,6 +1363,8 @@
    "tags": [
     "Yetenek Gücü"
    ],
+   "desc": "130\n Yetenek Gücü\n\nSihirli Eser\n\nToplam yetenek gücünü %30 arttırır.",
+   "plain": "Yetenek Gücünü muazzam derecede arttırır",
    "from": [
     "1058",
     "1058"
@@ -1257,6 +1381,8 @@
     "Aktif Kullanım",
     "Yavaşlatma"
    ],
+   "desc": "350\n Can\n75\n Zırh\n\nDirenç\n\nKritik vuruşlardan alınan hasarı %30 azaltır.\nBoyun Eğdir\n\nYakınındaki rakipleri 2 saniyeliğine %70 yavaşlatırsın.",
+   "plain": "Savunmaları büyük ölçüde azaltır, etkinleştirildiğinde yakındaki rakipleri yavaşlatır",
    "from": [
     "3082",
     "1011"
@@ -1274,6 +1400,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "400\n Can\n50\n Büyü Direnci\n10\n Yetenek Hızı\n%100\n Taban Can Yenilenmesi\n\nSınırsız Zindelik\n\nÜstünde kullanılan iyileştirme ve kalkan etkileri %25 artar.",
+   "plain": "Can değerini ve iyileştirme etkilerini arttırır",
    "from": [
     "3211",
     "3067"
@@ -1290,6 +1418,8 @@
     "Vuruşta",
     "Hareket Hızı"
    ],
+   "desc": "%40\n Saldırı Hızı\n%25\n Kritik Vuruş İhtimali\n%4\n Hareket Hızı\n\nRüzgârın Öfkesi\n\nSaldırdığında hedefinin yakınındaki 2 rakibe daha atış gönderir.\nHer bir atış fiziksel hasar verir ve isabet halinde etkilerini uygular.",
+   "plain": "Menzilli saldırılar yakındaki rakiplere fazladan iki ok fırlatır",
    "from": [
     "3086",
     "3144"
@@ -1305,6 +1435,8 @@
     "Yetenek Gücü",
     "Yavaşlatma"
    ],
+   "desc": "65\n Yetenek Gücü\n400\n Can\n\nKırağı\n\nHasar veren yeteneklerin rakipleri 1 saniyeliğine %30 yavaşlatır.",
+   "plain": "Yetenekler rakipleri yavaşlatır",
    "from": [
     "1026",
     "1011",
@@ -1320,6 +1452,7 @@
     "Can",
     "Saldırı Gücü"
    ],
+   "desc": "30\n Saldırı Gücü\n550\n Can\n\nTiranlık\n\nİlave canının %2.5 kadarına eşdeğer miktarda saldırı gücü sağlar.\n\nÖç\n\nEksik canının yüzdesine bağlı olarak en fazla %12 Saldırı Gücü artışı sağlar.",
    "from": [
     "2021",
     "2021"
@@ -1336,6 +1469,7 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n%35\n Zırh Delme\n15\n Yetenek Hızı\n\nAcı Soğuk\n\nHasar veren yeteneklerin canı %50 değerinin altındaki rakipleri 1 saniyeliğine %30 yavaşlatır.",
    "from": [
     "3133",
     "3035"
@@ -1351,6 +1485,8 @@
     "Saldırı Gücü",
     "Yetenek Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n450\n Can\n\nEjderha Gücü\n\n25 Temel Yetenek Hızı kazandırır.\n\nOdaklı İrade\n\nYeteneklerle hasar vermek 6 saniyeliğine yeteneklerinin ve pasifinin hasarını %3 arttırır. Bu etki 4 defa birikebilir.",
+   "plain": "Şampiyonlardan alınan hasarı sabit bir miktarda azaltır. Birden fazla şampiyonun yakınındayken saldırmak, bu miktarı kısa süreliğine arttırır.",
    "from": [
     "1037",
     "2021",
@@ -1370,6 +1506,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "50\n Yetenek Gücü\n15\n Yetenek Hızı\n%4\n Hareket Hızı\n%125\n Taban Mana Yenilenmesi\n\nİlham Ver\n\nYakınındaki takım arkadaşlarına 4 saniyeliğine %30 Hareket Hızı kazandırırsın.",
+   "plain": "Etkinleştirildiğinde yakındaki dostları hızlandırır.",
    "from": [
     "3113",
     "4642"
@@ -1386,6 +1524,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "80\n Yetenek Gücü\n600\n Mana\n20\n Yetenek Hızı\n\nMelun Alev\n\nYeteneklerle hasar vermek 3 saniye boyunca ilave büyü hasarı verir.\n\nSiyahateş\n\nMelun Alev\n etkisindeki şampiyon, destansı canavar ve büyük canavar başına %4 Yetenek Gücü kazandırır.",
    "from": [
     "3802",
     "2508"
@@ -1403,6 +1542,8 @@
     "Büyü Delme",
     "Zırh Delme"
    ],
+   "desc": "30\n Saldırı Gücü\n%35\n Saldırı Hızı\n\nGölge\n\nSaldırılar isabet halinde 30 İlave Büyü Hasarı verir.\n\nDöngü\n\nŞampiyonlara karşı aydınlık ve karanlık saldırılar arasında geçiş yaparsın. - Aydınlık saldırılar 5 saniyeliğine zırh ve büyü direnci kazandırır.- Karanlık saldırılar 5 saniyeliğine %10 Zırh Delme ve Büyü Nüfuzu kazandırır.",
+   "plain": "Belli aralıklarla minyon katletmek iyileşmeni ve yakındaki bir takım arkadaşına altın kazandırmanı sağlar",
    "from": [
     "3051",
     "1043"
@@ -1419,6 +1560,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "400\n Can\n50\n Zırh\n15\n Yetenek Hızı\n\nÇile\n\nŞampiyonlarla çatışmada geçen her 4 saniyede bir yakınındaki rakip şampiyonlara büyü hasarı verir ve bu hasarın %250 kadarına eşdeğer miktarda can yeniler.",
    "from": [
     "1031",
     "3067",
@@ -1437,6 +1579,8 @@
     "Vuruşta",
     "Hareket Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n45\n Yetenek Gücü\n%30\n Saldırı Hızı\n%4\n Hareket Hızı\n\nElektrokıvılcım\n\nEnerji Dolu saldırıların bir zincirleme yıldırım göndererek yakınındaki hedeflere isabet etkilerini uygular ve büyü hasarı verir.\n\nElektroşok\n\nNormal saldırılar ilave Enerji Dolu yükü kazandırır.",
+   "plain": "Hareketin biriktirdiği yükler, normal saldırıyla yıldırım fırlatır",
    "from": [
     "3144",
     "3113",
@@ -1453,6 +1597,8 @@
     "Saldırı Gücü",
     "Sağlamlık"
    ],
+   "desc": "400\n Can\n%20\n Sıvışma\n\nYakalayan Pençeler\n\nİlave saldırı gücü kazandırır.\n\nCan Simidi\n\nCanını %30 değerinin altına düşürecek miktarda hasar almak 4.5 saniyeliğine azalarak kaybolacak şekilde kalkan kazandırır.",
+   "plain": "Ani ve büyük hasarlara karşı koruma sağlar.",
    "from": [
     "1037",
     "2021",
@@ -1468,6 +1614,7 @@
     "Yetenek Gücü",
     "Mana Yenilenmesi"
    ],
+   "desc": "45\n Yetenek Gücü\n%16\n İyileştirme ve Kalkan Gücü\n%100\n Taban Mana Yenilenmesi\n\nİlk Işık\n\nHer %100 Taban Mana Yenilenmesi başına %2 İyileştirme ve Kalkan Gücü ile 10 Yetenek Gücü kazandırır.",
    "from": [
     "1026",
     "3114",
@@ -1484,6 +1631,7 @@
     "Büyü Direnci",
     "Zırh"
    ],
+   "desc": "350\n Can\n45\n Zırh\n45\n Büyü Direnci\n\nHiçlikdoğan Direnci\n\n5 saniye boyunca şampiyonlarla çatışmada kaldıktan sonra ilave zırhını ve büyü direncini çatışma sonuna dek %30 arttırır.",
    "from": [
     "1011",
     "1031",
@@ -1504,6 +1652,8 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "200\n Can\n40\n Zırh\n10\n Yetenek Hızı\n%100\n Taban Can Yenilenmesi\n\nFedakârlık\n\nLayık\n takım arkadaşın yakınındayken aldığı hasarın %14 kadarını sana yönlendirir ve onun şampiyonlara verdiği hasarın %12 kadarına eşdeğer miktarda iyileşirsin.Teminat\n (0 sn.)\nBu güce Layık\n bir takım arkadaşı belirlersin.",
+   "plain": "Bir takım arkadaşıyla ortak olarak karşılıklı koruma sağlar",
    "from": [
     "3067",
     "1031",
@@ -1520,6 +1670,7 @@
     "Kritik",
     "Zırh Delme"
    ],
+   "desc": "50\n Saldırı Gücü\n10\n Zırh Deşme\n%25\n Kritik Vuruş İhtimali\n\nEcel\n\nVerdiğin hasar, canı %5 değerinin altındaki rakip şampiyonları infaz eder.\n\nÖlüm Vergisi\n\nŞampiyon katletmek 25 İlave Altın kazandırır.",
    "from": [
     "1037",
     "3134",
@@ -1535,6 +1686,8 @@
     "Yetenek Gücü",
     "Yetenek Hızı"
    ],
+   "desc": "75\n Yetenek Gücü\n25\n Yetenek Hızı\n\nHiper Atış\n\nŞampiyonlara yeteneklerle en az 600 menzilden hasar vermek onları 6 saniyeliğine açığa çıkarır.\n\nUfuk\n\nHiper Atış\n etkisine maruz kalan şampiyonlar 1400 birim yakınındaki rakip şampiyonları 3 saniyeliğine açığa çıkarır.",
+   "plain": "Bir şampiyonu hareketsiz bırakmak ona yıldırım çarpmasına yol açar.",
    "from": [
     "3108",
     "3108",
@@ -1552,6 +1705,8 @@
     "Zırh Delme",
     "Yetenek Hızı"
    ],
+   "desc": "60\n Saldırı Gücü\n18\n Zırh Deşme\n15\n Yetenek Hızı\n\nGörünmez Avcı\n\nRakiplere kısa süreliğine görünmezsen bir rakip şampiyona yapacağın sonraki saldırı fazladan gerçek hasar verir.\n\nGöze Göz\n\nRakiplere ait bir Görünmez Totem'e veya tuzağa yaklaştığında onu kısa süreliğine açığa çıkarır. Bir totem açığa çıkardığında saldırıların ona ilave hasar verir.",
+   "plain": "Düzenli aralıklarla kapan ve totem tespiti sağlar.",
    "from": [
     "3134",
     "3133"
@@ -1571,6 +1726,8 @@
     "Hareket Hızı",
     "Yetenek Hızı"
    ],
+   "desc": "36\n Saldırı Gücü\n%30\n Saldırı Hızı\n333\n Can\n15\n Yetenek Hızı\n\nBüyülükılıç\n\nBir yetenek kullandıktan sonraki saldırın isabet halinde ilave fiziksel hasar verir.\n\nSüratlen\n\nSaldırılar 2 saniyeliğine 20 Hareket Hızı kazandırır.",
+   "plain": "Tonla Hasar",
    "from": [
     "3057",
     "3044",
@@ -1588,6 +1745,7 @@
     "Bekleme Süresi",
     "Büyü Emme"
    ],
+   "desc": "70\n Yetenek Gücü\n350\n Can\n15\n Yetenek Hızı\n\nHiçlik Uğursuzluğu\n\nRakip şampiyonlarla çatışmada geçirilen her saniye başına %2 İlave Hasar kazandırır (en fazla %8). Azami güce ulaşmak mutlak sömürü sağlar.\n\nHiçlik Zerki\n\nİlave canın %2 kadarını yetenek gücü olarak kazandırır.",
    "from": [
     "3147",
     "3108"
@@ -1605,6 +1763,8 @@
     "Vuruşta",
     "Yetenek Hızı"
    ],
+   "desc": "65\n Saldırı Gücü\n15\n Yetenek Hızı\n%12\n Can Çalma\n\nBiç\n\nSaldırılar yakınındaki rakiplere fiziksel hasar verir.\nVahşi Hilal\n\nEtrafındaki rakiplere fiziksel hasar verirsin.\nBu hasara can çalma etkin uygulanır.",
+   "plain": "Yakın dövüş saldırıları, civardaki rakiplere vurarak hasar verir ve Can yenilenmesi sağlar",
    "from": [
     "3077",
     "1053",
@@ -1620,6 +1780,8 @@
     "Can",
     "Can Yenilenmesi"
    ],
+   "desc": "1000\n Can\n%100\n Taban Can Yenilenmesi\n\nWarmog'un Yüreği\n\nEn az 2000 İlave Cana sahipsen ve 8 saniye boyunca hasar almamışsan her saniye 0 Can yeniler.\n\nWarmog'un Zindeliği\n\nEşyalardan elde edilen canın %12 kadarına eşdeğer miktarda ilave can kazandırır (0).",
+   "plain": "Muazzam Can ve Can Yenilenmesi verir",
    "from": [
     "1011",
     "1011",
@@ -1636,6 +1798,7 @@
     "Mana",
     "Yetenek Hızı"
    ],
+   "desc": "550\n Can\n500\n Mana\n15\n Yetenek Hızı\n\nHaşmet\n\n0 Can kazandırır.\n\nMana Akışı\n (8 sn., en fazla 4 yük)\nSaldırı ve yetenek isabet ettirmek 3 Azami Mana kazandırır. Şampiyonlara karşı iki katı ilave sağlar.\n360 Azami Mana biriktirmek bu eşyayı Son Kış'a dönüştürür.",
    "from": [
     "3070",
     "1011",
@@ -1653,6 +1816,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n400\n Can\n10\n Yetenek Hızı\n\nLightshield Saldırısı\n\nBir şampiyona yönelik ilk saldırın kritik vuruş\n gerçekleştirir ve can yeniler.",
    "from": [
     "2021",
     "3133",
@@ -1668,6 +1832,7 @@
     "Büyü Direnci",
     "Yetenek Gücü"
    ],
+   "desc": "40\n Yetenek Gücü\n25\n Büyü Direnci\n\nFeshet\n\nBir sonraki rakip yeteneğini engelleyen bir büyü kalkanı kazandırır.",
    "from": [
     "1052",
     "1033",
@@ -1683,6 +1848,7 @@
     "Saldırı Gücü",
     "Zırh Delme"
    ],
+   "desc": "55\n Saldırı Gücü\n15\n Zırh Deşme\n\nKalkan Yağmacısı\n\nBir rakip şampiyona hasar vermek onun kazandığı kalkan miktarını 3 saniyeliğine %0 azaltır.\nHedefin üstünde Kalkan Yağmacısı\n etkisi yoksa sahip olduğu kalkanlar %0 azalır.",
    "from": [
     "3134",
     "1037"
@@ -1698,6 +1864,7 @@
     "Hareket Hızı",
     "Büyü Delme"
    ],
+   "desc": "90\n Yetenek Gücü\n15\n Büyü Nüfuzu\n%6\n Hareket Hızı\n\nYıldırım Yağmacısı\n\nBir şampiyona 2.5 saniye içinde azami canının %25 kadarına eşdeğer miktarda hasar vermek ona Bora\n etkisi uygular.\n\nBora\n\n2 saniyenin ardından hedefe büyü hasarı verir. Hedef, Bora\n etkisi tetiklenmeden önce katledilirse bu etki yakındaki rakiplere hasar verir.",
    "from": [
     "3145",
     "3113"
@@ -1714,6 +1881,8 @@
     "Hareket Hızı",
     "Zırh Delme"
    ],
+   "desc": "55\n Saldırı Gücü\n18\n Zırh Deşme\n%4\n Hareket Hızı\n\nMusallat\n\nÇatışma dışında 0 Hareket Hızı kazandırır.\n\nTayf Adımı\n\n0 saniyeliğine hareket hızı ve hayalet etkisi kazanırsın.",
+   "plain": "Etkinleştirildiğinde hareket hızını büyük oranda arttırır",
    "from": [
     "3134",
     "6690",
@@ -1730,6 +1899,7 @@
     "Kritik",
     "Saldırı Hızı"
    ],
+   "desc": "50\n Saldırı Gücü\n%40\n Saldırı Hızı\n%0\n Kritik Vuruş İhtimali\n\nPratik Ölümcülleştirir\n\nSaldırı halinde en fazla %25 olacak şekilde kalıcı kritik vuruş ihtimali kazandırır.\n\nOk Salvosu\n\nBir rakip şampiyona saldırı halinde 6 saniyeliğine %30 Saldırı Hızı kazandırır (30 saniye bekleme süresi).\nBu bekleme süresini normal saldırılar 1 saniye, kritik vuruşlar 2 saniye azaltır.",
    "from": [
     "1038",
     "3144",
@@ -1747,6 +1917,7 @@
     "Bekleme Süresi",
     "Yetenek Hızı"
    ],
+   "desc": "45\n Saldırı Gücü\n450\n Can\n15\n Yetenek Hızı\n\nDoğra\n\nFiziksel hasar vermek rakip şampiyonlara 3 saniyeliğine %40 etkili Yara uygular.",
    "from": [
     "3123",
     "1011",
@@ -1764,6 +1935,8 @@
     "Zırh",
     "Yetenek Hızı"
    ],
+   "desc": "300\n Can\n25\n Zırh\n25\n Büyü Direnci\n10\n Yetenek Hızı\n\nBuz Ateşi Fırtınası\n\nUltini kullandığında etrafında 5 saniyeliğine bir fırtına oluşur. Bu fırtına rakip şampiyonlara her saniye 30 Büyü Hasarı verir ve onları %30 yavaşlatır.",
+   "plain": "Ultini kullandığında sana ve takım arkadaşına ilave etkiler sağlar.",
    "from": [
     "3067",
     "1029",
@@ -1780,6 +1953,8 @@
     "Yetenek Gücü",
     "Aktif Kullanım"
    ],
+   "desc": "105\n Yetenek Gücü\n50\n Zırh\n\nDon!\n\n2.5 saniyeliğine zamanı durdurursun.",
+   "plain": "Etkinleştirdiğinde zarar görmez hale gelirsin ama hareket edemezsin",
    "from": [
     "1058",
     "2420"
@@ -1789,227 +1964,283 @@
  "parts": {
   "1006": {
    "name": "Yenilenme Boncuğu",
-   "img": "1006.png"
+   "img": "1006.png",
+   "gold": 300
   },
   "1011": {
    "name": "Dev Kemeri",
-   "img": "1011.png"
+   "img": "1011.png",
+   "gold": 900
   },
   "1018": {
    "name": "Çeviklik Pelerini",
-   "img": "1018.png"
+   "img": "1018.png",
+   "gold": 600
   },
   "1026": {
    "name": "İnfilak Değneği",
-   "img": "1026.png"
+   "img": "1026.png",
+   "gold": 850
   },
   "1028": {
    "name": "Yakut Kristal",
-   "img": "1028.png"
+   "img": "1028.png",
+   "gold": 400
   },
   "1029": {
    "name": "Dokuma Zırh",
-   "img": "1029.png"
+   "img": "1029.png",
+   "gold": 300
   },
   "1031": {
    "name": "Zincir Yelek",
-   "img": "1031.png"
+   "img": "1031.png",
+   "gold": 800
   },
   "1033": {
    "name": "Büyüsavar Pelerin",
-   "img": "1033.png"
+   "img": "1033.png",
+   "gold": 400
   },
   "1036": {
    "name": "Uzun Kılıç",
-   "img": "1036.png"
+   "img": "1036.png",
+   "gold": 350
   },
   "1037": {
    "name": "Kazma",
-   "img": "1037.png"
+   "img": "1037.png",
+   "gold": 875
   },
   "1038": {
    "name": "TEK Kılıcı",
-   "img": "1038.png"
+   "img": "1038.png",
+   "gold": 1300
   },
   "1042": {
    "name": "Hançer",
-   "img": "1042.png"
+   "img": "1042.png",
+   "gold": 250
   },
   "1043": {
    "name": "Nişancı Yayı",
-   "img": "1043.png"
+   "img": "1043.png",
+   "gold": 700
   },
   "1052": {
    "name": "Kuvvet Kitabı",
-   "img": "1052.png"
+   "img": "1052.png",
+   "gold": 400
   },
   "1053": {
    "name": "Vampirî Asa",
-   "img": "1053.png"
+   "img": "1053.png",
+   "gold": 900
   },
   "1057": {
    "name": "Negatron Pelerini",
-   "img": "1057.png"
+   "img": "1057.png",
+   "gold": 850
   },
   "1058": {
    "name": "Aşırı Büyük Sopa",
-   "img": "1058.png"
+   "img": "1058.png",
+   "gold": 1200
   },
   "2019": {
    "name": "Çelik Mühür",
-   "img": "2019.png"
+   "img": "2019.png",
+   "gold": 1100
   },
   "2020": {
    "name": "Hırpalayan",
-   "img": "2020.png"
+   "img": "2020.png",
+   "gold": 1337
   },
   "2021": {
    "name": "Tünelci",
-   "img": "2021.png"
+   "img": "2021.png",
+   "gold": 1150
   },
   "2420": {
    "name": "Maceracının Pazubendi",
-   "img": "2420.png"
+   "img": "2420.png",
+   "gold": 1600
   },
   "2508": {
    "name": "Feleğin Külleri",
-   "img": "2508.png"
+   "img": "2508.png",
+   "gold": 900
   },
   "3024": {
    "name": "Buzul Kalkan",
-   "img": "3024.png"
+   "img": "3024.png",
+   "gold": 900
   },
   "3035": {
    "name": "Son Fısıltı",
-   "img": "3035.png"
+   "img": "3035.png",
+   "gold": 1450
   },
   "3044": {
    "name": "Ağırkan",
-   "img": "3044.png"
+   "img": "3044.png",
+   "gold": 1100
   },
   "3051": {
    "name": "Ocakbağlı Baltası",
-   "img": "3051.png"
+   "img": "3051.png",
+   "gold": 1200
   },
   "3057": {
    "name": "Pırıltı",
-   "img": "3057.png"
+   "img": "3057.png",
+   "gold": 900
   },
   "3066": {
    "name": "Kanatlı Ayzırhı",
-   "img": "3066.png"
+   "img": "3066.png",
+   "gold": 800
   },
   "3067": {
    "name": "Alazcevher",
-   "img": "3067.png"
+   "img": "3067.png",
+   "gold": 800
   },
   "3070": {
    "name": "Tanrıça'nın Gözyaşı",
-   "img": "3070.png"
+   "img": "3070.png",
+   "gold": 400
   },
   "3076": {
    "name": "Dikenli Yelek",
-   "img": "3076.png"
+   "img": "3076.png",
+   "gold": 800
   },
   "3077": {
    "name": "Tiamat",
-   "img": "3077.png"
+   "img": "3077.png",
+   "gold": 1200
   },
   "3082": {
    "name": "Başgardiyanın Zırhı",
-   "img": "3082.png"
+   "img": "3082.png",
+   "gold": 1000
   },
   "3086": {
    "name": "Coşku",
-   "img": "3086.png"
+   "img": "3086.png",
+   "gold": 1200
   },
   "3108": {
    "name": "Şeytani Külliyat",
-   "img": "3108.png"
+   "img": "3108.png",
+   "gold": 850
   },
   "3113": {
    "name": "Ruh Yeli",
-   "img": "3113.png"
+   "img": "3113.png",
+   "gold": 900
   },
   "3114": {
    "name": "Yasak İdol",
-   "img": "3114.png"
+   "img": "3114.png",
+   "gold": 600
   },
   "3123": {
    "name": "Celladın Çağrısı",
-   "img": "3123.png"
+   "img": "3123.png",
+   "gold": 800
   },
   "3133": {
    "name": "Caulfield'ın Savaş Çekici",
-   "img": "3133.png"
+   "img": "3133.png",
+   "gold": 1050
   },
   "3134": {
    "name": "Dişli Kama",
-   "img": "3134.png"
+   "img": "3134.png",
+   "gold": 1000
   },
   "3140": {
    "name": "Cıvalı Kuşak",
-   "img": "3140.png"
+   "img": "3140.png",
+   "gold": 1300
   },
   "3144": {
    "name": "İzci Sapanı",
-   "img": "3144.png"
+   "img": "3144.png",
+   "gold": 600
   },
   "3145": {
    "name": "Hextech Alternatörü",
-   "img": "3145.png"
+   "img": "3145.png",
+   "gold": 1100
   },
   "3147": {
    "name": "Lanetli Maske",
-   "img": "3147.png"
+   "img": "3147.png",
+   "gold": 1300
   },
   "3155": {
    "name": "Sihiriçen",
-   "img": "3155.png"
+   "img": "3155.png",
+   "gold": 1300
   },
   "3211": {
    "name": "Hayalet Pelerini",
-   "img": "3211.png"
+   "img": "3211.png",
+   "gold": 1250
   },
   "3801": {
    "name": "Kristal Kolluk",
-   "img": "3801.png"
+   "img": "3801.png",
+   "gold": 800
   },
   "3802": {
    "name": "Kayıp Cilt",
-   "img": "3802.png"
+   "img": "3802.png",
+   "gold": 1200
   },
   "3803": {
    "name": "Antik Dönüştürücü",
-   "img": "3803.png"
+   "img": "3803.png",
+   "gold": 1300
   },
   "3916": {
    "name": "Bilinmezlik Küresi",
-   "img": "3916.png"
+   "img": "3916.png",
+   "gold": 800
   },
   "4630": {
    "name": "Felaket Mücevheri",
-   "img": "4630.png"
+   "img": "4630.png",
+   "gold": 1100
   },
   "4632": {
    "name": "Yeşil Bariyer",
-   "img": "4632.png"
+   "img": "4632.png",
+   "gold": 1600
   },
   "4642": {
    "name": "Bandle Camı Ayna",
-   "img": "4642.png"
+   "img": "4642.png",
+   "gold": 900
   },
   "6660": {
    "name": "Bami'nin Alevi",
-   "img": "6660.png"
+   "img": "6660.png",
+   "gold": 900
   },
   "6670": {
    "name": "Doruk Sadağı",
-   "img": "6670.png"
+   "img": "6670.png",
+   "gold": 1300
   },
   "6690": {
    "name": "Kuyruk Tüyü",
-   "img": "6690.png"
+   "img": "6690.png",
+   "gold": 775
   }
  }
 }

@@ -190,16 +190,46 @@ writeFileSync(outPath, JSON.stringify(out, null, 1), 'utf8')
 // ---- Şampiyon bilgi kartı (ayrı dosya, tembel yüklenir) ------------------
 
 /** ddragon açıklamaları hafif HTML içerir: <br> satır sonu, kalanı temizlenir */
-function stripHtml(s) {
-  return (s ?? '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
+function decodeHtmlText(s) {
+  return s
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+}
+
+function stripHtml(s) {
+  return decodeHtmlText((s ?? '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
     .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim()
+  )
+}
+
+/**
+ * EŞYAYA ÖZEL temizlik. ddragon eşya açıklamasında statlar ve pasifler ayrı
+ * bloklarda (`<stats>`, `<passive>`, `<active>`) gelir; kapanışları satır sonuna
+ * çevrilmezse hepsi tek satıra yapışır.
+ *
+ * ⚠ Bu dönüşüm ŞAMPİYON açıklamalarına UYGULANMAZ: orada `<passive>Ad</passive>:
+ * açıklama` kalıbı var, blok sonuna `\n` koymak "Ad\n: açıklama" gibi kırık metin
+ * üretiyor (Sona/Tahm Kench'te yakalandı). O yüzden iki fonksiyon ayrı.
+ */
+function stripItemHtml(s) {
+  return decodeHtmlText((s ?? '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<\/(li|p|div|section|maintext|stats|passive|active|attention|rules|flavor)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+  )
 }
 
 // Lore + yetenek açıklamaları ANA veriye konmuyor: ~200 KB tutuyor ve oyun
@@ -266,6 +296,8 @@ const items = Object.entries(itemRaw.data)
     gold: i.gold.total,
     img: i.image.full,
     tags: (i.tags ?? []).map((t) => ITEM_TAG_TR[t]).filter(Boolean),
+    desc: stripItemHtml(i.description),
+    plain: i.plaintext ? stripItemHtml(i.plaintext) : undefined,
     from: i.from ?? [], // bileşen id'leri — ipucu olarak ikonları gösterilir
   }))
   .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
@@ -278,7 +310,14 @@ const partIds = [...new Set(items.flatMap((i) => i.from))]
 const parts = Object.fromEntries(
   partIds
     .filter((id) => itemRaw.data[id])
-    .map((id) => [id, { name: itemRaw.data[id].name.trim(), img: itemRaw.data[id].image.full }]),
+    .map((id) => [
+      id,
+      {
+        name: itemRaw.data[id].name.trim(),
+        img: itemRaw.data[id].image.full,
+        gold: itemRaw.data[id].gold.total,
+      },
+    ]),
 )
 const partsMissing = partIds.filter((id) => !itemRaw.data[id])
 

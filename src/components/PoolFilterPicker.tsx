@@ -43,7 +43,14 @@ function Group({
               aria-pressed={active}
               className={`pool-filter-chip card-btn rounded-full border px-3 py-1.5 text-xs font-semibold ${active ? 'is-active' : ''}`}
             >
-              {active && '✓ '}{o} <span className="pool-filter-chip-count">{n}</span>
+              {/*
+                Çip genişliği seçimden BAĞIMSIZ olmalı: tik ve sayı yer değiştirirse
+                flex-wrap satırları yeniden dizilir ve çipler "git gel" yapar.
+                Tik hep yer kaplar (pasifken görünmez), sayı sabit genişlikte hizalanır.
+              */}
+              <span aria-hidden className={`inline-block w-[1ch] ${active ? '' : 'opacity-0'}`}>✓</span>
+              {' '}{o}{' '}
+              <span className="pool-filter-chip-count inline-block min-w-[2.4ch] text-right tabular-nums">{n}</span>
             </button>
           )
         })}

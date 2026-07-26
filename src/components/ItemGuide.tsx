@@ -1,17 +1,13 @@
 import { useMemo, useState } from 'react'
-import { CHAMPIONS, squareUrl } from '../game/data'
-import { filterGuideChampions } from '../game/championGuide'
+import { ITEMS, itemIconUrl } from '../game/data'
 import {
-  ALL_FILTER,
-  laneOptions,
-  regionOptions,
-  roleOptions,
-  toggleValue,
-  type FilterKind,
-  type PoolFilter,
-} from '../game/filter'
-import type { Champion } from '../game/types'
-import ChampionInfo from './ChampionInfo'
+  ITEM_PRICE_BANDS,
+  filterGuideItems,
+  itemTagOptions,
+  type ItemPriceBandId,
+} from '../game/itemGuide'
+import type { Item } from '../game/types'
+import ItemInfo from './ItemInfo'
 import GuideTabs, { type GuideKey } from './GuideTabs'
 
 interface Props {
@@ -19,63 +15,31 @@ interface Props {
   onNavigate?: (key: GuideKey) => void
 }
 
-const REGION_OPTIONS = regionOptions()
-const ROLE_OPTIONS = roleOptions()
-const LANE_OPTIONS = laneOptions()
-const YEAR_OPTIONS = Array.from(
-  new Set(CHAMPIONS.map((champion) => champion.year).filter((year): year is number => year != null)),
-).sort((a, b) => b - a)
-const TOTAL_CHAMPIONS = CHAMPIONS.length
-const FILTER_GROUPS: { title: string; kind: FilterKind; options: string[] }[] = [
-  { title: 'Bölge', kind: 'region', options: REGION_OPTIONS },
-  { title: 'Rol', kind: 'role', options: ROLE_OPTIONS },
-  { title: 'Koridor', kind: 'lane', options: LANE_OPTIONS },
-]
+const TAG_OPTIONS = itemTagOptions(ITEMS)
+const TOTAL_ITEMS = ITEMS.length
 
-function hasActiveFilter(filter: PoolFilter, years: number[]): boolean {
-  return filter.regions.length > 0 || filter.roles.length > 0 || filter.lanes.length > 0 || years.length > 0
+function toggleTag(tags: string[], tag: string): string[] {
+  return tags.includes(tag) ? tags.filter((value) => value !== tag) : [...tags, tag]
 }
 
-function countPickedFilters(filter: PoolFilter, years: number[]): number {
-  return filter.regions.length + filter.roles.length + filter.lanes.length + years.length
-}
-
-function pickedValues(filter: PoolFilter, kind: FilterKind): string[] {
-  if (kind === 'region') return filter.regions
-  if (kind === 'role') return filter.roles
-  return filter.lanes
-}
-
-function toggleYear(years: number[], year: number): number[] {
-  return years.includes(year) ? years.filter((value) => value !== year) : [...years, year]
-}
-
-function FilterGroup({
-  title,
-  kind,
-  options,
-  value,
+function TagFilterGroup({
+  tags,
   onChange,
 }: {
-  title: string
-  kind: FilterKind
-  options: string[]
-  value: PoolFilter
-  onChange: (next: PoolFilter) => void
+  tags: string[]
+  onChange: (next: string[]) => void
 }) {
-  const picked = pickedValues(value, kind)
-
   return (
     <div
       className="hextech-frame rounded-2xl border px-3 py-3 sm:px-3.5"
       style={{
         background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.9))',
-        borderColor: picked.length > 0 ? 'rgba(var(--gold-rgb), 0.3)' : 'rgba(var(--gold-rgb), 0.14)',
+        borderColor: tags.length > 0 ? 'rgba(var(--gold-rgb), 0.3)' : 'rgba(var(--gold-rgb), 0.14)',
       }}
     >
       <div className="section-label mb-2.5 flex items-center justify-between gap-2">
-        <span>{title}</span>
-        {picked.length > 0 && (
+        <span>Etiket</span>
+        {tags.length > 0 && (
           <span
             className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
             style={{
@@ -84,20 +48,20 @@ function FilterGroup({
               color: 'var(--gold)',
             }}
           >
-            {picked.length} seçili
+            {tags.length} seçili
           </span>
         )}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const active = picked.includes(option)
+        {TAG_OPTIONS.map((tag) => {
+          const active = tags.includes(tag)
 
           return (
             <button
-              key={option}
+              key={tag}
               type="button"
-              onClick={() => onChange(toggleValue(value, kind, option))}
+              onClick={() => onChange(toggleTag(tags, tag))}
               aria-pressed={active}
               className="guide-chip rounded-full border px-3 py-1.5 text-xs font-semibold sm:text-[13px]"
               style={{
@@ -106,7 +70,7 @@ function FilterGroup({
                 color: active ? 'var(--gold-bright)' : 'var(--text)',
               }}
             >
-              {option}
+              {tag}
             </button>
           )
         })}
@@ -115,24 +79,24 @@ function FilterGroup({
   )
 }
 
-function YearFilterGroup({
-  years,
+function PriceFilterGroup({
+  band,
   onChange,
 }: {
-  years: number[]
-  onChange: (next: number[]) => void
+  band: ItemPriceBandId | null
+  onChange: (next: ItemPriceBandId | null) => void
 }) {
   return (
     <div
       className="hextech-frame rounded-2xl border px-3 py-3 sm:px-3.5"
       style={{
         background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.82), rgba(var(--bg-rgb), 0.9))',
-        borderColor: years.length > 0 ? 'rgba(var(--gold-rgb), 0.3)' : 'rgba(var(--gold-rgb), 0.14)',
+        borderColor: band ? 'rgba(var(--gold-rgb), 0.3)' : 'rgba(var(--gold-rgb), 0.14)',
       }}
     >
       <div className="section-label mb-2.5 flex items-center justify-between gap-2">
-        <span>Yıl</span>
-        {years.length > 0 && (
+        <span>Fiyat Bandı</span>
+        {band && (
           <span
             className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
             style={{
@@ -141,20 +105,20 @@ function YearFilterGroup({
               color: 'var(--gold)',
             }}
           >
-            {years.length} seçili
+            1 seçili
           </span>
         )}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {YEAR_OPTIONS.map((year) => {
-          const active = years.includes(year)
+        {ITEM_PRICE_BANDS.map((priceBand) => {
+          const active = band === priceBand.id
 
           return (
             <button
-              key={year}
+              key={priceBand.id}
               type="button"
-              onClick={() => onChange(toggleYear(years, year))}
+              onClick={() => onChange(active ? null : priceBand.id)}
               aria-pressed={active}
               className="guide-chip rounded-full border px-3 py-1.5 text-xs font-semibold sm:text-[13px]"
               style={{
@@ -163,7 +127,7 @@ function YearFilterGroup({
                 color: active ? 'var(--gold-bright)' : 'var(--text)',
               }}
             >
-              {String(year)}
+              {priceBand.label}
             </button>
           )
         })}
@@ -172,25 +136,24 @@ function YearFilterGroup({
   )
 }
 
-export default function ChampionGuide({ onExit, onNavigate }: Props) {
+export default function ItemGuide({ onExit, onNavigate }: Props) {
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<PoolFilter>(ALL_FILTER)
-  const [years, setYears] = useState<number[]>([])
-  const [selected, setSelected] = useState<Champion | null>(null)
+  const [tags, setTags] = useState<string[]>([])
+  const [band, setBand] = useState<ItemPriceBandId | null>(null)
+  const [selected, setSelected] = useState<Item | null>(null)
 
-  const shownChampions = useMemo(
-    () => filterGuideChampions(CHAMPIONS, search, filter, years),
-    [search, filter, years],
+  const shownItems = useMemo(
+    () => filterGuideItems(ITEMS, search, tags, band),
+    [search, tags, band],
   )
 
-  const activeFilter = hasActiveFilter(filter, years)
-  const activeFilterCount = countPickedFilters(filter, years)
   const hasQuery = search.trim().length > 0
+  const activeFilterCount = tags.length + (band ? 1 : 0)
 
   function clearAll() {
     setSearch('')
-    setFilter(ALL_FILTER)
-    setYears([])
+    setTags([])
+    setBand(null)
   }
 
   return (
@@ -198,7 +161,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
       <div className="pointer-events-none absolute inset-x-0 top-0 overflow-hidden" aria-hidden>
         <div
           className="absolute -left-16 top-10 h-44 w-44 rounded-full blur-3xl sm:h-56 sm:w-56"
-          style={{ background: 'rgba(var(--gold-glow-rgb), 0.12)' }}
+          style={{ background: 'rgba(var(--hextech-rgb), 0.12)' }}
         />
         <div
           className="absolute right-[-4rem] top-16 h-52 w-52 rounded-full blur-3xl sm:h-64 sm:w-64"
@@ -230,7 +193,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
 
             {onNavigate && (
               <div className="order-3 w-full min-w-0 sm:order-none sm:max-w-md sm:flex-1">
-                <GuideTabs active="champions" onSelect={onNavigate} />
+                <GuideTabs active="items" onSelect={onNavigate} />
               </div>
             )}
 
@@ -246,7 +209,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
               <span className="section-label text-[10px]" style={{ color: 'var(--gold)' }}>
                 Gösterilen
               </span>
-              <span>{shownChampions.length}/{TOTAL_CHAMPIONS}</span>
+              <span>{shownItems.length}/{TOTAL_ITEMS}</span>
             </span>
           </div>
 
@@ -255,7 +218,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
               className="text-shimmer font-display text-[1.95rem] font-extrabold tracking-tight sm:text-[2.6rem]"
               style={{ filter: 'drop-shadow(0 0 18px rgba(var(--gold-glow-rgb), 0.28))' }}
             >
-              📖 Şampiyon Rehberi
+              🗡 Eşya Rehberi
             </h1>
 
             <div className="mt-3 flex items-center gap-3" aria-hidden>
@@ -271,7 +234,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
             </div>
 
             <p className="mt-3 max-w-3xl text-sm leading-6 sm:text-base" style={{ color: 'var(--text-dim)' }}>
-              Vadi&apos;deki tüm şampiyonları bölge, rol, koridor ve çıkış yılına göre keşfet; karta tıklayınca bilgi paneli açılır.
+              Summoner&apos;s Rift&apos;teki tam eşyaları arayıp filtrele; karta tıklayınca açıklama, bileşenler ve yükseltmeler tek panelde açılır.
             </p>
           </div>
         </section>
@@ -290,11 +253,11 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
                   <span>Keşif Filtresi</span>
                 </div>
                 <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                  Arama ve filtreleri birleştirerek şampiyon havuzunu daralt.
+                  Ad, stat etiketi ve altın bandını birleştirerek rehber havuzunu daralt.
                 </p>
               </div>
 
-              {(hasQuery || activeFilter) && (
+              {(hasQuery || activeFilterCount > 0) && (
                 <button
                   type="button"
                   onClick={clearAll}
@@ -312,7 +275,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
 
             <div className="flex flex-col gap-3">
               <div>
-                <label htmlFor="champion-guide-search" className="section-label mb-2 block">
+                <label htmlFor="item-guide-search" className="section-label mb-2 block">
                   Ada göre ara
                 </label>
 
@@ -325,11 +288,11 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
                       🔍
                     </span>
                     <input
-                      id="champion-guide-search"
+                      id="item-guide-search"
                       type="search"
                       value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Örn: Kai'Sa, Jinx, Lee"
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Örn: Zhonya, Aklın Sonu, Üçlü Kuvvet"
                       autoComplete="off"
                       className="guide-search-input min-w-0 flex-1 text-sm"
                       style={{ color: 'var(--text)' }}
@@ -353,24 +316,15 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
                 </div>
               </div>
 
-              <div className="grid gap-3 xl:grid-cols-4">
-                {FILTER_GROUPS.map((group) => (
-                  <FilterGroup
-                    key={group.kind}
-                    title={group.title}
-                    kind={group.kind}
-                    options={group.options}
-                    value={filter}
-                    onChange={setFilter}
-                  />
-                ))}
-                <YearFilterGroup years={years} onChange={setYears} />
+              <div className="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+                <TagFilterGroup tags={tags} onChange={setTags} />
+                <PriceFilterGroup band={band} onChange={setBand} />
               </div>
             </div>
           </div>
         </section>
 
-        {shownChampions.length === 0 ? (
+        {shownItems.length === 0 ? (
           <div className="flex flex-1 items-center justify-center py-4">
             <div
               className="panel w-full max-w-xl rounded-[2rem] border px-6 py-7 text-center sm:px-8"
@@ -393,7 +347,7 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
                 Sonuç bulunamadı
               </h2>
               <p className="mt-2 text-sm leading-6" style={{ color: 'var(--text-dim)' }}>
-                Arama ve filtre birleşiminde eşleşen bir şampiyon yok. Terimi değiştir ya da filtreleri temizle.
+                Bu arama ve filtre birleşiminde eşleşen bir eşya yok. Terimi değiştir ya da filtreleri temizle.
               </p>
               <div className="mx-auto mt-4 flex max-w-[14rem] items-center gap-3" aria-hidden>
                 <span
@@ -419,68 +373,79 @@ export default function ChampionGuide({ onExit, onNavigate }: Props) {
           <section className="flex flex-1 flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <div className="section-label hextech-divider min-w-0 flex-1" style={{ color: 'var(--gold)' }}>
-                <span>Şampiyon Seçimi</span>
+                <span>Eşya Seçimi</span>
               </div>
               <span className="hidden text-xs font-medium sm:inline" style={{ color: 'var(--text-dim)' }}>
-                Kartı açmak için portreye tıkla
+                Kartı açmak için ikona tıkla
               </span>
             </div>
 
-            <div className="stagger grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-              {shownChampions.map((champion) => {
-                const primaryRole = champion.roles[0]
-                const meta = primaryRole ? `${champion.region} · ${primaryRole}` : champion.region
-
-                return (
-                  <button
-                    key={champion.id}
-                    type="button"
-                    onClick={() => setSelected(champion)}
-                    className="guide-card card-btn flex min-w-0 flex-col gap-2.5 rounded-2xl border p-2.5 text-left"
-                    style={{
-                      background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.92), rgba(var(--bg-rgb), 0.96))',
-                      borderColor: 'rgba(var(--gold-rgb), 0.15)',
-                    }}
-                    aria-label={`${champion.name} bilgi kartını aç`}
+            <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {shownItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelected(item)}
+                  className="guide-card card-btn flex min-w-0 flex-col gap-3 rounded-2xl border p-3 text-left"
+                  style={{
+                    background: 'linear-gradient(180deg, rgba(var(--bg-card-rgb), 0.92), rgba(var(--bg-rgb), 0.96))',
+                    borderColor: 'rgba(var(--gold-rgb), 0.15)',
+                  }}
+                  aria-label={`${item.name} bilgi kartını aç`}
+                >
+                  <div
+                    className="guide-card-media rounded-[1.15rem] border p-3"
+                    style={{ borderColor: 'rgba(var(--gold-rgb), 0.22)' }}
                   >
-                    <div
-                      className="guide-card-media rounded-[1.05rem] border"
-                      style={{ borderColor: 'rgba(var(--gold-rgb), 0.22)' }}
-                    >
-                      <div className="guide-card-halo" aria-hidden />
-                      <img
-                        src={squareUrl(champion.id)}
-                        alt={champion.name}
-                        loading="lazy"
-                        className="guide-card-portrait aspect-square w-full object-cover"
-                      />
-                      <div className="guide-card-ring" aria-hidden />
+                    <div className="guide-card-halo" aria-hidden />
+                    <img
+                      src={itemIconUrl(item.img)}
+                      alt={item.name}
+                      loading="lazy"
+                      className="guide-card-portrait aspect-square w-full object-contain"
+                    />
+                    <div className="guide-card-ring" aria-hidden />
+                  </div>
+
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-semibold sm:text-[15px]" style={{ color: 'var(--text)' }}>
+                      {item.name}
+                    </span>
+
+                    <div className="mt-1 flex items-center gap-2">
+                      <span
+                        className="rounded-full border px-2.5 py-1 text-[11px] font-bold tabular-nums"
+                        style={{
+                          borderColor: 'rgba(var(--gold-rgb), 0.3)',
+                          background: 'rgba(var(--gold-rgb), 0.08)',
+                          color: 'var(--gold-bright)',
+                        }}
+                      >
+                        {item.gold} altın
+                      </span>
                     </div>
 
-                    <div className="min-w-0">
-                      <span className="block truncate text-sm font-semibold sm:text-[15px]" style={{ color: 'var(--text)' }}>
-                        {champion.name}
-                      </span>
+                    {item.plain && (
                       <span
-                        className="guide-card-meta mt-1 block truncate text-[11px] font-medium"
+                        className="guide-card-meta mt-2 block line-clamp-2 text-[11px] font-medium leading-5"
                         style={{ color: 'var(--text-dim)' }}
                       >
-                        {meta}
+                        {item.plain}
                       </span>
-                    </div>
-                  </button>
-                )
-              })}
+                    )}
+                  </div>
+                </button>
+              ))}
             </div>
           </section>
         )}
       </div>
 
       {selected && (
-        <ChampionInfo
-          champion={selected}
-          splashNum={0}
+        <ItemInfo
+          item={selected}
           onClose={() => setSelected(null)}
+          onSelect={setSelected}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react'
-import { CHAMPIONS, PATCH } from '../game/data'
+import { CHAMPIONS, PATCH, loadingUrl } from '../game/data'
 import { getDifficulty, RULES, setDifficulty as saveDifficulty } from '../game/difficulty'
 import { getFilter, setFilter as saveFilter, type PoolFilter } from '../game/filter'
 import { getBestScore, getDailyHistory, getDailyState, getDailyStreak, getStats, isStreakAlive, normalizeEntry } from '../game/stats'
@@ -17,11 +17,14 @@ import { getChampWins, getEarnedAchievements, ACHIEVEMENTS } from '../game/achie
 import { cryptoRandInt, todayKey } from '../game/rng'
 import { miniDailyDone } from '../game/miniDaily'
 import RankEmblem from './RankEmblem'
+import PlayerGuide from './PlayerGuide'
 
 interface Props {
   onPlay: (top: TopMode, sub: PlaySub, diff: Difficulty, filter: PoolFilter) => void
   onSettings: () => void
   onChampions: () => void
+  onItems: () => void
+  onHowTo: () => void
   /** Mini oyunlar ayrı ekran — alt mod yapısına oturmuyorlar */
   onMiniGame: (game: 'wordle' | 'bingo' | 'timeline' | 'hunt' | 'grid' | 'connections', daily: boolean) => void
   /** "Kaç Tane?" — tek kişilik Sınırsız */
@@ -37,6 +40,22 @@ const LOL_TIPS = [
   '💡 Ahri, Dokuz Kuyruklu bir Vastaya büyücüsüdür.',
   '💡 Demacia şampiyonları büyüye karşı Petrisit taşından zırhlar kullanır.',
   '💡 Thresh, Kara Sis’in kalbindeki Ruh Toplayıcıdır.',
+]
+
+/**
+ * Hero kadrosu — GERÇEK ddragon sanatı (üretilmiş şampiyon sahte durur).
+ * Sıra ekrandaki dizilim: solda Garen + Seraphine, ORTADA Arcane kadrosu
+ * (başlığın arkasına denk geldiği için maskeyle sönümlenir), sağda Teemo.
+ * `focus` = `object-position` dikey hizası; her art'ta yüz farklı yükseklikte.
+ */
+const HERO_CAST: { id: string; focus: string }[] = [
+  { id: 'Garen', focus: '16%' },
+  { id: 'Seraphine', focus: '18%' },
+  { id: 'Jinx', focus: '18%' },
+  { id: 'Vi', focus: '16%' },
+  { id: 'Ekko', focus: '18%' },
+  { id: 'Caitlyn', focus: '16%' },
+  { id: 'Teemo', focus: '30%' },
 ]
 
 type ModeCardId = 'endless' | 'daily' | 'timed'
@@ -57,12 +76,6 @@ const MODE_CARD_ART: Record<ModeCardId, { src: string; artClassName: string; ove
     artClassName: 'menu-mode-card-art-timed',
     overlayClassName: 'menu-mode-card-darken-timed',
   },
-}
-
-const TOP_MODE_BADGE: Record<TopMode, string> = {
-  endless: 'Serbest Akış',
-  daily: 'Aynı Bulmaca',
-  timed: 'Süre Baskısı',
 }
 
 function ModeCardBackdrop({ failed, mode, onError }: { failed: boolean; mode: ModeCardId; onError: (mode: ModeCardId) => void }) {
@@ -86,7 +99,7 @@ function ModeCardBackdrop({ failed, mode, onError }: { failed: boolean; mode: Mo
   )
 }
 
-export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCounter, onCounterMulti }: Props) {
+export default function Menu({ onPlay, onSettings, onChampions, onItems, onHowTo, onMiniGame, onCounter, onCounterMulti }: Props) {
   const [top, setTop] = useState<TopMode | null>(null)
   const [rank, setRank] = useState(false)
   const [changelog, setChangelog] = useState(false)
@@ -96,6 +109,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
   const [diff, setDiff] = useState<Difficulty>(getDifficulty)
   const [filter, setFilterState] = useState<PoolFilter>(getFilter)
   const [soundOn, setSoundOn] = useState(sfxEnabled)
+  const [playerGuideOpen, setPlayerGuideOpen] = useState(false)
   const [modeCardArtFailed, setModeCardArtFailed] = useState<Record<ModeCardId, boolean>>({
     endless: false,
     daily: false,
@@ -175,6 +189,21 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
 
       {/* Üst Canlı Bar: Sihirdar Kimliği & Ses Kontrolü */}
       <div className="menu-hero anim-pop z-10 w-full overflow-hidden rounded-[24px] border px-3.5 py-3 sm:rounded-[30px] sm:px-5 sm:py-4">
+        {/* Hero kadrosu — GERÇEK ddragon sanatı (üretilmiş değil; üretilmiş şampiyon sahte durur).
+            İçeriğin ARKASINDA (z-0): kenarlardan içeri maskeyle erir, orta bölge başlık için temiz kalır.
+            Her karakterin kadrajı ayrı (`objectPosition`) — yüz hizası art'a göre değişiyor. */}
+        <span className="menu-hero-cast" aria-hidden>
+          {HERO_CAST.map((c) => (
+            <img
+              key={c.id}
+              src={loadingUrl(c.id, 0)}
+              alt=""
+              decoding="async"
+              style={{ objectPosition: `center ${c.focus}` }}
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
+          ))}
+        </span>
         <div className="flex flex-col gap-5 sm:gap-8">
           <div className="flex w-full items-center justify-between gap-2 text-xs">
         {/* Sol: Sihirdar Unvanı — tıklanınca kademelerin listesi açılır */}
@@ -274,13 +303,22 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                 {isDailyAllCompleted ? '🏆' : '⚡'}
               </span>
               <div className="text-left min-w-0">
+                {/* Metin duruma göre: hiç başlamadıysa DAVET, yarım kaldıysa DEVAM.
+                    (Eskiden 0/7'de bile "kaldığın yerden devam et" diyordu.)
+                    Başlıkta emoji YOK — soldaki ikon rozeti zaten onu gösteriyor. */}
                 <span className="block text-xs sm:text-sm font-extrabold tracking-tight text-white truncate">
-                  {isDailyAllCompleted ? '🏆 Günün Tüm Bulmacaları Tamamlandı!' : '🔥 Günün Bulmacasını Çöz'}
+                  {isDailyAllCompleted
+                    ? 'Günün Tüm Bulmacaları Tamamlandı!'
+                    : todayDoneCount === 0
+                      ? 'Günün Bulmacasını Çöz'
+                      : 'Günlüğe Devam Et'}
                 </span>
                 <span className="block text-[11px] font-medium text-amber-200/90 truncate">
                   {isDailyAllCompleted
-                    ? 'Tebrikler! Şimdi Sınırsız Klasik Modda pratik yap →'
-                    : `Bugün ${todayDoneCount}/${DAILY_SUBS.length} bitti — Kaldığın yerden devam et!`}
+                    ? 'Tebrikler! Şimdi Sınırsız Klasik\'te pratik yap →'
+                    : todayDoneCount === 0
+                      ? `Bugün için ${DAILY_SUBS.length} bulmaca hazır`
+                      : `Bugün ${todayDoneCount}/${DAILY_SUBS.length} bitti — kaldığın yerden devam et`}
                 </span>
               </div>
             </div>
@@ -369,7 +407,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                   ⏱️
                 </span>
                 <span className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-rose-300" style={{ background: 'rgba(var(--accent-timed-rgb), 0.18)' }}>
-                  ⚡ Tempolu
+                  Tempolu
                 </span>
               </div>
               <div className="mt-3 sm:mt-4">
@@ -401,11 +439,11 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             </div>
           </div>
 
-          {/* Sistem butonları — ana ekran yalnız iki giriş bırakır; geri kalan hub Ayarlar'dadır */}
+          {/* Sistem butonları */}
           <div className="flex flex-col gap-2 w-full">
             <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <button
-                onClick={onChampions}
+                onClick={() => setPlayerGuideOpen(true)}
                 className="menu-system-btn group card-btn flex items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-200 sm:gap-2.5 sm:py-3"
                 style={{ borderColor: 'var(--border)', color: 'var(--gold-bright)', '--sys-accent-rgb': 'var(--hextech-rgb)' } as CSSProperties}
               >
@@ -415,7 +453,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                     <path d="M12 6.6v12.2" />
                   </svg>
                 </span>
-                <span>Şampiyonlar</span>
+                  <span>Oyuncu Rehberi</span>
               </button>
               <button
                 onClick={onSettings}
@@ -564,7 +602,7 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                 ← Geri
               </button>
               <div className="menu-subflow-title flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start">
-                <span className="menu-subflow-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl">
+                <span className="menu-subflow-icon grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl leading-none">
                   {topMode!.icon}
                 </span>
                 <div className="min-w-0 text-center sm:text-left">
@@ -576,9 +614,6 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
                   </div>
                 </div>
               </div>
-              <span className="menu-subflow-badge shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]">
-                {TOP_MODE_BADGE[top]}
-              </span>
             </div>
           </div>
 
@@ -631,7 +666,9 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
           )}
 
           {/* Havuz filtresi — Günlük'te yok (herkes aynı bulmacayı çözmeli) */}
-          {top !== 'daily' && <PoolFilterPicker value={filter} onChange={pickFilter} />}
+          {/* Havuz filtresi yalnız Sınırsız'da: Günlük'te herkes aynı bulmacayı çözmeli,
+              Zamana Karşı'da ise skorlar sıralamaya gidiyor — daraltılmış havuz karşılaştırmayı bozar. */}
+          {top === 'endless' && <PoolFilterPicker value={filter} onChange={pickFilter} />}
 
           {/* Mod seçimi bölgesi */}
           <section className={`menu-subgrid-shell menu-subpanel menu-subgrid-shell-${top} rounded-[22px] border p-3 sm:p-4`}>
@@ -643,10 +680,10 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
               </div>
               <p className="menu-subgrid-note max-w-[26rem] text-xs sm:text-sm" style={{ color: 'var(--text-dim)' }}>
                 {top === 'timed'
-                  ? 'Süre kısalır, ipuçları sertleşir. Her kart skor odaklı hızlı başlangıç yapar.'
+                  ? 'Zorluk arttıkça süre kısalır, ipuçları sertleşir.'
                   : top === 'daily'
-                    ? 'Bugünün sabit bulmacaları. Herkes aynı cevabı çözer, ilerleme gün sonunda sıfırlanır.'
-                    : 'Zorluk ve havuz filtresi her alt modu birlikte etkiler. Aynı seçimle tüm kartlarda devam edebilirsin.'}
+                    ? 'İlerleme gün sonunda sıfırlanır.'
+                    : 'Zorluk ve havuz filtresi tüm alt modları birlikte etkiler.'}
               </p>
             </div>
 
@@ -715,6 +752,24 @@ export default function Menu({ onPlay, onSettings, onChampions, onMiniGame, onCo
             })()}
           </section>
         </div>
+      )}
+
+      {playerGuideOpen && (
+        <PlayerGuide
+          onClose={() => setPlayerGuideOpen(false)}
+          onChampions={() => {
+            setPlayerGuideOpen(false)
+            onChampions()
+          }}
+          onItems={() => {
+            setPlayerGuideOpen(false)
+            onItems()
+          }}
+          onHowTo={() => {
+            setPlayerGuideOpen(false)
+            onHowTo()
+          }}
+        />
       )}
 
       <footer className="relative z-10 mt-3 text-center text-xs opacity-75 sm:mt-4" style={{ color: 'var(--text-dim)' }}>
