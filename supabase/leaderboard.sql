@@ -9,6 +9,29 @@
 -- sızdırıyordu; okuma `get_leaderboard` RPC'sine taşındı ve satır başına yalnız
 -- `nick`, `score`, `is_me` dönüyor. Bu güvenlik düzeltmesi için bu dosyanın
 -- YENİDEN çalıştırılması gerekir.
+--
+-- 2026-07-26 düzeltmesi: canlıda Sıralama paneli
+--   "structure of query does not match function result type"
+-- hatası veriyordu. Sebep: `create or replace function` DÖNÜŞ TİPİNİ DEĞİŞTİREMEZ —
+-- veritabanında farklı imzalı eski bir `get_leaderboard` varsa Postgres
+-- "cannot change return type of existing function" der ve ESKİ TANIM YERİNDE KALIR;
+-- uygulama da o eski fonksiyonu çağırmaya devam eder. Çözüm: fonksiyon önce
+-- DÜŞÜRÜLÜP yeniden kuruluyor + dönen kolonlar açıkça tip dönüşümlü.
+-- Bu dosyanın YENİDEN çalıştırılması gerekir. (Tabloya dokunulmaz, SKORLAR SİLİNMEZ.)
+--
+-- TEŞHİS (bir daha olursa önce bunu çalıştır — sebebi tek bakışta gösterir):
+--   select pg_get_function_identity_arguments(p.oid) as parametreler,
+--          pg_get_function_result(p.oid)             as donen_tip
+--   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--   where n.nspname = 'public' and p.proname = 'get_leaderboard';
+--   -- Birden çok satır dönerse ESKİ BİR AŞIRI YÜKLEME (overload) kalmıştır:
+--   -- imzasını yukarıdaki `parametreler` sütunundan okuyup elle düşür, ör.
+--   --   drop function public.get_leaderboard(text, text);
+--
+--   select column_name, data_type from information_schema.columns
+--   where table_schema = 'public' and table_name = 'vt_leaderboard';
+-- Beklenen: fonksiyon `TABLE(nick text, score integer, is_me boolean)`,
+-- tablo kolonları `nick text` + `score integer`.
 
 -- 1) Tablo
 create table if not exists public.vt_leaderboard (
@@ -121,7 +144,15 @@ end;
 $$;
 
 -- 5) Stored Procedure: Güvenli Sıralama Okuma (get_leaderboard)
-create or replace function public.get_leaderboard(
+--
+-- ⚠ `create or replace` DEĞİL, önce DROP: replace dönüş tipini değiştiremediği için
+-- veritabanında farklı imzalı eski bir sürüm varsa güncelleme sessizce yarım kalıyor
+-- ve istemci eski (uyuşmayan) fonksiyonu çağırmayı sürdürüyor. Düşürüp yeniden
+-- kurmak bu tuzağı yapısal olarak kapatır; fonksiyon durum tutmadığı için düşürmek
+-- hiçbir veriyi kaybettirmez.
+drop function if exists public.get_leaderboard(text, text, text);
+
+create function public.get_leaderboard(
   p_mode text,
   p_date text default null,
   p_me   text default null
@@ -140,12 +171,16 @@ begin
     return;
   end if;
 
+  -- Kolonlar AÇIKÇA tip dönüşümlü: `returns table` bildirimi ile gövdenin sonucu
+  -- birebir aynı tipte olmak ZORUNDA (yoksa "structure of query does not match
+  -- function result type"). Cast'ler, tablo kolonu ileride sürüklense bile
+  -- (ör. `nick` varchar'a çevrilirse) fonksiyonu ayakta tutar.
   if p_mode like 'daily:%' then
     return query
     select
-      lb.nick,
-      lb.score,
-      case when p_me is not null and lb.player_id = p_me then true else false end
+      lb.nick::text,
+      lb.score::integer,
+      (p_me is not null and lb.player_id = p_me)::boolean
     from public.vt_leaderboard as lb
     where lb.mode = p_mode
       and coalesce(lb.date, '') = coalesce(p_date, '')
@@ -156,9 +191,9 @@ begin
 
   return query
   select
-    lb.nick,
-    lb.score,
-    case when p_me is not null and lb.player_id = p_me then true else false end
+    lb.nick::text,
+    lb.score::integer,
+    (p_me is not null and lb.player_id = p_me)::boolean
   from public.vt_leaderboard as lb
   where lb.mode = p_mode
   order by lb.score desc, lb.created_at asc

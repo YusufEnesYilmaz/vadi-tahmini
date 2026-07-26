@@ -56,7 +56,7 @@ const HERO_CAST: { id: string; focus: string }[] = [
   { id: 'Jinx', focus: '18%' },
   { id: 'Vi', focus: '16%' },
   { id: 'Ekko', focus: '18%' },
-  { id: 'Caitlyn', focus: '16%' },
+  { id: 'MasterYi', focus: '16%' },
   { id: 'Teemo', focus: '30%' },
 ]
 
