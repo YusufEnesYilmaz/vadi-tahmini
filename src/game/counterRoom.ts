@@ -21,6 +21,13 @@ import type { CountChallenge } from './counter'
  *   farklı ölçüt görürlerdi (meydan okuma linkindeki `dataVersion` tuzağı).
  */
 
+/**
+ * İki presence yazımı arasındaki en kısa süre. Presence sunucuda tüm odaya durum
+ * diff'i olarak fan-out edildiği için pahalıdır ve hız sınırına takılır; skor
+ * broadcast'le taşındığı için presence'ı sık yazmaya gerek yok.
+ */
+const PRESENCE_MIN_GAP_MS = 5000
+
 /** Karışan harf/rakamlar (I/1, O/0, S/5) bilerek YOK — kod sesli okunacak */
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRTUVWXYZ2346789'
 export const ROOM_CODE_LEN = 4
@@ -190,7 +197,11 @@ export function joinRoom(
     }
   })
 
-  const trackSelf = () => void ch.track({ nick: me.nick, joinedAt, score, done, ready, round })
+  let lastTrackAt = 0
+  const trackSelf = () => {
+    lastTrackAt = Date.now()
+    void ch.track({ nick: me.nick, joinedAt, score, done, ready, round })
+  }
 
   ch.subscribe((status) => {
     if (status === 'SUBSCRIBED') {
@@ -211,20 +222,42 @@ export function joinRoom(
       })
     },
     updateScore: (s, d, r) => {
+      /*
+       * ⚠ Presence ARTIK her skor değişiminde YAZILMIYOR.
+       *
+       * Eskiden her `updateScore` hem broadcast hem `track()` gönderiyordu; üstüne
+       * saniyelik nabız da vardı → istemci başına ~2 mesaj/sn. Presence en pahalı
+       * kanaldır (sunucu her değişimde tüm odaya durum diff'i fan-out eder) ve
+       * Supabase onu hız sınırına tabi tutar. Kullanıcı testinde tam bu imza çıktı:
+       * güncellemeler bir süre geliyor, sonra KESİLİYOR ve rakip "eski turda,
+       * hâlâ oynuyor" olarak donup kalıyor (skor gitmiyor, rövanş açılmıyor).
+       *
+       * Yeni kural: skoru YALNIZ broadcast taşır (ucuz, anlık). Presence yalnız
+       * DURUM GEÇİŞLERİNDE (tur değişimi / bitti bayrağı) ve en fazla
+       * PRESENCE_MIN_GAP_MS'de bir yazılır — tur ortasında katılan da yaklaşık
+       * skoru görsün diye tamamen kapatılmıyor.
+       */
+      const transition = d !== done || r !== round
       score = s
       done = d
       round = r
-      // Anlık yol: broadcast (canlı tablo bunu görür)
       void ch.send({ type: 'broadcast', event: 'score', payload: { playerId: me.playerId, score, done, round } })
-      // Yedek yol: presence — tur ortasında katılan da skorları görsün
-      trackSelf()
+      const now = Date.now()
+      if (transition || now - lastTrackAt >= PRESENCE_MIN_GAP_MS) trackSelf()
     },
     setReady: (r) => {
       ready = r
       trackSelf()
     },
     leave: () => {
-      void ch.unsubscribe()
+      /*
+       * `unsubscribe()` YETMEZ: kanal, paylaşılan `supabase` istemcisinin kanal
+       * listesinde KALIR. Her oda kurma/katılma denemesi bir kanal daha bırakınca
+       * aynı oturumda tekrar denenen girişlerde realtime bozuluyor (kanal
+       * SUBSCRIBED oluyor ama presence boş dönüyor — iki sekmeli testte görüldü).
+       * `removeChannel` hem aboneliği kapatır hem listeden düşürür.
+       */
+      void supabase?.removeChannel(ch)
     },
   }
 }

@@ -7,6 +7,7 @@ import {
   ROOM_CODE_LEN, hostOf, joinRoom, makeRoomCode, mergeScore, parseRoomCode, rankPlayers, winnersOf,
   type RoomHandle, type RoomPlayer, type RoomStatus,
 } from '../game/counterRoom'
+import { byId, squareUrl } from '../game/data'
 import { getNick, getPlayerId, recordChallengeWin, setNick } from '../game/challenge'
 import { evaluateAchievements } from '../game/achievements'
 import { isLeaderboardEnabled } from '../game/supabase'
@@ -17,6 +18,14 @@ import ExitConfirm from './ExitConfirm'
 
 /** Tur sonunda "tekrar oynayalım mı?" sorusunun cevapsız kalma süresi */
 const REMATCH_SECONDS = 15
+
+/**
+ * "Katıl" sonrası odada BAŞKASI görünmesi için tanınan süre. Realtime kanalları
+ * efemer olduğu için "bu oda var mı" diye sorulamıyor; varlık kanıtı = odada başka
+ * birinin belirmesi. Ölçüm: presence normalde 266–886 ms'de geliyor, o yüzden 6 sn
+ * bol pay bırakıyor (eski 2 sn tek atışlık kontrol var olan odaları eliyordu).
+ */
+const JOIN_PROBE_MS = 6000
 
 interface Props {
   onExit: () => void
@@ -50,6 +59,8 @@ export default function CounterMulti({ onExit }: Props) {
   const roundIdRef = useRef<string | null>(null)
   /** Son oynanan ölçüt — lobiden başlatılan tur da aynı ölçütü TEKRAR vermesin */
   const lastLabelRef = useRef<string | undefined>(undefined)
+  /** BİTİRDİĞİM turun id'si — rakibin o tura ait bayat kaydı yeni turu kilitlemesin */
+  const finishedRoundRef = useRef<string | null>(null)
   /** Kapanış anında dondurulan sonuç sıralaması */
   const [finalRanking, setFinalRanking] = useState<RoomPlayer[] | null>(null)
 
@@ -77,6 +88,8 @@ export default function CounterMulti({ onExit }: Props) {
   const [penaltySec, setPenaltySec] = useState(0)
 
   const handleRef = useRef<RoomHandle | null>(null)
+  /** "Katıl" sonrası oda-var-mı yoklaması — ekrandan çıkınca durdurulur */
+  const joinProbeRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const total = challenge?.ids.length ?? 0
   const allFound = !!challenge && total > 0 && found.length === total
@@ -129,8 +142,21 @@ export default function CounterMulti({ onExit }: Props) {
   const othersDone = participants.every((p) => p.playerId === playerId || p.done)
   const roundClosed = finished && (othersDone || roundDeadline)
   const stillPlaying = participants.filter((p) => p.playerId !== playerId && !p.done)
-  /** Lobideyken odada süren bir tur var mı (start'ı kaçırdıysam ya da sonradan katıldıysam) */
-  const othersInRound = !challenge && view.some((p) => p.playerId !== playerId && p.round !== null && !p.done)
+  /**
+   * Lobideyken odada süren bir tur var mı (start'ı kaçırdıysam ya da sonradan katıldıysam).
+   *
+   * ⚠ BENİM BİTİRDİĞİM tur sayılmaz: kullanıcı bildirdi ki tur bitince rakibin
+   * `round` bilgisi eski tur id'sinde donup kalıyor ve iki taraf da öbürünü "hâlâ
+   * oynuyor" sanıyor → `canStart` sonsuza dek false, rövanş HİÇ açılmıyor.
+   * Bitirdiğim turun id'sini hatırlayıp o turdaki bayat kayıtları yok sayıyorum;
+   * böylece rakibin son mesajı düşse bile oda kilitlenmiyor.
+   */
+  const othersInRound = !challenge && view.some((p) => (
+    p.playerId !== playerId
+    && p.round !== null
+    && p.round !== finishedRoundRef.current
+    && !p.done
+  ))
 
   // Skor tablosu HERKESİ gösterir (izleyici "👀" işaretli); sonuç yalnız katılımcıları.
   // Sonuç listesi kapanış ANINDA dondurulur (finalRanking): sonuca bakarken "Evet"
@@ -138,8 +164,21 @@ export default function CounterMulti({ onExit }: Props) {
   const ranked = rankPlayers(myView)
   const resultRanked = finalRanking ?? rankPlayers(participants)
   const winners = winnersOf(resultRanked)
-  const iWon = winners.some((w) => w.playerId === playerId)
-  const isTie = winners.length > 1
+  /*
+   * Rakip YOKSA kazanan da yok. `winnersOf([ben])` beni kazanan sayıyor; rakip
+   * hiç görünmediyse ya da tur ortasında çıktıysa ekranda "🏆 Turu sen kazandın"
+   * yazması yanlış — üstelik bağlantı sorununu ZAFER gibi gösterip gizliyordu
+   * (kullanıcı "hep kazanan oluyoruz" diye bildirdi). Rozet kuralı zaten
+   * ≥2 katılımcı istiyordu; ekran metni de aynı eşiğe bağlandı.
+   */
+  const hadRival = resultRanked.length >= 2
+  const iWon = hadRival && winners.some((w) => w.playerId === playerId)
+  const isTie = hadRival && winners.length > 1
+  /** Tur sonunda bulunamayan şampiyonlar — tek kişilikteki "Kaçırdıkların" listesi */
+  const missed = useMemo(
+    () => (challenge ? challenge.ids.filter((id) => !found.includes(id)) : []),
+    [challenge, found],
+  )
 
   // ---- Oda bağlantısı ----
   const playersRef = useRef<RoomPlayer[]>([])
@@ -183,21 +222,34 @@ export default function CounterMulti({ onExit }: Props) {
     setRoom(code)
 
     if (!create) {
-      setTimeout(() => {
+      /*
+       * Eskiden tek seferlik 2 sn'lik `setTimeout` vardı: presence 1 ms geç gelirse
+       * oyuncu VAR OLAN odadan atılıyordu ve kanal kapatıldığı için geri dönüş yoktu
+       * (iki sekmeli testte tam bu yaşandı — Veli 1,6 sn yalnız kendini gördü, 2,0'da
+       * "oda yok" yedi). Şimdi 500 ms aralıkla JOIN_PROBE_MS'e kadar yoklanıyor:
+       * biri görünür görünmez sessizce kalınır, hiç görünmezse eski uyarı verilir.
+       */
+      const deadline = Date.now() + JOIN_PROBE_MS
+      const probe = setInterval(() => {
         const others = playersRef.current.filter((p) => p.playerId !== playerId)
-        if (others.length === 0) {
-          handleRef.current?.leave()
-          handleRef.current = null
-          setRoom(null)
-          setPlayers([])
-          setNotFound(true)
-        }
-      }, 2000)
+        if (others.length > 0) { clearInterval(probe); return } // oda gerçek — sessizce kal
+        if (Date.now() < deadline) return                       // biraz daha bekle
+        clearInterval(probe)
+        handleRef.current?.leave()
+        handleRef.current = null
+        setRoom(null)
+        setPlayers([])
+        setNotFound(true)
+      }, 500)
+      joinProbeRef.current = probe
     }
   }, [playerId, nick])
 
-  // Ekrandan çıkarken kanalı kapat (yoksa oyuncu odada "hayalet" kalır)
-  useEffect(() => () => handleRef.current?.leave(), [])
+  // Ekrandan çıkarken kanalı kapat (yoksa oyuncu odada "hayalet" kalır) + yoklamayı durdur
+  useEffect(() => () => {
+    if (joinProbeRef.current) clearInterval(joinProbeRef.current)
+    handleRef.current?.leave()
+  }, [])
 
   // Escape = çıkış onayından vazgeç
   useEffect(() => {
@@ -235,11 +287,25 @@ export default function CounterMulti({ onExit }: Props) {
   scoreRef.current = { score: found.length, done: finished, round: roundId }
   useEffect(() => {
     if (!room || !challenge) return
-    const t = setInterval(
-      () => handleRef.current?.updateScore(scoreRef.current.score, scoreRef.current.done, scoreRef.current.round),
-      1000,
-    )
-    return () => clearInterval(t)
+    const push = () => handleRef.current?.updateScore(scoreRef.current.score, scoreRef.current.done, scoreRef.current.round)
+    // 1 sn'den 2 sn'ye çıkarıldı: nabzın işi KAYBOLAN mesajı onarmak, akış üretmek
+    // değil. Sık nabız presence/broadcast hız sınırını zorluyordu (bkz. counterRoom).
+    const t = setInterval(push, 2000)
+    /*
+     * Sekme arka plandayken tarayıcı `setInterval`i saniyede bire kısar, sekme
+     * dondurulursa büsbütün durdurabilir — o sırada gönderilen skorlar rakibe geç
+     * ulaşır ya da hiç ulaşmaz (iki sekmeli testte arka plandaki oyuncunun skoru
+     * karşıya geçmedi). Sekme öne gelir gelmez nabzı BEKLEMEDEN durumu yeniden
+     * yayınla ki tablo anında doğruya otursun.
+     */
+    const onVisible = () => { if (document.visibilityState === 'visible') push() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
   }, [room, challenge])
 
   /** Kapanış anındaki sıralamanın taze kopyası — dondurma efekti bunu okur */
@@ -253,6 +319,9 @@ export default function CounterMulti({ onExit }: Props) {
    */
   const backToLobby = useCallback(() => {
     setRematchLeft(null)
+    // Bitirdiğim turu işaretle: rakibin bu tura ait bayat "hâlâ oynuyor" kaydı
+    // yeni tur başlatmayı engellemesin (bkz. othersInRound)
+    finishedRoundRef.current = roundIdRef.current
     setChallenge(null)
     setRoundId(null)
     roundIdRef.current = null
@@ -638,6 +707,31 @@ export default function CounterMulti({ onExit }: Props) {
                   </div>
                 ))}
               </div>
+
+              {/* Rakip görünmediyse bunu AÇIKÇA söyle — bağlantı sorunu zafer gibi durmasın */}
+              {!hadRival && (
+                <p className="text-xs" style={{ color: 'var(--danger-text)' }}>
+                  ⚠ Bu turda başka oyuncu görünmedi — bağlantı ya da odaya katılma sorunu olabilir.
+                </p>
+              )}
+
+              {/* Kaçırdıkların — tek kişilik moddaki liste, multi'de eksikti */}
+              {missed.length > 0 && (
+                <div className="w-full">
+                  <div className="mb-1.5 text-xs uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
+                    Kaçırdıkların ({missed.length})
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {missed.map((id) => (
+                      <span key={id} className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
+                        style={{ borderColor: 'var(--border)', color: 'var(--text-dim)' }}>
+                        <img src={squareUrl(id)} alt="" className="h-4 w-4 rounded" />
+                        {byId(id)?.name ?? id}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* Tekrar oyna? — cevap gelmezse 15 sn sonra kendiliğinden lobiye döner */}
               <div className="w-full rounded-xl border p-3" style={{ borderColor: 'var(--gold)', background: 'var(--bg-input)' }}>
                 <p className="text-sm font-bold">
